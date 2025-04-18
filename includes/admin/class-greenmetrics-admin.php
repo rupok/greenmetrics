@@ -20,7 +20,6 @@ class GreenMetrics_Admin {
         add_action('admin_init', array($this, 'register_settings'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_scripts'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_styles'));
-        add_action('wp_ajax_greenmetrics_get_stats', array($this, 'handle_get_stats'));
     }
 
     /**
@@ -131,7 +130,7 @@ class GreenMetrics_Admin {
     public function enqueue_styles() {
         wp_enqueue_style(
             'greenmetrics-admin',
-            GREENMETRICS_PLUGIN_URL . 'admin/css/greenmetrics-admin.css',
+            GREENMETRICS_PLUGIN_URL . 'includes/admin/css/greenmetrics-admin.css',
             array(),
             GREENMETRICS_VERSION,
             'all'
@@ -144,33 +143,16 @@ class GreenMetrics_Admin {
     public function enqueue_scripts() {
         wp_enqueue_script(
             'greenmetrics-admin',
-            GREENMETRICS_PLUGIN_URL . 'admin/js/greenmetrics-admin.js',
+            GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin.js',
             array('jquery', 'wp-util'),
             GREENMETRICS_VERSION,
             true
         );
 
         wp_localize_script('greenmetrics-admin', 'greenmetricsAdmin', array(
-            'ajaxurl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('greenmetrics_admin_nonce')
+            'rest_url' => esc_url_raw(rest_url()),
+            'rest_nonce' => wp_create_nonce('wp_rest')
         ));
-    }
-
-    /**
-     * Handle get stats AJAX request.
-     */
-    public function handle_get_stats() {
-        check_ajax_referer('greenmetrics_admin_nonce', 'nonce');
-
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error('Unauthorized');
-            return;
-        }
-
-        $tracker = \GreenMetrics\GreenMetrics_Tracker::get_instance();
-        $stats = $tracker->get_stats();
-
-        wp_send_json_success($stats);
     }
 
     /**
@@ -181,6 +163,6 @@ class GreenMetrics_Admin {
             return;
         }
 
-        include GREENMETRICS_PLUGIN_DIR . 'admin/partials/greenmetrics-admin-display.php';
+        include GREENMETRICS_PLUGIN_DIR . 'includes/admin/partials/greenmetrics-admin-display.php';
     }
 } 

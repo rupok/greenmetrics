@@ -24,19 +24,41 @@ define('GREENMETRICS_PLUGIN_URL', plugin_dir_url(__FILE__));
 
 // Autoloader
 spl_autoload_register(function ($class) {
-    $prefix = 'GreenMetrics\\';
-    $base_dir = GREENMETRICS_PLUGIN_DIR . 'includes/';
+    // Debug logging
+    error_log('GreenMetrics Autoloader: Attempting to load class: ' . $class);
 
-    $len = strlen($prefix);
-    if (strncmp($prefix, $class, $len) !== 0) {
+    // Only handle classes in our namespace
+    $prefix = 'GreenMetrics\\';
+    if (strpos($class, $prefix) !== 0) {
+        error_log('GreenMetrics Autoloader: Class ' . $class . ' is not in our namespace');
         return;
     }
 
-    $relative_class = substr($class, $len);
-    $file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
+    // Remove namespace prefix to get relative class name
+    $relative_class = substr($class, strlen($prefix));
+    error_log('GreenMetrics Autoloader: Relative class name: ' . $relative_class);
+
+    // Handle subnamespaces
+    $parts = explode('\\', $relative_class);
+    $class_name = array_pop($parts);
+    $subdir = !empty($parts) ? implode('/', $parts) . '/' : '';
+
+    // Build file path
+    $file = GREENMETRICS_PLUGIN_DIR . 'includes/' . $subdir . 'class-' . strtolower($class_name) . '.php';
+    error_log('GreenMetrics Autoloader: Looking for file: ' . $file);
 
     if (file_exists($file)) {
-        require $file;
+        error_log('GreenMetrics Autoloader: Found file: ' . $file);
+        require_once $file;
+        
+        // Verify class was loaded
+        if (class_exists($class, false)) {
+            error_log('GreenMetrics Autoloader: Successfully loaded class: ' . $class);
+        } else {
+            error_log('GreenMetrics Autoloader: File loaded but class ' . $class . ' not found');
+        }
+    } else {
+        error_log('GreenMetrics Autoloader: File not found: ' . $file);
     }
 });
 
@@ -46,13 +68,46 @@ function greenmetrics_init() {
     load_plugin_textdomain('greenmetrics', false, dirname(plugin_basename(__FILE__)) . '/languages');
 
     // Initialize components
-    $admin = new \GreenMetrics\Admin\GreenMetrics_Admin();
-    $public = new \GreenMetrics\GreenMetrics_Public();
-    $tracker = \GreenMetrics\GreenMetrics_Tracker::get_instance();
-    $rest_api = new \GreenMetrics\GreenMetrics_Rest_API();
+    try {
+        // Require all class files directly
+        error_log('GreenMetrics: Loading admin class...');
+        require_once GREENMETRICS_PLUGIN_DIR . 'includes/admin/class-greenmetrics-admin.php';
+        
+        error_log('GreenMetrics: Loading public class...');
+        require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-public.php';
+        
+        error_log('GreenMetrics: Loading tracker class...');
+        require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-tracker.php';
+        
+        error_log('GreenMetrics: Loading REST API class...');
+        require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-rest-api.php';
+        
+        error_log('GreenMetrics: Initializing admin...');
+        $admin = new \GreenMetrics\Admin\GreenMetrics_Admin();
+        
+        error_log('GreenMetrics: Initializing public...');
+        $public = new \GreenMetrics\GreenMetrics_Public();
+        
+        error_log('GreenMetrics: Initializing tracker...');
+        $tracker = \GreenMetrics\GreenMetrics_Tracker::get_instance();
+        
+        error_log('GreenMetrics: Initializing REST API...');
+        $rest_api = new \GreenMetrics\GreenMetrics_Rest_API();
 
-    // Register REST API routes
-    add_action('rest_api_init', array($rest_api, 'register_routes'));
+        // Register REST API routes
+        add_action('rest_api_init', array($rest_api, 'register_routes'));
+        error_log('GreenMetrics: All components initialized successfully.');
+    } catch (Exception $e) {
+        // Log error and show admin notice
+        error_log('GreenMetrics Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+        add_action('admin_notices', function() use ($e) {
+            ?>
+            <div class="notice notice-error">
+                <p><?php echo esc_html('GreenMetrics Error: ' . $e->getMessage()); ?></p>
+            </div>
+            <?php
+        });
+    }
 }
 add_action('plugins_loaded', 'greenmetrics_init');
 

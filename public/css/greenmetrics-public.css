@@ -2,6 +2,7 @@
 .greenmetrics-badge-wrapper {
     position: relative;
     display: inline-block;
+    z-index: 1000;
 }
 
 .greenmetrics-badge {
@@ -15,12 +16,18 @@
     color: #ffffff;
     cursor: pointer;
     transition: all 0.3s ease;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 }
 
 .greenmetrics-badge .leaf-icon {
     width: 20px;
     height: 20px;
     fill: currentColor;
+    flex-shrink: 0;
+}
+
+.greenmetrics-badge span {
+    white-space: nowrap;
 }
 
 .greenmetrics-content {
@@ -38,6 +45,7 @@
     transform: translateY(-10px);
     transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
     z-index: 1000;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 }
 
 .greenmetrics-badge-wrapper:hover .greenmetrics-content {
@@ -50,6 +58,7 @@
     margin: 0 0 16px;
     font-size: 16px;
     font-weight: 600;
+    color: #333333;
 }
 
 .greenmetrics-metrics {
@@ -142,5 +151,11 @@
 
     .greenmetrics-content {
         min-width: 200px;
+        padding: 16px;
+    }
+
+    .greenmetrics-metrics {
+        grid-template-columns: 1fr;
+        gap: 12px;
     }
 } 

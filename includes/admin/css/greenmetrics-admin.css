@@ -1,0 +1,106 @@
+/* Admin Container Layout */
+.greenmetrics-admin-container {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.greenmetrics-admin-main {
+    flex: 1;
+    max-width: 800px;
+}
+
+.greenmetrics-admin-sidebar {
+    width: 300px;
+}
+
+/* Admin Boxes */
+.greenmetrics-admin-box {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+    margin-bottom: 20px;
+    padding: 20px;
+}
+
+.greenmetrics-admin-box h2 {
+    margin-top: 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+/* Stats Container */
+.greenmetrics-stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.greenmetrics-stat-box {
+    background: #f8f9fa;
+    border: 1px solid #e2e4e7;
+    border-radius: 4px;
+    padding: 15px;
+    text-align: center;
+}
+
+.greenmetrics-stat-box h3 {
+    margin: 0 0 10px;
+    color: #1e1e1e;
+    font-size: 14px;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 600;
+    color: #2271b1;
+}
+
+/* Usage Info */
+.usage-info {
+    margin-top: 15px;
+}
+
+.usage-info h3 {
+    margin: 20px 0 10px;
+    font-size: 14px;
+}
+
+.usage-info code {
+    display: inline-block;
+    background: #f0f0f1;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 13px;
+}
+
+.usage-info ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.usage-info li {
+    margin-bottom: 8px;
+}
+
+/* Settings Form */
+.form-table th {
+    padding: 20px 10px 20px 0;
+}
+
+.form-table td {
+    padding: 15px 10px;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 1200px) {
+    .greenmetrics-admin-container {
+        flex-direction: column;
+    }
+    
+    .greenmetrics-admin-sidebar {
+        width: 100%;
+        max-width: 800px;
+    }
+} 

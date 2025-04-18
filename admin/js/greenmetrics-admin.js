@@ -41,19 +41,13 @@ jQuery(document).ready(function($) {
     // Get stats
     function getStats() {
         $.ajax({
-            url: greenmetricsAdmin.ajaxurl,
-            type: 'POST',
-            data: {
-                action: 'greenmetrics_get_stats',
-                nonce: greenmetricsAdmin.nonce
+            url: greenmetricsAdmin.rest_url + 'greenmetrics/v1/stats',
+            type: 'GET',
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('X-WP-Nonce', greenmetricsAdmin.rest_nonce);
             },
             success: function(response) {
-                if (response.success) {
-                    updateStatsDisplay(response.data);
-                } else {
-                    console.error('Error getting stats:', response.data);
-                    $('#greenmetrics-stats').html('<p class="error">Error loading stats. Please try again.</p>');
-                }
+                updateStatsDisplay(response);
             },
             error: function(xhr, status, error) {
                 console.error('Error getting stats:', error);
@@ -167,19 +161,15 @@ jQuery(document).ready(function($) {
     // Update stats periodically
     function updateStats() {
         $.ajax({
-            url: greenmetricsAdmin.ajaxurl,
+            url: greenmetricsAdmin.rest_url + 'greenmetrics/v1/stats',
             type: 'GET',
-            data: {
-                action: 'greenmetrics_get_stats',
-                nonce: greenmetricsAdmin.nonce
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('X-WP-Nonce', greenmetricsAdmin.rest_nonce);
             },
             success: function(response) {
-                if (response.success) {
-                    const stats = response.data;
-                    $('#total-views').text(stats.total_views.toLocaleString());
-                    $('#avg-data-transfer').text(stats.avg_data_transfer.toFixed(2) + ' KB');
-                    $('#avg-load-time').text(stats.avg_load_time.toFixed(2) + ' s');
-                }
+                $('#total-views').text(response.total_views.toLocaleString());
+                $('#avg-data-transfer').text(response.avg_data_transfer.toFixed(2) + ' KB');
+                $('#avg-load-time').text(response.avg_load_time.toFixed(2) + ' s');
             }
         });
     }
