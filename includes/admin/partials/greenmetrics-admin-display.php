@@ -1,23 +1,51 @@
 <?php
 /**
- * Admin area display template
+ * Admin display template.
  *
  * @package    GreenMetrics
- * @subpackage GreenMetrics/admin/partials
+ * @subpackage GreenMetrics/includes/admin/partials
  */
 
 // If this file is called directly, abort.
 if (!defined('WPINC')) {
     die;
 }
+
+// Get stats using the tracker singleton
+$tracker = \GreenMetrics\GreenMetrics_Tracker::get_instance();
+$stats = $tracker->get_stats();
+
+// Get settings
+$settings = get_option('greenmetrics_settings', array(
+    'tracking_enabled' => 1,
+    'enable_badge' => 1
+));
 ?>
 
 <div class="wrap">
     <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
 
     <div class="greenmetrics-admin-container">
-        <div class="greenmetrics-admin-main">
-            <div class="greenmetrics-admin-box">
+        <div class="greenmetrics-admin-content">
+            <div class="greenmetrics-admin-stats">
+                <h2><?php esc_html_e('Website Performance', 'greenmetrics'); ?></h2>
+                <div class="greenmetrics-stats-grid">
+                    <div class="greenmetrics-stat-card">
+                        <h3><?php esc_html_e('Total Views', 'greenmetrics'); ?></h3>
+                        <div class="greenmetrics-stat-value" id="total-views"><?php echo esc_html($stats->total_views ?? 0); ?></div>
+                    </div>
+                    <div class="greenmetrics-stat-card">
+                        <h3><?php esc_html_e('Average Data Transfer', 'greenmetrics'); ?></h3>
+                        <div class="greenmetrics-stat-value" id="avg-data-transfer"><?php echo esc_html(round($stats->avg_data_transfer ?? 0, 2)); ?> KB</div>
+                    </div>
+                    <div class="greenmetrics-stat-card">
+                        <h3><?php esc_html_e('Average Load Time', 'greenmetrics'); ?></h3>
+                        <div class="greenmetrics-stat-value" id="avg-load-time"><?php echo esc_html(round($stats->avg_load_time ?? 0, 2)); ?> ms</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="greenmetrics-admin-settings">
                 <h2><?php esc_html_e('Settings', 'greenmetrics'); ?></h2>
                 <form method="post" action="options.php">
                     <?php
@@ -27,52 +55,53 @@ if (!defined('WPINC')) {
                     ?>
                 </form>
             </div>
-
-            <div class="greenmetrics-admin-box">
-                <h2><?php esc_html_e('Statistics', 'greenmetrics'); ?></h2>
-                <div class="greenmetrics-stats-container">
-                    <?php
-                    $tracker = \GreenMetrics\GreenMetrics_Tracker::get_instance();
-                    $stats = $tracker->get_stats();
-
-                    // Format stats
-                    $data_transfer = isset($stats['avg_data_transfer']) ? number_format($stats['avg_data_transfer'] / 1024, 2) . ' KB' : '0 KB';
-                    $load_time = isset($stats['avg_load_time']) ? number_format($stats['avg_load_time'], 2) . ' s' : '0 s';
-                    $total_views = isset($stats['total_views']) ? number_format($stats['total_views']) : '0';
-                    ?>
-                    <div class="greenmetrics-stat-box">
-                        <h3><?php esc_html_e('Average Data Transfer', 'greenmetrics'); ?></h3>
-                        <div class="stat-value"><?php echo esc_html($data_transfer); ?></div>
-                    </div>
-                    <div class="greenmetrics-stat-box">
-                        <h3><?php esc_html_e('Average Load Time', 'greenmetrics'); ?></h3>
-                        <div class="stat-value"><?php echo esc_html($load_time); ?></div>
-                    </div>
-                    <div class="greenmetrics-stat-box">
-                        <h3><?php esc_html_e('Total Page Views', 'greenmetrics'); ?></h3>
-                        <div class="stat-value"><?php echo esc_html($total_views); ?></div>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <div class="greenmetrics-admin-sidebar">
-            <div class="greenmetrics-admin-box">
-                <h2><?php esc_html_e('Usage', 'greenmetrics'); ?></h2>
-                <div class="usage-info">
-                    <h3><?php esc_html_e('Shortcode', 'greenmetrics'); ?></h3>
-                    <code>[greenmetrics_badge]</code>
-                    <p><?php esc_html_e('Use this shortcode to display the eco-friendly badge anywhere on your site.', 'greenmetrics'); ?></p>
+            <div class="greenmetrics-admin-card">
+                <h3><?php esc_html_e('Usage', 'greenmetrics'); ?></h3>
+                
+                <div class="usage-section">
+                    <h4><?php esc_html_e('Shortcode', 'greenmetrics'); ?></h4>
+                    <p><?php esc_html_e('Use the following shortcode to display the GreenMetrics badge:', 'greenmetrics'); ?></p>
+                    <div class="code-block">
+                        <code>[greenmetrics_badge]</code>
+                    </div>
                     
-                    <h3><?php esc_html_e('Attributes', 'greenmetrics'); ?></h3>
-                    <ul>
-                        <li><code>position</code> - <?php esc_html_e('Badge position (e.g., bottom-right, bottom-left)', 'greenmetrics'); ?></li>
-                        <li><code>theme</code> - <?php esc_html_e('Color theme (light or dark)', 'greenmetrics'); ?></li>
-                        <li><code>size</code> - <?php esc_html_e('Badge size (small, medium, or large)', 'greenmetrics'); ?></li>
+                    <h5><?php esc_html_e('Available Attributes:', 'greenmetrics'); ?></h5>
+                    <ul class="attributes-list">
+                        <li><code>show_icon="true|false"</code> - <?php esc_html_e('Show/hide the icon', 'greenmetrics'); ?></li>
+                        <li><code>icon_size="small|medium|large"</code> - <?php esc_html_e('Set the icon size', 'greenmetrics'); ?></li>
+                        <li><code>show_text="true|false"</code> - <?php esc_html_e('Show/hide the text', 'greenmetrics'); ?></li>
+                        <li><code>text="Custom Text"</code> - <?php esc_html_e('Custom text to display', 'greenmetrics'); ?></li>
+                        <li><code>text_font_size="12"</code> - <?php esc_html_e('Text font size in pixels', 'greenmetrics'); ?></li>
+                        <li><code>border_radius="4"</code> - <?php esc_html_e('Border radius in pixels', 'greenmetrics'); ?></li>
+                        <li><code>padding="10"</code> - <?php esc_html_e('Padding in pixels', 'greenmetrics'); ?></li>
+                        <li><code>font_size="14"</code> - <?php esc_html_e('Font size in pixels', 'greenmetrics'); ?></li>
+                        <li><code>position="top-left|top-right|bottom-left|bottom-right"</code> - <?php esc_html_e('Badge position', 'greenmetrics'); ?></li>
+                        <li><code>theme="light|dark"</code> - <?php esc_html_e('Color theme', 'greenmetrics'); ?></li>
+                        <li><code>size="small|medium|large"</code> - <?php esc_html_e('Overall badge size', 'greenmetrics'); ?></li>
+                        <li><code>show_content="true|false"</code> - <?php esc_html_e('Show/hide detailed content', 'greenmetrics'); ?></li>
+                        <li><code>content_title="Custom Title"</code> - <?php esc_html_e('Custom title for detailed content', 'greenmetrics'); ?></li>
+                        <li><code>selected_metrics="carbon_footprint,energy_consumption,data_transfer"</code> - <?php esc_html_e('Comma-separated list of metrics to display', 'greenmetrics'); ?></li>
+                        <li><code>custom_content="Custom HTML"</code> - <?php esc_html_e('Custom HTML content to display', 'greenmetrics'); ?></li>
+                        <li><code>animation_duration="300"</code> - <?php esc_html_e('Animation duration in milliseconds', 'greenmetrics'); ?></li>
                     </ul>
+                    
+                    <h5><?php esc_html_e('Example:', 'greenmetrics'); ?></h5>
+                    <div class="code-block">
+                        <code>[greenmetrics_badge show_icon="true" icon_size="medium" show_text="true" position="bottom-right" theme="light" size="medium"]</code>
+                    </div>
+                </div>
 
-                    <h3><?php esc_html_e('Block Editor', 'greenmetrics'); ?></h3>
-                    <p><?php esc_html_e('You can also add the GreenMetrics badge using the block editor. Look for the "GreenMetrics Badge" block in the block inserter.', 'greenmetrics'); ?></p>
+                <div class="usage-section">
+                    <h4><?php esc_html_e('Block', 'greenmetrics'); ?></h4>
+                    <p><?php esc_html_e('Add the GreenMetrics badge block to your page or post:', 'greenmetrics'); ?></p>
+                    <ol>
+                        <li><?php esc_html_e('Click the "+" button to add a new block', 'greenmetrics'); ?></li>
+                        <li><?php esc_html_e('Search for "GreenMetrics"', 'greenmetrics'); ?></li>
+                        <li><?php esc_html_e('Select the "GreenMetrics Badge" block', 'greenmetrics'); ?></li>
+                    </ol>
                 </div>
             </div>
         </div>

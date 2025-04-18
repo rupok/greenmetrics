@@ -67,40 +67,40 @@ class GreenMetrics_Rest_API {
      * @return \WP_REST_Response The response object.
      */
     public function get_stats($request) {
-        $page_id = $request->get_param('page_id');
-        $tracker = GreenMetrics_Tracker::get_instance();
-        $stats = $tracker->get_stats($page_id);
+        try {
+            $page_id = $request->get_param('page_id');
+            $tracker = GreenMetrics_Tracker::get_instance();
+            $stats = $tracker->get_stats($page_id);
 
-        // Get total stats for additional metrics
-        $total_stats = GreenMetrics_Tracker::get_total_stats();
+            if (!is_array($stats)) {
+                return new \WP_Error(
+                    'invalid_stats',
+                    'Failed to retrieve statistics',
+                    array('status' => 500)
+                );
+            }
 
-        // Calculate metrics based on actual data
-        $data_transfer = isset($stats['avg_data_transfer']) ? floatval($stats['avg_data_transfer']) : 0;
-        $load_time = isset($stats['avg_load_time']) ? floatval($stats['avg_load_time']) : 0;
-        $requests = isset($total_stats['total_requests']) ? intval($total_stats['total_requests']) : 0;
-
-        // Calculate CO2 emissions and energy consumption
-        $settings = get_option('greenmetrics_settings', array(
-            'carbon_intensity' => 0.475, // Default carbon intensity factor (kg CO2/kWh)
-            'energy_per_byte' => 0.000000000072 // Default energy per byte (kWh/byte)
-        ));
-
-        $energy_consumption = $data_transfer * $settings['energy_per_byte'];
-        $co2_emissions = $energy_consumption * $settings['carbon_intensity'];
-
-        // Calculate performance score
-        $performance_score = 100;
-        if ($load_time > 0) {
-            $performance_score = max(0, 100 - ($load_time * 10));
+            // Format the response to match what the JavaScript expects
+            return rest_ensure_response(array(
+                'total_views' => intval($stats['total_views']),
+                'avg_data_transfer' => round(floatval($stats['avg_data_transfer']), 2),
+                'min_data_transfer' => 0, // These could be added to the tracker query if needed
+                'max_data_transfer' => 0,
+                'avg_load_time' => round(floatval($stats['avg_load_time']), 2),
+                'min_load_time' => 0,
+                'max_load_time' => 0,
+                'co2_emissions' => round(floatval($stats['avg_carbon_footprint']), 2),
+                'energy_consumption' => round(floatval($stats['avg_energy_consumption']), 2),
+                'requests' => intval($stats['avg_requests']),
+                'performance_score' => round(floatval($stats['avg_performance_score']))
+            ));
+        } catch (\Exception $e) {
+            return new \WP_Error(
+                'stats_error',
+                'Error retrieving statistics: ' . $e->getMessage(),
+                array('status' => 500)
+            );
         }
-
-        return rest_ensure_response(array(
-            'co2_emissions' => round($co2_emissions, 2),
-            'energy_consumption' => round($energy_consumption, 2),
-            'data_transfer' => round($data_transfer, 2),
-            'requests' => $requests,
-            'performance_score' => round($performance_score)
-        ));
     }
 
     /**
