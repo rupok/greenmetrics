@@ -1,0 +1,59 @@
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Node modules and build files
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# WordPress specific
+*.log
+wp-config.php
+wp-content/
+!wp-content/plugins/
+wp-content/plugins/*
+!wp-content/plugins/greenmetrics/
+
+# Build files
+/build/
+/dist/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Composer
+/vendor/
+composer.lock
+
+# Node
+/node_modules/
+package-lock.json
+yarn.lock
+
+# Build files
+/public/js/blocks/*/build/
+/public/js/blocks/*/dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+debug.log
+
+# Temporary files
+*.tmp
+*.temp 

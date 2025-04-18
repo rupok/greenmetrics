@@ -1,0 +1,26 @@
+{
+    "name": "greenmetrics/greenmetrics",
+    "description": "Measure and reduce your website's environmental impact with carbon footprint tracking and optimization suggestions.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "GreenMetrics Team",
+            "email": "team@greenmetrics.io"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "composer/installers": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "GreenMetrics\\": "includes/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true
+        }
+    }
+} 

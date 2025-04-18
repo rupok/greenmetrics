@@ -1,0 +1,146 @@
+/* Public-facing styles for GreenMetrics */
+.greenmetrics-badge-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.greenmetrics-badge {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    background-color: #4CAF50;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.greenmetrics-badge .leaf-icon {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
+.greenmetrics-content {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    min-width: 300px;
+    padding: 24px;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background-color: #ffffff;
+    color: #333333;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+    z-index: 1000;
+}
+
+.greenmetrics-badge-wrapper:hover .greenmetrics-content {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.greenmetrics-content h3 {
+    margin: 0 0 16px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.greenmetrics-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.greenmetrics-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.greenmetrics-metric-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.greenmetrics-metric-value {
+    font-size: 14px;
+    font-weight: 500;
+    padding: 4px 8px;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+/* Position variations */
+.greenmetrics-badge-wrapper.bottom-right {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+}
+
+.greenmetrics-badge-wrapper.bottom-right .greenmetrics-content {
+    bottom: calc(100% + 8px);
+    top: auto;
+    left: auto;
+    right: 0;
+}
+
+/* Theme variations */
+.greenmetrics-badge.light {
+    background-color: #ffffff;
+    color: #4CAF50;
+    border: 1px solid #4CAF50;
+}
+
+.greenmetrics-badge.dark {
+    background-color: #333333;
+    color: #ffffff;
+}
+
+/* Size variations */
+.greenmetrics-badge.small {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+.greenmetrics-badge.small .leaf-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.greenmetrics-badge.large {
+    padding: 12px 24px;
+    font-size: 16px;
+}
+
+.greenmetrics-badge.large .leaf-icon {
+    width: 24px;
+    height: 24px;
+}
+
+/* Responsive design */
+@media screen and (max-width: 600px) {
+    .greenmetrics-badge {
+        font-size: 10px;
+        padding: 6px 10px;
+    }
+    
+    .greenmetrics-badge .leaf-icon {
+        width: 12px;
+        height: 12px;
+    }
+
+    .greenmetrics-content {
+        min-width: 200px;
+    }
+} 
