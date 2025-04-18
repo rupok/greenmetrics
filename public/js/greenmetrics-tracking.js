@@ -1,69 +1,55 @@
-jQuery(document).ready(function($) {
-    // Check if tracking is available and enabled
-    if (!window.greenmetricsTracking) {
-        console.warn('GreenMetrics tracking data not found');
+(function() {
+    if (!window.greenmetricsTracking || !window.greenmetricsTracking.enabled) {
         return;
     }
 
-    if (!window.greenmetricsTracking.tracking_enabled) {
-        console.debug('GreenMetrics tracking is disabled');
-        return;
-    }
+    // Track page load metrics
+    window.addEventListener('load', function() {
+        const performance = window.performance;
+        if (!performance) return;
 
-    if (!window.greenmetricsTracking.rest_url) {
-        console.warn('GreenMetrics REST URL not found');
-        return;
-    }
+        // Get resource timing data
+        const resources = performance.getEntriesByType('resource');
+        let dataTransfer = 0;
+        let requests = 0;
 
-    if (!window.performance || !window.performance.getEntriesByType) {
-        console.warn('Performance API not available');
-        return;
-    }
+        resources.forEach(resource => {
+            if (resource.transferSize) {
+                dataTransfer += resource.transferSize;
+            }
+            requests++;
+        });
 
-    // Calculate data transfer
-    const resources = performance.getEntriesByType('resource');
-    const dataTransfer = resources.reduce((total, resource) => {
-        return total + (resource.transferSize || 0);
-    }, 0);
+        // Get page load time
+        const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
 
-    // Calculate page load time
-    const loadTime = (window.performance.timing.loadEventEnd - window.performance.timing.navigationStart) / 1000;
+        // Calculate carbon footprint and energy consumption
+        const carbonFootprint = dataTransfer * window.greenmetricsTracking.energyPerByte * window.greenmetricsTracking.carbonIntensity;
+        const energyConsumption = dataTransfer * window.greenmetricsTracking.energyPerByte;
 
-    // Prepare tracking data
-    const data = {
-        page_id: window.greenmetricsTracking.page_id,
-        data_transfer: dataTransfer,
-        load_time: loadTime
-    };
+        // Send data to server
+        const formData = new FormData();
+        formData.append('action', 'greenmetrics_tracking');
+        formData.append('nonce', window.greenmetricsTracking.nonce);
+        formData.append('metrics', JSON.stringify({
+            data_transfer: dataTransfer,
+            load_time: loadTime / 1000, // Convert to seconds
+            requests: requests,
+            carbon_footprint: carbonFootprint,
+            energy_consumption: energyConsumption,
+            page_id: window.greenmetricsTracking.page_id
+        }));
 
-    // Get the REST URL and ensure it ends with a slash
-    let restUrl = window.greenmetricsTracking.rest_url;
-    if (typeof restUrl === 'string' && !restUrl.endsWith('/')) {
-        restUrl += '/';
-    }
-
-    // Send tracking data
-    fetch(restUrl + 'track', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-WP-Nonce': window.greenmetricsTracking.nonce
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(result => {
-        console.debug('GreenMetrics tracking successful:', result);
-    })
-    .catch(error => {
-        console.error('GreenMetrics tracking failed:', error, {
-            url: restUrl + 'track',
-            data
+        fetch(window.greenmetricsTracking.ajax_url, {
+            method: 'POST',
+            body: formData
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        }).catch(error => {
+            console.error('Error tracking metrics:', error);
         });
     });
-}); 
+})(); 

@@ -21,6 +21,8 @@ class GreenMetrics_Public {
         add_action('enqueue_block_editor_assets', array($this, 'enqueue_editor_assets'));
         add_shortcode('greenmetrics_badge', array($this, 'render_badge_shortcode'));
         add_action('init', array($this, 'register_blocks'));
+        add_action('wp_ajax_greenmetrics_tracking', array($this, 'handle_tracking'));
+        add_action('wp_ajax_nopriv_greenmetrics_tracking', array($this, 'handle_tracking'));
     }
 
     /**
@@ -57,27 +59,16 @@ class GreenMetrics_Public {
             return;
         }
 
-        // Enqueue tracking script
-        wp_enqueue_script(
-            'greenmetrics-tracking',
-            GREENMETRICS_PLUGIN_URL . 'public/js/greenmetrics-tracking.js',
-            array('jquery'),
-            GREENMETRICS_VERSION,
-            true
-        );
+        // Create nonce for tracking
+        $tracking_nonce = wp_create_nonce('greenmetrics_tracking');
 
-        wp_localize_script('greenmetrics-tracking', 'greenmetricsTracking', array(
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'rest_url' => $rest_url,
-            'nonce' => wp_create_nonce('wp_rest'),
-            'page_id' => $page_id,
-            'tracking_enabled' => $tracking_enabled
-        ));
+        // Get plugin base URL
+        $plugin_url = plugins_url('', dirname(dirname(__FILE__)));
 
         // Enqueue public script
         wp_enqueue_script(
             'greenmetrics-public',
-            GREENMETRICS_PLUGIN_URL . 'public/js/greenmetrics-public.js',
+            $plugin_url . '/greenmetrics/public/js/greenmetrics-public.js',
             array('jquery'),
             GREENMETRICS_VERSION,
             true
@@ -112,14 +103,33 @@ class GreenMetrics_Public {
             return '';
         }
 
+        // Get settings with defaults
+        $settings = array_merge(
+            array(
+                'carbon_intensity' => 0.475, // Default carbon intensity factor (kg CO2/kWh)
+                'energy_per_byte' => 0.000000000072 // Default energy per byte (kWh/byte)
+            ),
+            is_array($options) ? $options : array()
+        );
+
         // Get stats from tracker
         $tracker = GreenMetrics_Tracker::get_instance();
         $stats = $tracker->get_stats();
 
-        // Format stats
-        $data_transfer = isset($stats['avg_data_transfer']) ? number_format($stats['avg_data_transfer'] / 1024, 2) . ' KB' : '0 KB';
-        $load_time = isset($stats['avg_load_time']) ? number_format($stats['avg_load_time'], 2) . ' s' : '0 s';
-        $total_views = isset($stats['total_views']) ? number_format($stats['total_views']) : '0';
+        // Calculate metrics based on actual data
+        $data_transfer = isset($stats['avg_data_transfer']) ? floatval($stats['avg_data_transfer']) : 0;
+        $load_time = isset($stats['avg_load_time']) ? floatval($stats['avg_load_time']) : 0;
+        $requests = isset($stats['total_views']) ? intval($stats['total_views']) : 0;
+
+        // Calculate CO2 emissions and energy consumption
+        $energy_consumption = $data_transfer * $settings['energy_per_byte'];
+        $co2_emissions = $energy_consumption * $settings['carbon_intensity'];
+
+        // Calculate performance score
+        $performance_score = 100;
+        if ($load_time > 0) {
+            $performance_score = max(0, 100 - ($load_time * 10));
+        }
 
         // Parse attributes
         $atts = shortcode_atts(array(
@@ -159,30 +169,44 @@ class GreenMetrics_Public {
                     <div class="greenmetrics-metrics">
                         <div class="greenmetrics-metric">
                             <div class="greenmetrics-metric-label">
-                                <span>Data Transfer</span>
+                                <span>Carbon Footprint</span>
                             </div>
                             <div class="greenmetrics-metric-value">%3$s</div>
                         </div>
                         <div class="greenmetrics-metric">
                             <div class="greenmetrics-metric-label">
-                                <span>Load Time</span>
+                                <span>Energy Consumption</span>
                             </div>
                             <div class="greenmetrics-metric-value">%4$s</div>
                         </div>
                         <div class="greenmetrics-metric">
                             <div class="greenmetrics-metric-label">
-                                <span>Total Views</span>
+                                <span>Data Transfer</span>
                             </div>
                             <div class="greenmetrics-metric-value">%5$s</div>
+                        </div>
+                        <div class="greenmetrics-metric">
+                            <div class="greenmetrics-metric-label">
+                                <span>Number of Requests</span>
+                            </div>
+                            <div class="greenmetrics-metric-value">%6$s</div>
+                        </div>
+                        <div class="greenmetrics-metric">
+                            <div class="greenmetrics-metric-label">
+                                <span>Performance Score</span>
+                            </div>
+                            <div class="greenmetrics-metric-value">%7$s</div>
                         </div>
                     </div>
                 </div>
             </div>',
             esc_attr($wrapper_class),
             esc_attr($badge_class),
-            esc_html($data_transfer),
-            esc_html($load_time),
-            esc_html($total_views)
+            esc_html(round($co2_emissions, 2) . 'g CO2'),
+            esc_html(round($energy_consumption, 2) . ' kWh'),
+            esc_html(round($data_transfer / 1024, 2) . ' KB'),
+            esc_html($requests),
+            esc_html(round($performance_score) . '%')
         );
 
         return $html;
@@ -267,9 +291,11 @@ class GreenMetrics_Public {
 
         // Extract attributes with defaults
         $text = $attributes['text'] ?? 'Eco-Friendly Site';
+        $showText = $attributes['showText'] ?? true;
+        $textColor = $attributes['textColor'] ?? '#ffffff';
+        $textFontSize = $attributes['textFontSize'] ?? 14;
         $alignment = $attributes['alignment'] ?? 'left';
         $backgroundColor = $attributes['backgroundColor'] ?? '#4CAF50';
-        $textColor = $attributes['textColor'] ?? '#ffffff';
         $iconColor = $attributes['iconColor'] ?? '#ffffff';
         $fontSize = $attributes['fontSize'] ?? 14;
         $showIcon = $attributes['showIcon'] ?? true;
@@ -287,6 +313,15 @@ class GreenMetrics_Public {
         $theme = $attributes['theme'] ?? 'light';
         $size = $attributes['size'] ?? 'medium';
 
+        // Get settings with defaults
+        $settings = array_merge(
+            array(
+                'carbon_intensity' => 0.475, // Default carbon intensity factor (kg CO2/kWh)
+                'energy_per_byte' => 0.000000000072 // Default energy per byte (kWh/byte)
+            ),
+            is_array($options) ? $options : array()
+        );
+
         // Debug log all attributes
         error_log('GreenMetrics: Block attributes: ' . print_r($attributes, true));
 
@@ -296,7 +331,7 @@ class GreenMetrics_Public {
                 <div class="wp-block-greenmetrics-badge-wrapper %1$s">
                     <div class="wp-block-greenmetrics-badge %2$s %3$s" style="background-color:%4$s;color:%5$s;padding:%6$spx;border-radius:%7$spx;font-size:%8$spx;text-align:%9$s;cursor:%10$s">
                         %11$s
-                        <span>%12$s</span>
+                        %12$s
                     </div>
                     %13$s
                 </div>
@@ -317,7 +352,12 @@ class GreenMetrics_Public {
                 esc_attr($iconColor),
                 $iconSvg
             ) : '',
-            esc_html($text),
+            $showText ? sprintf(
+                '<span style="color:%1$s;font-size:%2$spx">%3$s</span>',
+                esc_attr($textColor),
+                esc_attr($textFontSize),
+                esc_html($text)
+            ) : '',
             $showContent ? sprintf(
                 '<div class="wp-block-greenmetrics-content" style="background-color:%1$s;color:%2$s;transition:all %3$sms ease-in-out">
                     <h3>%4$s</h3>
@@ -328,29 +368,44 @@ class GreenMetrics_Public {
                 esc_attr($contentTextColor),
                 esc_attr($animationDuration),
                 esc_html($contentTitle),
-                implode('', array_map(function($metric) {
+                implode('', array_map(function($metric) use ($stats, $settings) {
+                    // Calculate metrics based on actual data
+                    $data_transfer = isset($stats['avg_data_transfer']) ? floatval($stats['avg_data_transfer']) : 0;
+                    $load_time = isset($stats['avg_load_time']) ? floatval($stats['avg_load_time']) : 0;
+                    $requests = isset($stats['total_views']) ? intval($stats['total_views']) : 0;
+
+                    // Calculate CO2 emissions and energy consumption using settings with defaults
+                    $energy_consumption = $data_transfer * $settings['energy_per_byte'];
+                    $co2_emissions = $energy_consumption * $settings['carbon_intensity'];
+
+                    // Calculate performance score
+                    $performance_score = 100;
+                    if ($load_time > 0) {
+                        $performance_score = max(0, 100 - ($load_time * 10));
+                    }
+
                     $label = '';
                     $value = '';
                     switch ($metric) {
                         case 'carbon_footprint':
                             $label = 'Carbon Footprint';
-                            $value = '0.5g CO2';
+                            $value = round($co2_emissions, 2) . 'g CO2';
                             break;
                         case 'energy_consumption':
                             $label = 'Energy Consumption';
-                            $value = '0.2 kWh';
+                            $value = round($energy_consumption, 2) . ' kWh';
                             break;
-                        case 'page_size':
-                            $label = 'Page Size';
-                            $value = '1.2 MB';
+                        case 'data_transfer':
+                            $label = 'Data Transfer';
+                            $value = round($data_transfer / 1024, 2) . ' KB';
                             break;
                         case 'requests':
                             $label = 'Number of Requests';
-                            $value = '15';
+                            $value = $requests;
                             break;
                         case 'performance_score':
                             $label = 'Performance Score';
-                            $value = '95%';
+                            $value = round($performance_score) . '%';
                             break;
                     }
                     return sprintf(
@@ -394,5 +449,95 @@ class GreenMetrics_Public {
             array('wp-edit-blocks'),
             $asset_file['version']
         );
+
+        // Create nonce for tracking
+        $tracking_nonce = wp_create_nonce('greenmetrics_tracking');
+
+        // Localize script for the block editor
+        wp_localize_script('greenmetrics-badge-editor', 'greenmetricsTracking', array(
+            'nonce' => $tracking_nonce,
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'action' => 'greenmetrics_tracking'
+        ));
+    }
+
+    public function handle_tracking() {
+        error_log('GreenMetrics: Received tracking request');
+        error_log('GreenMetrics: POST data: ' . print_r($_POST, true));
+
+        if (!isset($_POST['nonce'])) {
+            error_log('GreenMetrics: No nonce provided');
+            wp_send_json_error('No nonce provided');
+            return;
+        }
+
+        if (!wp_verify_nonce($_POST['nonce'], 'greenmetrics_tracking')) {
+            error_log('GreenMetrics: Invalid nonce');
+            wp_send_json_error('Invalid nonce');
+            return;
+        }
+
+        if (!isset($_POST['metrics'])) {
+            error_log('GreenMetrics: No metrics provided');
+            wp_send_json_error('No metrics provided');
+            return;
+        }
+
+        $metrics = json_decode(stripslashes($_POST['metrics']), true);
+        error_log('GreenMetrics: Decoded metrics: ' . print_r($metrics, true));
+        
+        if (!is_array($metrics)) {
+            error_log('GreenMetrics: Invalid metrics format');
+            wp_send_json_error('Invalid metrics format');
+            return;
+        }
+
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'greenmetrics_stats';
+
+        // Calculate carbon footprint (in grams of CO2)
+        // Using average of 0.2g CO2 per MB of data transfer
+        $carbon_footprint = ($metrics['data_transfer'] / (1024 * 1024)) * 0.2;
+
+        // Calculate energy consumption (in kWh)
+        // Using average of 0.0001 kWh per MB of data transfer
+        $energy_consumption = ($metrics['data_transfer'] / (1024 * 1024)) * 0.0001;
+
+        // Calculate performance score (0-100)
+        // Based on load time and number of requests
+        $load_time_score = max(0, 100 - ($metrics['load_time'] * 10));
+        $requests_score = max(0, 100 - ($metrics['requests'] * 2));
+        $performance_score = ($load_time_score + $requests_score) / 2;
+
+        $result = $wpdb->insert(
+            $table_name,
+            array(
+                'page_id' => get_the_ID(),
+                'data_transfer' => $metrics['data_transfer'],
+                'load_time' => $metrics['load_time'],
+                'requests' => $metrics['requests'],
+                'carbon_footprint' => $carbon_footprint,
+                'energy_consumption' => $energy_consumption,
+                'performance_score' => $performance_score
+            ),
+            array(
+                '%d',
+                '%d',
+                '%f',
+                '%d',
+                '%f',
+                '%f',
+                '%f'
+            )
+        );
+
+        if ($result === false) {
+            error_log('GreenMetrics: Database error: ' . $wpdb->last_error);
+            wp_send_json_error('Failed to save metrics: ' . $wpdb->last_error);
+            return;
+        }
+
+        error_log('GreenMetrics: Metrics saved successfully');
+        wp_send_json_success('Metrics saved successfully');
     }
 } 

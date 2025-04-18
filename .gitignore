@@ -7,6 +7,8 @@ Thumbs.db
 .vscode/
 *.sublime-project
 *.sublime-workspace
+.cursor/
+.cursor/rules/
 
 # Node modules and build files
 node_modules/

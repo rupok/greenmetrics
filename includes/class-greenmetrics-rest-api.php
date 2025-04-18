@@ -71,13 +71,35 @@ class GreenMetrics_Rest_API {
         $tracker = GreenMetrics_Tracker::get_instance();
         $stats = $tracker->get_stats($page_id);
 
-        // Format stats for block display
+        // Get total stats for additional metrics
+        $total_stats = GreenMetrics_Tracker::get_total_stats();
+
+        // Calculate metrics based on actual data
+        $data_transfer = isset($stats['avg_data_transfer']) ? floatval($stats['avg_data_transfer']) : 0;
+        $load_time = isset($stats['avg_load_time']) ? floatval($stats['avg_load_time']) : 0;
+        $requests = isset($total_stats['total_requests']) ? intval($total_stats['total_requests']) : 0;
+
+        // Calculate CO2 emissions and energy consumption
+        $settings = get_option('greenmetrics_settings', array(
+            'carbon_intensity' => 0.475, // Default carbon intensity factor (kg CO2/kWh)
+            'energy_per_byte' => 0.000000000072 // Default energy per byte (kWh/byte)
+        ));
+
+        $energy_consumption = $data_transfer * $settings['energy_per_byte'];
+        $co2_emissions = $energy_consumption * $settings['carbon_intensity'];
+
+        // Calculate performance score
+        $performance_score = 100;
+        if ($load_time > 0) {
+            $performance_score = max(0, 100 - ($load_time * 10));
+        }
+
         return rest_ensure_response(array(
-            'co2_emissions' => isset($stats['co2_emissions']) ? floatval($stats['co2_emissions']) : 0.5,
-            'energy_consumption' => isset($stats['energy_consumption']) ? floatval($stats['energy_consumption']) : 0.2,
-            'data_transfer' => isset($stats['avg_data_transfer']) ? floatval($stats['avg_data_transfer']) : 1200,
-            'requests' => isset($stats['requests']) ? intval($stats['requests']) : 15,
-            'performance_score' => isset($stats['performance_score']) ? intval($stats['performance_score']) : 95
+            'co2_emissions' => round($co2_emissions, 2),
+            'energy_consumption' => round($energy_consumption, 2),
+            'data_transfer' => round($data_transfer, 2),
+            'requests' => $requests,
+            'performance_score' => round($performance_score)
         ));
     }
 

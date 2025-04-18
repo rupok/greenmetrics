@@ -113,28 +113,19 @@ add_action('plugins_loaded', 'greenmetrics_init');
 
 // Activation hook
 register_activation_hook(__FILE__, function() {
-    // Create necessary database tables
+    require_once plugin_dir_path(__FILE__) . 'includes/class-greenmetrics-activator.php';
+    GreenMetrics\GreenMetrics_Activator::activate();
+});
+
+// Also create table if it doesn't exist (for existing installations)
+add_action('plugins_loaded', function() {
     global $wpdb;
-    $charset_collate = $wpdb->get_charset_collate();
+    $table_name = $wpdb->prefix . 'greenmetrics_stats';
     
-    $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}greenmetrics_metrics (
-        id bigint(20) NOT NULL AUTO_INCREMENT,
-        page_id bigint(20) NOT NULL,
-        data_transfer float NOT NULL,
-        load_time float NOT NULL,
-        created_at datetime NOT NULL,
-        PRIMARY KEY  (id),
-        KEY page_id (page_id)
-    ) $charset_collate;";
-
-    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-    dbDelta($sql);
-
-    // Set default options
-    add_option('greenmetrics_settings', array(
-        'tracking_enabled' => 1,
-        'enable_badge' => 1
-    ));
+    if($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+        require_once plugin_dir_path(__FILE__) . 'includes/class-greenmetrics-activator.php';
+        GreenMetrics\GreenMetrics_Activator::activate();
+    }
 });
 
 // Deactivation hook
