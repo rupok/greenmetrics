@@ -164,7 +164,7 @@
 .greenmetrics-admin-card {
     background: #fff;
     padding: 20px;
-    margin-bottom: 20px;
+    margin: 20px 0;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -555,4 +555,12 @@
 
 .optimization-suggestions strong {
     color: #2271b1;
+}
+
+.optimization-suggestions .optimization-item.good-status .optimization-icon {
+    color: #46b450; /* WordPress success green */
+}
+
+.optimization-suggestions .optimization-item.needs-improvement .optimization-icon {
+    color: #ffb900; /* WordPress warning yellow */
 } 

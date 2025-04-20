@@ -237,6 +237,147 @@ $settings = get_option('greenmetrics_settings', array(
                     ?>
                 </form>
             </div>
+            
+            <!-- Optimization Suggestions -->
+            <div class="greenmetrics-admin-card optimization-suggestions">
+                <h2><?php esc_html_e('Optimization Suggestions', 'greenmetrics'); ?></h2>
+                <ul class="optimization-list">
+                    <?php 
+                    // Calculate average data per page
+                    $avg_data_per_page = $stats['total_views'] > 0 ? $stats['total_data_transfer'] / $stats['total_views'] : 0;
+                    
+                    // Calculate average requests per page
+                    $avg_requests_per_page = $stats['total_views'] > 0 ? $stats['total_requests'] / $stats['total_views'] : 0;
+                    
+                    // Get performance score
+                    $performance_score = floatval($stats['avg_performance_score']);
+                    ?>
+                    <li class="optimization-item <?php echo ($avg_data_per_page > 500 * 1024) ? 'needs-improvement' : 'good-status'; ?>">
+                        <div class="optimization-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                                <path fill="currentColor" d="M17,7H7A5,5 0 0,0 2,12A5,5 0 0,0 7,17H17A5,5 0 0,0 22,12A5,5 0 0,0 17,7M7,15A3,3 0 0,1 4,12A3,3 0 0,1 7,9H17A3,3 0 0,1 20,12A3,3 0 0,1 17,15H7Z" />
+                            </svg>
+                        </div>
+                        <div class="optimization-content">
+                            <h4><?php esc_html_e('Page Size', 'greenmetrics'); ?></h4>
+                            <?php if ($avg_data_per_page > 500 * 1024): ?>
+                            <p>
+                                <?php 
+                                printf(
+                                    esc_html__('Your average page size is %s which is quite large. Consider these optimizations:', 'greenmetrics'),
+                                    '<strong>' . size_format($avg_data_per_page, 2) . '</strong>'
+                                );
+                                ?>
+                            </p>
+                            <ul class="optimization-tips">
+                                <li><?php esc_html_e('Compress and optimize images', 'greenmetrics'); ?></li>
+                                <li><?php esc_html_e('Minify CSS and JavaScript files', 'greenmetrics'); ?></li>
+                                <li><?php esc_html_e('Enable GZIP compression on your server', 'greenmetrics'); ?></li>
+                                <li><?php esc_html_e('Remove unnecessary plugins that add bulk', 'greenmetrics'); ?></li>
+                            </ul>
+                            <?php else: ?>
+                            <p>
+                                <?php 
+                                printf(
+                                    esc_html__('Your average page size is %s which is excellent! Small page sizes reduce energy consumption and carbon footprint.', 'greenmetrics'),
+                                    '<strong>' . size_format($avg_data_per_page, 2) . '</strong>'
+                                );
+                                ?>
+                            </p>
+                            <?php endif; ?>
+                        </div>
+                    </li>
+                    
+                    <li class="optimization-item <?php echo ($avg_requests_per_page > 30) ? 'needs-improvement' : 'good-status'; ?>">
+                        <div class="optimization-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                                <path fill="currentColor" d="M16.5,6V17.5A4,4 0 0,1 12.5,21.5A4,4 0 0,1 8.5,17.5V5A2.5,2.5 0 0,1 11,2.5A2.5,2.5 0 0,1 13.5,5V15.5A1,1 0 0,1 12.5,16.5A1,1 0 0,1 11.5,15.5V6H10V15.5A2.5,2.5 0 0,0 12.5,18A2.5,2.5 0 0,0 15,15.5V5A4,4 0 0,0 11,1A4,4 0 0,0 7,5V17.5A5.5,5.5 0 0,0 12.5,23A5.5,5.5 0 0,0 18,17.5V6H16.5Z" />
+                            </svg>
+                        </div>
+                        <div class="optimization-content">
+                            <h4><?php esc_html_e('HTTP Requests', 'greenmetrics'); ?></h4>
+                            <?php if ($avg_requests_per_page > 30): ?>
+                            <p>
+                                <?php 
+                                printf(
+                                    esc_html__('Your pages make an average of %s HTTP requests, which is high. Try these tips:', 'greenmetrics'),
+                                    '<strong>' . number_format($avg_requests_per_page, 1) . '</strong>'
+                                );
+                                ?>
+                            </p>
+                            <ul class="optimization-tips">
+                                <li><?php esc_html_e('Combine multiple CSS/JS files', 'greenmetrics'); ?></li>
+                                <li><?php esc_html_e('Use CSS sprites for small images', 'greenmetrics'); ?></li>
+                                <li><?php esc_html_e('Implement lazy loading for images and videos', 'greenmetrics'); ?></li>
+                                <li><?php esc_html_e('Disable unnecessary third-party scripts', 'greenmetrics'); ?></li>
+                            </ul>
+                            <?php else: ?>
+                            <p>
+                                <?php 
+                                printf(
+                                    esc_html__('Your pages make an average of %s HTTP requests, which is very good! Fewer HTTP requests means faster loading times and less energy usage.', 'greenmetrics'),
+                                    '<strong>' . number_format($avg_requests_per_page, 1) . '</strong>'
+                                );
+                                ?>
+                            </p>
+                            <?php endif; ?>
+                        </div>
+                    </li>
+
+                    <li class="optimization-item <?php echo ($performance_score < 90) ? 'needs-improvement' : 'good-status'; ?>">
+                        <div class="optimization-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                                <path fill="currentColor" d="M12,16A3,3 0 0,1 9,13C9,11.88 9.61,10.9 10.5,10.39L20.21,4.77L14.68,14.35C14.18,15.33 13.17,16 12,16M12,3C13.81,3 15.5,3.5 16.97,4.32L14.87,5.53C14,5.19 13,5 12,5A8,8 0 0,0 4,13C4,15.21 4.89,17.21 6.34,18.65H6.35C6.74,19.04 6.74,19.67 6.35,20.06C5.96,20.45 5.32,20.45 4.93,20.07V20.07C3.12,18.26 2,15.76 2,13A10,10 0 0,1 12,3M22,13C22,15.76 20.88,18.26 19.07,20.07V20.07C18.68,20.45 18.05,20.45 17.66,20.06C17.27,19.67 17.27,19.04 17.66,18.65V18.65C19.11,17.2 20,15.21 20,13C20,12 19.81,11 19.46,10.1L20.67,8C21.5,9.5 22,11.18 22,13Z" />
+                            </svg>
+                        </div>
+                        <div class="optimization-content">
+                            <h4><?php esc_html_e('Performance Score', 'greenmetrics'); ?></h4>
+                            <?php if ($performance_score < 90): ?>
+                            <p>
+                                <?php 
+                                printf(
+                                    esc_html__('Your performance score is %s which could be improved. Try these optimizations:', 'greenmetrics'),
+                                    '<strong>' . number_format($performance_score, 2) . '%</strong>'
+                                );
+                                ?>
+                            </p>
+                            <ul class="optimization-tips">
+                                <li><?php esc_html_e('Enable browser caching', 'greenmetrics'); ?></li>
+                                <li><?php esc_html_e('Optimize server response time', 'greenmetrics'); ?></li>
+                                <li><?php esc_html_e('Prioritize visible content', 'greenmetrics'); ?></li>
+                                <li><?php esc_html_e('Defer non-critical JavaScript', 'greenmetrics'); ?></li>
+                            </ul>
+                            <?php else: ?>
+                            <p>
+                                <?php 
+                                printf(
+                                    esc_html__('Your performance score is %s which is excellent! High performance means better user experience and less energy consumption.', 'greenmetrics'),
+                                    '<strong>' . number_format($performance_score, 2) . '%</strong>'
+                                );
+                                ?>
+                            </p>
+                            <?php endif; ?>
+                        </div>
+                    </li>
+                    
+                    <li class="optimization-item">
+                        <div class="optimization-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                                <path fill="currentColor" d="M12,3L1,9L12,15L21,10.09V17H23V9M5,13.18V17.18L12,21L19,17.18V13.18L12,17L5,13.18Z" />
+                            </svg>
+                        </div>
+                        <div class="optimization-content">
+                            <h4><?php esc_html_e('Green Hosting', 'greenmetrics'); ?></h4>
+                            <p><?php esc_html_e('Consider using a hosting provider powered by renewable energy to further reduce your carbon footprint.', 'greenmetrics'); ?></p>
+                            <ul class="optimization-tips">
+                                <li><?php esc_html_e('Look for hosts that use 100% renewable energy', 'greenmetrics'); ?></li>
+                                <li><?php esc_html_e('Check for carbon offset programs', 'greenmetrics'); ?></li>
+                                <li><?php esc_html_e('Consider data center location for efficiency', 'greenmetrics'); ?></li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </div>
         </div>
 
         <div class="greenmetrics-admin-sidebar">
@@ -267,121 +408,6 @@ $settings = get_option('greenmetrics_settings', array(
                         <li><?php esc_html_e('Select the "GreenMetrics Badge" block', 'greenmetrics'); ?></li>
                     </ol>
                 </div>
-            </div>
-            
-            <!-- Add Optimization Suggestions -->
-            <div class="greenmetrics-admin-card optimization-suggestions">
-                <h3><?php esc_html_e('Optimization Suggestions', 'greenmetrics'); ?></h3>
-                <ul class="optimization-list">
-                    <?php 
-                    // Calculate average data per page
-                    $avg_data_per_page = $stats['total_views'] > 0 ? $stats['total_data_transfer'] / $stats['total_views'] : 0;
-                    
-                    // Calculate average requests per page
-                    $avg_requests_per_page = $stats['total_views'] > 0 ? $stats['total_requests'] / $stats['total_views'] : 0;
-                    
-                    // Get performance score
-                    $performance_score = floatval($stats['avg_performance_score']);
-                    
-                    if ($avg_data_per_page > 500 * 1024): // If average page size > 500KB 
-                    ?>
-                    <li class="optimization-item">
-                        <div class="optimization-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-                                <path fill="currentColor" d="M17,7H7A5,5 0 0,0 2,12A5,5 0 0,0 7,17H17A5,5 0 0,0 22,12A5,5 0 0,0 17,7M7,15A3,3 0 0,1 4,12A3,3 0 0,1 7,9H17A3,3 0 0,1 20,12A3,3 0 0,1 17,15H7Z" />
-                            </svg>
-                        </div>
-                        <div class="optimization-content">
-                            <h4><?php esc_html_e('Optimize Page Size', 'greenmetrics'); ?></h4>
-                            <p>
-                                <?php 
-                                printf(
-                                    esc_html__('Your average page size is %s which is quite large. Consider these optimizations:', 'greenmetrics'),
-                                    '<strong>' . size_format($avg_data_per_page, 2) . '</strong>'
-                                );
-                                ?>
-                            </p>
-                            <ul class="optimization-tips">
-                                <li><?php esc_html_e('Compress and optimize images', 'greenmetrics'); ?></li>
-                                <li><?php esc_html_e('Minify CSS and JavaScript files', 'greenmetrics'); ?></li>
-                                <li><?php esc_html_e('Enable GZIP compression on your server', 'greenmetrics'); ?></li>
-                                <li><?php esc_html_e('Remove unnecessary plugins that add bulk', 'greenmetrics'); ?></li>
-                            </ul>
-                        </div>
-                    </li>
-                    <?php endif; ?>
-                    
-                    <?php if ($avg_requests_per_page > 30): // If average requests > 30 ?>
-                    <li class="optimization-item">
-                        <div class="optimization-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-                                <path fill="currentColor" d="M16.5,6V17.5A4,4 0 0,1 12.5,21.5A4,4 0 0,1 8.5,17.5V5A2.5,2.5 0 0,1 11,2.5A2.5,2.5 0 0,1 13.5,5V15.5A1,1 0 0,1 12.5,16.5A1,1 0 0,1 11.5,15.5V6H10V15.5A2.5,2.5 0 0,0 12.5,18A2.5,2.5 0 0,0 15,15.5V5A4,4 0 0,0 11,1A4,4 0 0,0 7,5V17.5A5.5,5.5 0 0,0 12.5,23A5.5,5.5 0 0,0 18,17.5V6H16.5Z" />
-                            </svg>
-                        </div>
-                        <div class="optimization-content">
-                            <h4><?php esc_html_e('Reduce HTTP Requests', 'greenmetrics'); ?></h4>
-                            <p>
-                                <?php 
-                                printf(
-                                    esc_html__('Your pages make an average of %s HTTP requests, which is high. Try these tips:', 'greenmetrics'),
-                                    '<strong>' . number_format($avg_requests_per_page, 1) . '</strong>'
-                                );
-                                ?>
-                            </p>
-                            <ul class="optimization-tips">
-                                <li><?php esc_html_e('Combine multiple CSS/JS files', 'greenmetrics'); ?></li>
-                                <li><?php esc_html_e('Use CSS sprites for small images', 'greenmetrics'); ?></li>
-                                <li><?php esc_html_e('Implement lazy loading for images and videos', 'greenmetrics'); ?></li>
-                                <li><?php esc_html_e('Disable unnecessary third-party scripts', 'greenmetrics'); ?></li>
-                            </ul>
-                        </div>
-                    </li>
-                    <?php endif; ?>
-
-                    <?php if ($performance_score < 90): // If performance score is below 90% ?>
-                    <li class="optimization-item">
-                        <div class="optimization-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-                                <path fill="currentColor" d="M12,16A3,3 0 0,1 9,13C9,11.88 9.61,10.9 10.5,10.39L20.21,4.77L14.68,14.35C14.18,15.33 13.17,16 12,16M12,3C13.81,3 15.5,3.5 16.97,4.32L14.87,5.53C14,5.19 13,5 12,5A8,8 0 0,0 4,13C4,15.21 4.89,17.21 6.34,18.65H6.35C6.74,19.04 6.74,19.67 6.35,20.06C5.96,20.45 5.32,20.45 4.93,20.07V20.07C3.12,18.26 2,15.76 2,13A10,10 0 0,1 12,3M22,13C22,15.76 20.88,18.26 19.07,20.07V20.07C18.68,20.45 18.05,20.45 17.66,20.06C17.27,19.67 17.27,19.04 17.66,18.65V18.65C19.11,17.2 20,15.21 20,13C20,12 19.81,11 19.46,10.1L20.67,8C21.5,9.5 22,11.18 22,13Z" />
-                            </svg>
-                        </div>
-                        <div class="optimization-content">
-                            <h4><?php esc_html_e('Improve Performance Score', 'greenmetrics'); ?></h4>
-                            <p>
-                                <?php 
-                                printf(
-                                    esc_html__('Your performance score is %s which could be improved. Try these optimizations:', 'greenmetrics'),
-                                    '<strong>' . number_format($performance_score, 2) . '%</strong>'
-                                );
-                                ?>
-                            </p>
-                            <ul class="optimization-tips">
-                                <li><?php esc_html_e('Enable browser caching', 'greenmetrics'); ?></li>
-                                <li><?php esc_html_e('Optimize server response time', 'greenmetrics'); ?></li>
-                                <li><?php esc_html_e('Prioritize visible content', 'greenmetrics'); ?></li>
-                                <li><?php esc_html_e('Defer non-critical JavaScript', 'greenmetrics'); ?></li>
-                            </ul>
-                        </div>
-                    </li>
-                    <?php endif; ?>
-                    
-                    <li class="optimization-item">
-                        <div class="optimization-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-                                <path fill="currentColor" d="M12,3L1,9L12,15L21,10.09V17H23V9M5,13.18V17.18L12,21L19,17.18V13.18L12,17L5,13.18Z" />
-                            </svg>
-                        </div>
-                        <div class="optimization-content">
-                            <h4><?php esc_html_e('Use Green Hosting', 'greenmetrics'); ?></h4>
-                            <p><?php esc_html_e('Consider using a hosting provider powered by renewable energy to further reduce your carbon footprint.', 'greenmetrics'); ?></p>
-                            <ul class="optimization-tips">
-                                <li><?php esc_html_e('Look for hosts that use 100% renewable energy', 'greenmetrics'); ?></li>
-                                <li><?php esc_html_e('Check for carbon offset programs', 'greenmetrics'); ?></li>
-                                <li><?php esc_html_e('Consider data center location for efficiency', 'greenmetrics'); ?></li>
-                            </ul>
-                        </div>
-                    </li>
-                </ul>
             </div>
         </div>
     </div>
