@@ -503,4 +503,56 @@
     .greenmetrics-environmental-context {
         grid-template-columns: 1fr;
     }
+}
+
+/* Optimization Suggestions */
+.optimization-suggestions .optimization-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.optimization-suggestions .optimization-item {
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    display: flex;
+    gap: 15px;
+}
+
+.optimization-suggestions .optimization-item:last-child {
+    border-bottom: none;
+}
+
+.optimization-suggestions .optimization-icon {
+    flex: 0 0 36px;
+    color: #2271b1;
+}
+
+.optimization-suggestions .optimization-content {
+    flex: 1;
+}
+
+.optimization-suggestions h4 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    color: #1d2327;
+}
+
+.optimization-suggestions p {
+    margin: 0 0 10px 0;
+    color: #50575e;
+}
+
+.optimization-suggestions .optimization-tips {
+    margin: 10px 0 0 15px;
+    padding: 0;
+    color: #50575e;
+}
+
+.optimization-suggestions .optimization-tips li {
+    margin-bottom: 5px;
+}
+
+.optimization-suggestions strong {
+    color: #2271b1;
 } 
