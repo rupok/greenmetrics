@@ -137,7 +137,7 @@ class GreenMetrics_Public {
         $data_formatted = size_format($metrics['data_transfer'], 2);
         $views_formatted = number_format($metrics['total_views']);
         $requests_formatted = number_format($metrics['requests']);
-        $score_formatted = number_format($metrics['performance_score'], 1) . '%';
+        $score_formatted = number_format($metrics['performance_score'], 2) . '%';
 
         error_log('GreenMetrics Debug - Formatted metrics values:');
         error_log('Carbon footprint: ' . $carbon_formatted . ' (raw: ' . $metrics['carbon_footprint'] . ')');
@@ -370,7 +370,7 @@ class GreenMetrics_Public {
                             break;
                         case 'performance_score':
                             $label = 'Performance Score';
-                            $value = number_format($metrics['performance_score'], 1) . '%';
+                            $value = number_format($metrics['performance_score'], 2) . '%';
                             break;
                     }
                     return sprintf(
@@ -545,7 +545,7 @@ class GreenMetrics_Public {
                 $value = number_format($metrics['requests']);
                 break;
             case 'performance_score':
-                $value = number_format($metrics['performance_score'], 1) . '%';
+                $value = number_format($metrics['performance_score'], 2) . '%';
                 break;
             default:
                 $value = '0';

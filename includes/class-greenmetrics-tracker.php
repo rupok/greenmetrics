@@ -157,14 +157,45 @@ class GreenMetrics_Tracker {
 
     /**
      * Calculate performance score based on load time.
+     * Uses a logarithmic scale to provide more granular scoring with decimal precision.
+     * Based on similar approaches used in web performance tools.
+     * 
+     * @param float $load_time Load time in seconds
+     * @return float Performance score from 0-100 with decimal precision
      */
-    private function calculate_performance_score($load_time) {
-        if ($load_time <= 1) return 100;
-        if ($load_time <= 2) return 90;
-        if ($load_time <= 3) return 80;
-        if ($load_time <= 4) return 70;
-        if ($load_time <= 5) return 60;
-        return 50;
+    public function calculate_performance_score($load_time) {
+        // Convert to milliseconds for more precision
+        $load_time_ms = $load_time * 1000;
+        
+        // Define reference values based on web performance standards
+        // These values align with general performance expectations
+        $fast_threshold_ms = 1000;    // 1 second - considered fast (scores close to 100)
+        $slow_threshold_ms = 5000;    // 5 seconds - considered slow (scores around 50)
+        $max_threshold_ms = 10000;    // 10 seconds - very slow (scores below 20)
+        
+        // If load time is extremely fast, give a perfect score
+        if ($load_time_ms <= 100) {
+            return 100;
+        }
+        
+        // Apply a logarithmic scale for more granular scoring
+        // This creates a curve that drops quickly for slow sites but gives more 
+        // precision for fast sites in the 90-100 range
+        if ($load_time_ms <= $fast_threshold_ms) {
+            // For fast sites (0-1s): subtle scoring from 90-100
+            $score = 100 - (10 * ($load_time_ms / $fast_threshold_ms));
+        } elseif ($load_time_ms <= $slow_threshold_ms) {
+            // For medium sites (1-5s): scoring from 50-90
+            $normalized = ($load_time_ms - $fast_threshold_ms) / ($slow_threshold_ms - $fast_threshold_ms);
+            $score = 90 - (40 * $normalized);
+        } else {
+            // For slow sites (5s+): scoring from 0-50 with diminishing returns
+            $normalized = min(1, ($load_time_ms - $slow_threshold_ms) / ($max_threshold_ms - $slow_threshold_ms));
+            $score = 50 - (50 * $normalized);
+        }
+        
+        // Ensure score is within valid range and has decimal precision
+        return max(0, min(100, round($score, 2)));
     }
 
     /**

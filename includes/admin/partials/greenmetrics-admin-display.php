@@ -130,12 +130,19 @@ $settings = get_option('greenmetrics_settings', array(
                                 $performance_score = floatval($stats['avg_performance_score']);
                                 if ($performance_score > 100 || $performance_score < 0) {
                                     if ($stats['avg_load_time'] > 0) {
-                                        $performance_score = max(0, min(100, 100 - ($stats['avg_load_time'] * 10)));
+                                        // Use the same calculation as in the tracker
+                                        $tracker = \GreenMetrics\GreenMetrics_Tracker::get_instance();
+                                        if (method_exists($tracker, 'calculate_performance_score')) {
+                                            $performance_score = $tracker->calculate_performance_score($stats['avg_load_time']);
+                                        } else {
+                                            $performance_score = max(0, min(100, 100 - ($stats['avg_load_time'] * 10)));
+                                        }
                                     } else {
                                         $performance_score = 100; // If no load time data, assume perfect score
                                     }
                                 }
-                                echo esc_html(number_format($performance_score, 1)); 
+                                // Display with 2 decimal places for precision
+                                echo esc_html(number_format($performance_score, 2)); 
                             ?>%
                         </div>
                     </div>
