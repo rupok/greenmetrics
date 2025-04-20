@@ -88,6 +88,8 @@ class GreenMetrics_Tracker {
             wp_send_json_error('Invalid data');
         }
 
+        error_log('GreenMetrics Debug - Tracking Request Data: ' . print_r($data, true));
+
         $page_id = get_the_ID();
         if (!$page_id) {
             wp_send_json_error('Invalid page ID');
@@ -95,13 +97,21 @@ class GreenMetrics_Tracker {
 
         // Calculate additional metrics
         $settings = get_option('greenmetrics_settings');
+        error_log('GreenMetrics Debug - Tracking Settings: ' . print_r($settings, true));
+
         $carbon_footprint = $this->calculate_carbon_footprint($data['data_transfer'], $settings['carbon_intensity']);
         $energy_consumption = $this->calculate_energy_consumption($data['data_transfer'], $settings['energy_per_byte']);
         $performance_score = $this->calculate_performance_score($data['load_time']);
 
+        error_log('GreenMetrics Debug - Calculated Metrics:');
+        error_log('Data Transfer: ' . $data['data_transfer']);
+        error_log('Carbon Footprint: ' . $carbon_footprint);
+        error_log('Energy Consumption: ' . $energy_consumption);
+        error_log('Performance Score: ' . $performance_score);
+
         global $wpdb;
         $table_name = $wpdb->prefix . 'greenmetrics_stats';
-        $wpdb->insert(
+        $result = $wpdb->insert(
             $table_name,
             array(
                 'page_id' => $page_id,
@@ -115,6 +125,12 @@ class GreenMetrics_Tracker {
             array('%d', '%d', '%f', '%d', '%f', '%f', '%d')
         );
 
+        if ($result === false) {
+            error_log('GreenMetrics Debug - Database Error: ' . $wpdb->last_error);
+            wp_send_json_error('Database error: ' . $wpdb->last_error);
+        }
+
+        error_log('GreenMetrics Debug - Data inserted successfully');
         wp_send_json_success();
     }
 
@@ -170,24 +186,60 @@ class GreenMetrics_Tracker {
         $stats = $wpdb->get_row("
             SELECT 
                 COUNT(*) as total_views,
-                AVG(data_transfer) as avg_data_transfer,
+                SUM(data_transfer) as total_data_transfer,
                 AVG(load_time) as avg_load_time,
-                AVG(carbon_footprint) as avg_carbon_footprint,
-                AVG(energy_consumption) as avg_energy_consumption,
-                AVG(requests) as avg_requests,
+                SUM(requests) as total_requests,
                 AVG(performance_score) as avg_performance_score
             FROM {$this->table_name}
             {$where}
         ", ARRAY_A);
 
-        return $stats ?: array(
-            'total_views' => 0,
-            'avg_data_transfer' => 0,
-            'avg_load_time' => 0,
-            'avg_carbon_footprint' => 0,
-            'avg_energy_consumption' => 0,
-            'avg_requests' => 0,
-            'avg_performance_score' => 0
+        error_log('GreenMetrics Debug - Raw Stats: ' . print_r($stats, true));
+
+        if (!$stats) {
+            error_log('GreenMetrics Debug - No stats found in database');
+            return array(
+                'total_views' => 0,
+                'total_data_transfer' => 0,
+                'avg_load_time' => 0,
+                'total_requests' => 0,
+                'avg_performance_score' => 0
+            );
+        }
+
+        // Get settings with defaults
+        $options = get_option('greenmetrics_settings', array());
+        error_log('GreenMetrics Debug - Raw Options: ' . print_r($options, true));
+
+        $settings = array_merge(
+            array(
+                'carbon_intensity' => 0.475, // Default carbon intensity factor (kg CO2/kWh)
+                'energy_per_byte' => 0.000000000072 // Default energy per byte (kWh/byte)
+            ),
+            is_array($options) ? $options : array()
+        );
+
+        error_log('GreenMetrics Debug - Settings: ' . print_r($settings, true));
+
+        // Calculate current CO2 and energy based on total data transfer
+        $energy_consumption = $stats['total_data_transfer'] * $settings['energy_per_byte'];
+        $carbon_footprint = $energy_consumption * $settings['carbon_intensity'] * 1000; // Convert kg to g
+
+        error_log('GreenMetrics Debug - Calculations:');
+        error_log('Total Data Transfer: ' . $stats['total_data_transfer']);
+        error_log('Energy per Byte: ' . $settings['energy_per_byte']);
+        error_log('Energy Consumption: ' . $energy_consumption);
+        error_log('Carbon Intensity: ' . $settings['carbon_intensity']);
+        error_log('Carbon Footprint: ' . $carbon_footprint);
+
+        return array(
+            'total_views' => intval($stats['total_views']),
+            'total_data_transfer' => floatval($stats['total_data_transfer']),
+            'avg_load_time' => floatval($stats['avg_load_time']),
+            'total_requests' => intval($stats['total_requests']),
+            'avg_performance_score' => floatval($stats['avg_performance_score']),
+            'total_energy_consumption' => floatval($energy_consumption),
+            'total_carbon_footprint' => floatval($carbon_footprint)
         );
     }
 
