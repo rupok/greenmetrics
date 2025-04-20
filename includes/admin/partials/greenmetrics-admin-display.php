@@ -30,6 +30,84 @@ $settings = get_option('greenmetrics_settings', array(
             <div class="greenmetrics-admin-stats">
                 <h2><?php esc_html_e('Website Environmental Metrics', 'greenmetrics'); ?></h2>
                 
+                <!-- Environmental Impact Context Section - Enhanced with visuals -->
+                <div class="greenmetrics-environmental-context-enhanced">
+                    <div class="context-item carbon">
+                        <div class="context-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="64" height="64">
+                                <path fill="currentColor" d="M17,8C8,10,5.9,16.17,3.82,21.34L5.71,22l1-2.3A4.49,4.49,0,0,0,8,20C19,20,22,3,22,3,21,5,14,5.25,9,6.25S2,11.5,2,13.5a6.23,6.23,0,0,0,1.4,3.3L3,19l1.76,1.37A10.23,10.23,0,0,1,4,17C4,16,7,8,17,8Z"/>
+                            </svg>
+                        </div>
+                        <div class="context-content">
+                            <h3><?php esc_html_e('Carbon Footprint Impact', 'greenmetrics'); ?></h3>
+                            <p>
+                                <?php 
+                                    // Convert carbon to equivalent values
+                                    $carbon_kg = $stats['total_carbon_footprint'] / 1000; // Convert g to kg
+                                    $tree_seconds = $carbon_kg * 4500; // 1 tree absorbs ~8 kg CO2 per year (4500 seconds to absorb 1g)
+                                    
+                                    // Format the time in appropriate units
+                                    if ($tree_seconds < 60) {
+                                        // Less than a minute, show seconds
+                                        $tree_time = number_format($tree_seconds, 1) . ' ' . esc_html__('seconds', 'greenmetrics');
+                                    } elseif ($tree_seconds < 3600) {
+                                        // Less than an hour, show minutes
+                                        $tree_minutes = $tree_seconds / 60;
+                                        $tree_time = number_format($tree_minutes, 1) . ' ' . esc_html__('minutes', 'greenmetrics');
+                                    } elseif ($tree_seconds < 86400) {
+                                        // Less than a day, show hours
+                                        $tree_hours = $tree_seconds / 3600;
+                                        $tree_time = number_format($tree_hours, 1) . ' ' . esc_html__('hours', 'greenmetrics');
+                                    } else {
+                                        // Show days
+                                        $tree_days = $tree_seconds / 86400;
+                                        $tree_time = number_format($tree_days, 1) . ' ' . esc_html__('days', 'greenmetrics');
+                                    }
+                                    
+                                    printf(
+                                        esc_html__('Your website has produced %1$s g of CO2, which would take a tree approximately %2$s to absorb.', 'greenmetrics'),
+                                        '<strong>' . number_format($stats['total_carbon_footprint'], 2) . '</strong>',
+                                        '<strong>' . $tree_time . '</strong>'
+                                    );
+                                ?>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="context-item energy">
+                        <div class="context-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="64" height="64">
+                                <path fill="currentColor" d="M12,2A7,7 0 0,1 19,9C19,11.38 17.81,13.47 16,14.74V17A1,1 0 0,1 15,18H9A1,1 0 0,1 8,17V14.74C6.19,13.47 5,11.38 5,9A7,7 0 0,1 12,2M9,21V20H15V21A1,1 0 0,1 14,22H10A1,1 0 0,1 9,21M12,4A5,5 0 0,0 7,9C7,11.05 8.23,12.81 10,13.58V16H14V13.58C15.77,12.81 17,11.05 17,9A5,5 0 0,0 12,4Z" />
+                            </svg>
+                        </div>
+                        <div class="context-content">
+                            <h3><?php esc_html_e('Energy Consumption Impact', 'greenmetrics'); ?></h3>
+                            <p>
+                                <?php 
+                                    // Convert energy to equivalent values
+                                    $energy_kwh = $stats['total_energy_consumption'];
+                                    $lightbulb_hours = $energy_kwh * 10; // 10W LED bulb runs for ~100 hours on 1 kWh
+                                    
+                                    // Format the time in appropriate units
+                                    if ($lightbulb_hours < 1) {
+                                        // Less than an hour, show minutes
+                                        $lightbulb_minutes = $lightbulb_hours * 60;
+                                        $lightbulb_time = number_format($lightbulb_minutes, 1) . ' ' . esc_html__('minutes', 'greenmetrics');
+                                    } else {
+                                        // Show hours
+                                        $lightbulb_time = number_format($lightbulb_hours, 1) . ' ' . esc_html__('hours', 'greenmetrics');
+                                    }
+                                    
+                                    printf(
+                                        esc_html__('Your website has consumed %1$s kWh of energy, equivalent to running a 10W LED light bulb for %2$s.', 'greenmetrics'),
+                                        '<strong>' . number_format($energy_kwh, 6) . '</strong>',
+                                        '<strong>' . $lightbulb_time . '</strong>'
+                                    );
+                                ?>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Total Metrics Section -->
                 <h3><?php esc_html_e('Total Website Impact', 'greenmetrics'); ?></h3>
                 <div class="greenmetrics-stats-grid">
@@ -145,69 +223,6 @@ $settings = get_option('greenmetrics_settings', array(
                                 echo esc_html(number_format($performance_score, 2)); 
                             ?>%
                         </div>
-                    </div>
-                </div>
-                
-                <!-- Environmental Impact Context Section -->
-                <div class="greenmetrics-environmental-context">
-                    <h3><?php esc_html_e('Environmental Impact Context', 'greenmetrics'); ?></h3>
-                    <div class="context-item">
-                        <p>
-                            <?php 
-                                // Convert carbon to equivalent values
-                                $carbon_kg = $stats['total_carbon_footprint'] / 1000; // Convert g to kg
-                                $tree_seconds = $carbon_kg * 4500; // 1 tree absorbs ~8 kg CO2 per year (4500 seconds to absorb 1g)
-                                
-                                // Format the time in appropriate units
-                                if ($tree_seconds < 60) {
-                                    // Less than a minute, show seconds
-                                    $tree_time = number_format($tree_seconds, 1) . ' ' . esc_html__('seconds', 'greenmetrics');
-                                } elseif ($tree_seconds < 3600) {
-                                    // Less than an hour, show minutes
-                                    $tree_minutes = $tree_seconds / 60;
-                                    $tree_time = number_format($tree_minutes, 1) . ' ' . esc_html__('minutes', 'greenmetrics');
-                                } elseif ($tree_seconds < 86400) {
-                                    // Less than a day, show hours
-                                    $tree_hours = $tree_seconds / 3600;
-                                    $tree_time = number_format($tree_hours, 1) . ' ' . esc_html__('hours', 'greenmetrics');
-                                } else {
-                                    // Show days
-                                    $tree_days = $tree_seconds / 86400;
-                                    $tree_time = number_format($tree_days, 1) . ' ' . esc_html__('days', 'greenmetrics');
-                                }
-                                
-                                printf(
-                                    esc_html__('Your website has produced %1$s g of CO2, which would take a tree approximately %2$s to absorb.', 'greenmetrics'),
-                                    '<strong>' . number_format($stats['total_carbon_footprint'], 2) . '</strong>',
-                                    '<strong>' . $tree_time . '</strong>'
-                                );
-                            ?>
-                        </p>
-                    </div>
-                    <div class="context-item">
-                        <p>
-                            <?php 
-                                // Convert energy to equivalent values
-                                $energy_kwh = $stats['total_energy_consumption'];
-                                $lightbulb_hours = $energy_kwh * 10; // 10W LED bulb runs for ~100 hours on 1 kWh
-                                
-                                // Format the time in appropriate units
-                                if ($lightbulb_hours < 1) {
-                                    // Less than an hour, show minutes
-                                    $lightbulb_minutes = $lightbulb_hours * 60;
-                                    $lightbulb_time = number_format($lightbulb_minutes, 1) . ' ' . esc_html__('minutes', 'greenmetrics');
-                                } else {
-                                    // Show hours
-                                    $lightbulb_time = number_format($lightbulb_hours, 1) . ' ' . esc_html__('hours', 'greenmetrics');
-                                }
-                                
-                                printf(
-                                    esc_html__('Your website has consumed %1$s kWh of energy, equivalent to running a 10W LED light bulb for %2$s.', 'greenmetrics'),
-                                    '<strong>' . number_format($energy_kwh, 6) . '</strong>',
-                                    '<strong>' . $lightbulb_time . '</strong>'
-                                );
-                            ?>
-                        </p>
                     </div>
                 </div>
             </div>
