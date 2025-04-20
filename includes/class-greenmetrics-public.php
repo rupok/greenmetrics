@@ -112,6 +112,7 @@ class GreenMetrics_Public {
 
         // Get metrics data
         $metrics = $this->get_metrics_data();
+        error_log('GreenMetrics Debug - Shortcode metrics: ' . print_r($metrics, true));
 
         // Build classes
         $wrapper_classes = array('greenmetrics-badge-wrapper');
@@ -137,6 +138,14 @@ class GreenMetrics_Public {
         $views_formatted = number_format($metrics['total_views']);
         $requests_formatted = number_format($metrics['requests']);
         $score_formatted = number_format($metrics['performance_score'], 1) . '%';
+
+        error_log('GreenMetrics Debug - Formatted metrics values:');
+        error_log('Carbon footprint: ' . $carbon_formatted . ' (raw: ' . $metrics['carbon_footprint'] . ')');
+        error_log('Energy consumption: ' . $energy_formatted . ' (raw: ' . $metrics['energy_consumption'] . ')');
+        error_log('Data transfer: ' . $data_formatted . ' (raw: ' . $metrics['data_transfer'] . ')');
+        error_log('Views: ' . $views_formatted . ' (raw: ' . $metrics['total_views'] . ')');
+        error_log('Requests: ' . $requests_formatted . ' (raw: ' . $metrics['requests'] . ')');
+        error_log('Score: ' . $score_formatted . ' (raw: ' . $metrics['performance_score'] . ')');
 
         // Build HTML
         $html = sprintf(
@@ -591,26 +600,34 @@ class GreenMetrics_Public {
         );
         error_log('GreenMetrics Debug - Settings: ' . print_r($settings, true));
 
-        // Calculate metrics based on actual data
+        // Use the values directly from the tracker
         $data_transfer = isset($stats['total_data_transfer']) ? floatval($stats['total_data_transfer']) : 0;
         $load_time = isset($stats['avg_load_time']) ? floatval($stats['avg_load_time']) : 0;
         $requests = isset($stats['total_requests']) ? intval($stats['total_requests']) : 0;
         $total_views = isset($stats['total_views']) ? intval($stats['total_views']) : 0;
-
-        // Calculate CO2 emissions and energy consumption
-        $energy_consumption = $data_transfer * $settings['energy_per_byte'];
-        $carbon_footprint = $energy_consumption * $settings['carbon_intensity'] * 1000; // Convert kg to g
         
-        error_log('GreenMetrics Debug - Calculated values:');
+        // Get energy consumption and carbon footprint from tracker
+        $energy_consumption = isset($stats['total_energy_consumption']) ? floatval($stats['total_energy_consumption']) : 0;
+        $carbon_footprint = isset($stats['total_carbon_footprint']) ? floatval($stats['total_carbon_footprint']) : 0;
+        
+        error_log('GreenMetrics Debug - Metrics data:');
         error_log('GreenMetrics Debug - Data transfer: ' . $data_transfer);
         error_log('GreenMetrics Debug - Energy consumption: ' . $energy_consumption);
         error_log('GreenMetrics Debug - Carbon footprint: ' . $carbon_footprint);
 
-        // Calculate performance score
-        $performance_score = 100;
-        if ($load_time > 0) {
-            $performance_score = max(0, 100 - ($load_time * 10));
+        // Calculate performance score - ensure it's within 0-100 range
+        $performance_score = isset($stats['avg_performance_score']) ? floatval($stats['avg_performance_score']) : 100;
+        
+        // Make sure performance score is a valid percentage (0-100)
+        if ($performance_score > 100 || $performance_score < 0) {
+            if ($load_time > 0) {
+                $performance_score = max(0, min(100, 100 - ($load_time * 10)));
+            } else {
+                $performance_score = 100; // If no load time data, assume perfect score
+            }
         }
+        
+        error_log('GreenMetrics Debug - Performance score: ' . $performance_score);
 
         $result = array(
             'data_transfer' => $data_transfer,

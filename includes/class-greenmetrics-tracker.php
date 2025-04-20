@@ -95,16 +95,22 @@ class GreenMetrics_Tracker {
             wp_send_json_error('Invalid page ID');
         }
 
+        // Validate input data
+        $data_transfer = max(0, intval($data['data_transfer']));
+        $load_time = max(0, floatval($data['load_time']));
+        $requests = max(0, intval($data['requests']));
+
         // Calculate additional metrics
         $settings = get_option('greenmetrics_settings');
         error_log('GreenMetrics Debug - Tracking Settings: ' . print_r($settings, true));
 
-        $carbon_footprint = $this->calculate_carbon_footprint($data['data_transfer'], $settings['carbon_intensity']);
-        $energy_consumption = $this->calculate_energy_consumption($data['data_transfer'], $settings['energy_per_byte']);
-        $performance_score = $this->calculate_performance_score($data['load_time']);
+        $carbon_footprint = $this->calculate_carbon_footprint($data_transfer, $settings['carbon_intensity']);
+        $energy_consumption = $this->calculate_energy_consumption($data_transfer, $settings['energy_per_byte']);
+        $performance_score = $this->calculate_performance_score($load_time);
 
         error_log('GreenMetrics Debug - Calculated Metrics:');
-        error_log('Data Transfer: ' . $data['data_transfer']);
+        error_log('Data Transfer: ' . $data_transfer);
+        error_log('Load Time: ' . $load_time);
         error_log('Carbon Footprint: ' . $carbon_footprint);
         error_log('Energy Consumption: ' . $energy_consumption);
         error_log('Performance Score: ' . $performance_score);
@@ -115,9 +121,9 @@ class GreenMetrics_Tracker {
             $table_name,
             array(
                 'page_id' => $page_id,
-                'data_transfer' => $data['data_transfer'],
-                'load_time' => $data['load_time'],
-                'requests' => $data['requests'],
+                'data_transfer' => $data_transfer,
+                'load_time' => $load_time,
+                'requests' => $requests,
                 'carbon_footprint' => $carbon_footprint,
                 'energy_consumption' => $energy_consumption,
                 'performance_score' => $performance_score
@@ -183,6 +189,16 @@ class GreenMetrics_Tracker {
             $where = $wpdb->prepare('WHERE page_id = %d', $page_id);
         }
 
+        // Get the raw data directly via SQL to see exactly what's in the database
+        $raw_load_time_sql = "SELECT AVG(load_time) as raw_avg_load_time FROM {$this->table_name}";
+        $raw_load_time_result = $wpdb->get_var($raw_load_time_sql);
+        error_log('GreenMetrics Debug - Raw Load Time From DB: ' . $raw_load_time_result);
+        
+        // Get some sample values to understand what's in the database
+        $sample_values_sql = "SELECT id, page_id, load_time FROM {$this->table_name} ORDER BY id DESC LIMIT 5";
+        $sample_values = $wpdb->get_results($sample_values_sql, ARRAY_A);
+        error_log('GreenMetrics Debug - Recent load_time values: ' . print_r($sample_values, true));
+
         $stats = $wpdb->get_row("
             SELECT 
                 COUNT(*) as total_views,
@@ -195,6 +211,7 @@ class GreenMetrics_Tracker {
         ", ARRAY_A);
 
         error_log('GreenMetrics Debug - Raw Stats: ' . print_r($stats, true));
+        error_log('GreenMetrics Debug - Raw avg_load_time before validation: ' . (isset($stats['avg_load_time']) ? $stats['avg_load_time'] : 'NULL'));
 
         if (!$stats) {
             error_log('GreenMetrics Debug - No stats found in database');
@@ -203,7 +220,7 @@ class GreenMetrics_Tracker {
                 'total_data_transfer' => 0,
                 'avg_load_time' => 0,
                 'total_requests' => 0,
-                'avg_performance_score' => 0
+                'avg_performance_score' => 100 // Default to 100% when no data
             );
         }
 
@@ -221,23 +238,41 @@ class GreenMetrics_Tracker {
 
         error_log('GreenMetrics Debug - Settings: ' . print_r($settings, true));
 
+        // Validate metrics to ensure they're all positive numbers
+        $total_views = max(0, intval($stats['total_views']));
+        $total_data_transfer = max(0, floatval($stats['total_data_transfer']));
+        $avg_load_time = max(0, floatval($stats['avg_load_time']));
+        $total_requests = max(0, intval($stats['total_requests']));
+
         // Calculate current CO2 and energy based on total data transfer
-        $energy_consumption = $stats['total_data_transfer'] * $settings['energy_per_byte'];
+        $energy_consumption = $total_data_transfer * $settings['energy_per_byte'];
         $carbon_footprint = $energy_consumption * $settings['carbon_intensity'] * 1000; // Convert kg to g
 
+        // Ensure performance score is a valid percentage
+        $performance_score = floatval($stats['avg_performance_score']);
+        if ($performance_score > 100 || $performance_score <= 0) {
+            if ($avg_load_time > 0) {
+                $performance_score = max(0, min(100, 100 - ($avg_load_time * 10)));
+            } else {
+                $performance_score = 100; // Default to 100% if no load time data
+            }
+        }
+
         error_log('GreenMetrics Debug - Calculations:');
-        error_log('Total Data Transfer: ' . $stats['total_data_transfer']);
+        error_log('Total Data Transfer: ' . $total_data_transfer);
         error_log('Energy per Byte: ' . $settings['energy_per_byte']);
         error_log('Energy Consumption: ' . $energy_consumption);
         error_log('Carbon Intensity: ' . $settings['carbon_intensity']);
         error_log('Carbon Footprint: ' . $carbon_footprint);
+        error_log('Avg Load Time: ' . $avg_load_time);
+        error_log('Performance Score: ' . $performance_score);
 
         return array(
-            'total_views' => intval($stats['total_views']),
-            'total_data_transfer' => floatval($stats['total_data_transfer']),
-            'avg_load_time' => floatval($stats['avg_load_time']),
-            'total_requests' => intval($stats['total_requests']),
-            'avg_performance_score' => floatval($stats['avg_performance_score']),
+            'total_views' => $total_views,
+            'total_data_transfer' => $total_data_transfer,
+            'avg_load_time' => $avg_load_time,
+            'total_requests' => $total_requests,
+            'avg_performance_score' => $performance_score,
             'total_energy_consumption' => floatval($energy_consumption),
             'total_carbon_footprint' => floatval($carbon_footprint)
         );

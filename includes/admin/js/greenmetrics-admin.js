@@ -65,14 +65,24 @@ jQuery(document).ready(function($) {
                     <p class="stat-value">${stats.total_views}</p>
                 </div>
                 <div class="stat-card">
-                    <h3>Average Data Transfer</h3>
-                    <p class="stat-value">${stats.avg_data_transfer}</p>
-                    <p class="stat-range">Min: ${stats.min_data_transfer} | Max: ${stats.max_data_transfer}</p>
+                    <h3>Carbon Footprint</h3>
+                    <p class="stat-value">${stats.co2_emissions.toFixed(2)} g CO2</p>
                 </div>
                 <div class="stat-card">
-                    <h3>Average Load Time</h3>
-                    <p class="stat-value">${stats.avg_load_time}</p>
-                    <p class="stat-range">Min: ${stats.min_load_time} | Max: ${stats.max_load_time}</p>
+                    <h3>Energy Consumption</h3>
+                    <p class="stat-value">${stats.energy_consumption.toFixed(2)} kWh</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Data Transfer</h3>
+                    <p class="stat-value">${stats.avg_data_transfer.toFixed(2)} KB</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Requests</h3>
+                    <p class="stat-value">${stats.requests}</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Performance Score</h3>
+                    <p class="stat-value">${stats.performance_score}%</p>
                 </div>
             </div>
         `;
@@ -168,8 +178,11 @@ jQuery(document).ready(function($) {
             },
             success: function(response) {
                 $('#total-views').text(response.total_views.toLocaleString());
-                $('#avg-data-transfer').text(response.avg_data_transfer.toFixed(2) + ' KB');
-                $('#avg-load-time').text(response.avg_load_time.toFixed(2) + ' s');
+                $('#carbon-footprint').text(response.co2_emissions.toFixed(2) + ' g CO2');
+                $('#energy-consumption').text(response.energy_consumption.toFixed(2) + ' kWh');
+                $('#data-transfer').text(response.avg_data_transfer.toFixed(2) + ' KB');
+                $('#requests').text(response.requests);
+                $('#performance-score').text(response.performance_score + '%');
             }
         });
     }
