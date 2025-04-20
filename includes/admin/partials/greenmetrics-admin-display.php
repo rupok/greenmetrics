@@ -112,10 +112,6 @@ $settings = get_option('greenmetrics_settings', array(
                 <h3><?php esc_html_e('Total Website Impact', 'greenmetrics'); ?></h3>
                 <div class="greenmetrics-stats-grid">
                     <div class="greenmetrics-stat-card total">
-                        <h4><?php esc_html_e('Total Views', 'greenmetrics'); ?></h4>
-                        <div class="greenmetrics-stat-value" id="total-views"><?php echo esc_html(number_format($stats['total_views'])); ?></div>
-                    </div>
-                    <div class="greenmetrics-stat-card total">
                         <h4><?php esc_html_e('Total Carbon Footprint', 'greenmetrics'); ?></h4>
                         <div class="greenmetrics-stat-value" id="total-carbon-footprint">
                             <?php echo esc_html(number_format($stats['total_carbon_footprint'], 2)); ?> g CO2
@@ -138,6 +134,10 @@ $settings = get_option('greenmetrics_settings', array(
                         <div class="greenmetrics-stat-value" id="total-requests">
                             <?php echo esc_html(number_format($stats['total_requests'])); ?>
                         </div>
+                    </div>
+                    <div class="greenmetrics-stat-card total">
+                        <h4><?php esc_html_e('Total Views', 'greenmetrics'); ?></h4>
+                        <div class="greenmetrics-stat-value" id="total-views"><?php echo esc_html(number_format($stats['total_views'])); ?></div>
                     </div>
                 </div>
 
@@ -360,10 +360,10 @@ $settings = get_option('greenmetrics_settings', array(
                         </div>
                     </li>
                     
-                    <li class="optimization-item">
+                    <li class="optimization-item good-status">
                         <div class="optimization-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-                                <path fill="currentColor" d="M12,3L1,9L12,15L21,10.09V17H23V9M5,13.18V17.18L12,21L19,17.18V13.18L12,17L5,13.18Z" />
+                                <path fill="currentColor" d="M4,1H20A1,1 0 0,1 21,2V6A1,1 0 0,1 20,7H4A1,1 0 0,1 3,6V2A1,1 0 0,1 4,1M4,9H20A1,1 0 0,1 21,10V14A1,1 0 0,1 20,15H4A1,1 0 0,1 3,14V10A1,1 0 0,1 4,9M4,17H20A1,1 0 0,1 21,18V22A1,1 0 0,1 20,23H4A1,1 0 0,1 3,22V18A1,1 0 0,1 4,17M9,5H10V3H9V5M9,13H10V11H9V13M9,21H10V19H9V21M5,3V5H7V3H5M5,11V13H7V11H5M5,19V21H7V19H5Z" />
                             </svg>
                         </div>
                         <div class="optimization-content">
