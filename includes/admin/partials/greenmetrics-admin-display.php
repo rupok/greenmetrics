@@ -30,8 +30,8 @@ $settings = get_option('greenmetrics_settings', array(
             <div class="greenmetrics-admin-stats">
                 <h2><?php esc_html_e('Website Environmental Metrics', 'greenmetrics'); ?></h2>
                 
-                <!-- Environmental Impact Context Section - Enhanced with visuals -->
-                <div class="greenmetrics-environmental-context-enhanced">
+                <!-- Environmental Impact Context Section with visuals -->
+                <div class="greenmetrics-environmental-context">
                     <div class="context-item carbon">
                         <div class="context-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="64" height="64">

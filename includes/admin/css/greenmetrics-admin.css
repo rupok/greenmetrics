@@ -437,15 +437,15 @@
     margin: 10px 0;
 }
 
-/* Environmental Impact Context - Enhanced */
-.greenmetrics-environmental-context-enhanced {
+/* Environmental Impact Context */
+.greenmetrics-environmental-context {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
     margin-bottom: 30px;
 }
 
-.greenmetrics-environmental-context-enhanced .context-item {
+.greenmetrics-environmental-context .context-item {
     display: flex;
     padding: 20px;
     border-radius: 8px;
@@ -454,20 +454,20 @@
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.greenmetrics-environmental-context-enhanced .context-item:hover {
+.greenmetrics-environmental-context .context-item:hover {
     transform: translateY(-5px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
-.greenmetrics-environmental-context-enhanced .context-item.carbon {
+.greenmetrics-environmental-context .context-item.carbon {
     background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
 }
 
-.greenmetrics-environmental-context-enhanced .context-item.energy {
+.greenmetrics-environmental-context .context-item.energy {
     background: linear-gradient(135deg, #FFA726 0%, #EF6C00 100%);
 }
 
-.greenmetrics-environmental-context-enhanced .context-icon {
+.greenmetrics-environmental-context .context-icon {
     flex: 0 0 80px;
     display: flex;
     align-items: flex-start;
@@ -476,31 +476,31 @@
     margin-right: 15px;
 }
 
-.greenmetrics-environmental-context-enhanced .context-content {
+.greenmetrics-environmental-context .context-content {
     flex: 1;
 }
 
-.greenmetrics-environmental-context-enhanced h3 {
+.greenmetrics-environmental-context h3 {
     margin-top: 0;
     margin-bottom: 10px;
     color: white;
     font-size: 18px;
 }
 
-.greenmetrics-environmental-context-enhanced p {
+.greenmetrics-environmental-context p {
     margin: 0;
     font-size: 14px;
     line-height: 1.5;
 }
 
-.greenmetrics-environmental-context-enhanced strong {
+.greenmetrics-environmental-context strong {
     font-weight: 600;
     color: rgba(255, 255, 255, 0.95);
 }
 
 /* Responsive styles */
 @media screen and (max-width: 782px) {
-    .greenmetrics-environmental-context-enhanced {
+    .greenmetrics-environmental-context {
         grid-template-columns: 1fr;
     }
 } 
