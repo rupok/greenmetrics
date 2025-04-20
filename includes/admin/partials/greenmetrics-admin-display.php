@@ -141,7 +141,7 @@ $settings = get_option('greenmetrics_settings', array(
                                         $performance_score = 100; // If no load time data, assume perfect score
                                     }
                                 }
-                                // Display with 2 decimal places for precision
+                                // Display with 2 decimal places for precision (matching frontend)
                                 echo esc_html(number_format($performance_score, 2)); 
                             ?>%
                         </div>

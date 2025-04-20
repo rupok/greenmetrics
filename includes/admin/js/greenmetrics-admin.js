@@ -82,7 +82,7 @@ jQuery(document).ready(function($) {
                 </div>
                 <div class="stat-card">
                     <h3>Performance Score</h3>
-                    <p class="stat-value">${stats.performance_score}%</p>
+                    <p class="stat-value">${stats.performance_score.toFixed(2)}%</p>
                 </div>
             </div>
         `;
@@ -182,7 +182,7 @@ jQuery(document).ready(function($) {
                 $('#energy-consumption').text(response.energy_consumption.toFixed(2) + ' kWh');
                 $('#data-transfer').text(response.avg_data_transfer.toFixed(2) + ' KB');
                 $('#requests').text(response.requests);
-                $('#performance-score').text(response.performance_score + '%');
+                $('#performance-score').text(response.performance_score.toFixed(2) + '%');
             }
         });
     }

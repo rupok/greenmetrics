@@ -121,7 +121,7 @@ class GreenMetrics_Rest_API {
                 'avg_energy_consumption' => round($avg_energy_consumption, 6),
                 'avg_data_transfer' => round($avg_data_transfer_kb, 2),
                 'avg_requests' => round($avg_requests, 1),
-                'performance_score' => round($avg_performance_score),
+                'performance_score' => round($avg_performance_score, 2),
                 
                 // For backwards compatibility with existing JS
                 'co2_emissions' => round($total_carbon_footprint, 2),
