@@ -72,5 +72,9 @@ class GreenMetrics_Activator {
         } else {
             greenmetrics_log('Activator - Options already exist, not overwriting');
         }
+        
+        // Store the current version in the database
+        update_option('greenmetrics_version', GREENMETRICS_VERSION);
+        greenmetrics_log('Activator - Version recorded', GREENMETRICS_VERSION);
     }
 } 
