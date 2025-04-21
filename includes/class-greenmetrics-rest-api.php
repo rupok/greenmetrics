@@ -166,7 +166,16 @@ class GreenMetrics_Rest_API {
      */
     public function track_page($request) {
         try {
+            // Add detailed logging of what we're doing
+            greenmetrics_log('REST: track_page method called', [
+                'request_params' => $request->get_params(),
+                'method' => $request->get_method(),
+                'headers' => $request->get_headers()
+            ]);
+
             $options = get_option('greenmetrics_settings');
+            greenmetrics_log('REST: Settings retrieved', $options);
+
             if (!isset($options['tracking_enabled']) || !$options['tracking_enabled']) {
                 greenmetrics_log('REST: Tracking request denied - tracking is disabled', null, 'warning');
                 return new \WP_Error(
@@ -197,7 +206,9 @@ class GreenMetrics_Rest_API {
             ]);
 
             $tracker = GreenMetrics_Tracker::get_instance();
+            greenmetrics_log('REST: About to call handle_track_page');
             $success = $tracker->handle_track_page($data);
+            greenmetrics_log('REST: handle_track_page result', ['success' => $success]);
 
             if (!$success) {
                 greenmetrics_log('REST: Failed to track page metrics', null, 'error');
@@ -210,7 +221,10 @@ class GreenMetrics_Rest_API {
 
             return rest_ensure_response(array('success' => true));
         } catch (\Exception $e) {
-            greenmetrics_log('REST: Exception in track_page', $e->getMessage(), 'error');
+            greenmetrics_log('REST: Exception in track_page', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 'error');
             return new \WP_Error(
                 'tracking_exception',
                 'Exception tracking page: ' . $e->getMessage(),

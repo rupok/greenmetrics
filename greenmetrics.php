@@ -169,6 +169,23 @@ add_action('plugins_loaded', function() {
     if($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
         require_once plugin_dir_path(__FILE__) . 'includes/class-greenmetrics-activator.php';
         GreenMetrics\GreenMetrics_Activator::activate();
+        greenmetrics_log('Created missing database table on plugins_loaded', $table_name);
+    } else {
+        // Check if all required columns exist
+        $columns = $wpdb->get_results("DESCRIBE $table_name");
+        $column_names = array_map(function($col) { return $col->Field; }, $columns);
+        
+        // Make sure all required columns exist
+        $required_columns = array('id', 'page_id', 'data_transfer', 'load_time', 'requests', 'carbon_footprint', 'energy_consumption', 'performance_score', 'created_at');
+        $missing_columns = array_diff($required_columns, $column_names);
+        
+        if (!empty($missing_columns)) {
+            greenmetrics_log('Missing columns in database table', $missing_columns, 'warning');
+            // Recreate the table to ensure it has all required columns
+            require_once plugin_dir_path(__FILE__) . 'includes/class-greenmetrics-activator.php';
+            GreenMetrics\GreenMetrics_Activator::activate();
+            greenmetrics_log('Recreated database table with missing columns', $missing_columns);
+        }
     }
 });
 

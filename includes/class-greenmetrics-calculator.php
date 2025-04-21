@@ -31,19 +31,63 @@ class GreenMetrics_Calculator {
      * Calculate carbon emissions for data transfer.
      *
      * @param float $bytes Data transfer in bytes.
+     * @param float|null $carbon_intensity Optional custom carbon intensity value.
      * @return float Carbon emissions in grams.
      */
-    public static function calculate_carbon_emissions($bytes) {
+    public static function calculate_carbon_emissions($bytes, $carbon_intensity = null) {
+        if (!is_numeric($bytes) || $bytes < 0) {
+            greenmetrics_log('Invalid data transfer value', $bytes, 'error');
+            return 0;
+        }
+
         // Convert bytes to GB
         $gigabytes = $bytes / (1024 * 1024 * 1024);
         
         // Calculate energy consumption
         $energy_kwh = $gigabytes * self::ENERGY_PER_BYTE * self::PUE;
         
+        // Use provided carbon intensity or default
+        $intensity = $carbon_intensity ?? self::CARBON_INTENSITY;
+        
         // Calculate carbon emissions
-        $carbon_grams = $energy_kwh * self::CARBON_INTENSITY;
+        $carbon_grams = $energy_kwh * $intensity;
+        
+        greenmetrics_log('Carbon emissions calculated', array(
+            'bytes' => $bytes,
+            'gigabytes' => $gigabytes,
+            'energy_kwh' => $energy_kwh,
+            'carbon_intensity' => $intensity,
+            'carbon_grams' => $carbon_grams
+        ));
         
         return $carbon_grams;
+    }
+
+    /**
+     * Calculate energy consumption for data transfer.
+     *
+     * @param float $bytes Data transfer in bytes.
+     * @return float Energy consumption in kWh.
+     */
+    public static function calculate_energy_consumption($bytes) {
+        if (!is_numeric($bytes) || $bytes < 0) {
+            greenmetrics_log('Invalid data transfer value', $bytes, 'error');
+            return 0;
+        }
+
+        // Convert bytes to GB
+        $gigabytes = $bytes / (1024 * 1024 * 1024);
+        
+        // Calculate energy consumption
+        $energy_kwh = $gigabytes * self::ENERGY_PER_BYTE * self::PUE;
+        
+        greenmetrics_log('Energy consumption calculated', array(
+            'bytes' => $bytes,
+            'gigabytes' => $gigabytes,
+            'energy_kwh' => $energy_kwh
+        ));
+        
+        return $energy_kwh;
     }
 
     /**
@@ -53,6 +97,10 @@ class GreenMetrics_Calculator {
      * @return string Formatted string with appropriate unit.
      */
     public static function format_carbon_emissions($grams) {
+        if (!is_numeric($grams) || $grams < 0) {
+            return '0 g';
+        }
+
         if ($grams >= 1000) {
             return number_format($grams / 1000, 2) . ' kg';
         }
@@ -66,12 +114,36 @@ class GreenMetrics_Calculator {
      * @return string Formatted string with appropriate unit.
      */
     public static function format_data_transfer($bytes) {
+        if (!is_numeric($bytes) || $bytes < 0) {
+            return '0 B';
+        }
+
         if ($bytes < 1024) {
             return $bytes . ' B';
         } elseif ($bytes < 1048576) {
             return round($bytes / 1024, 2) . ' KB';
-        } else {
+        } elseif ($bytes < 1073741824) {
             return round($bytes / 1048576, 2) . ' MB';
+        } else {
+            return round($bytes / 1073741824, 2) . ' GB';
+        }
+    }
+
+    /**
+     * Format load time
+     *
+     * @param float $seconds Load time in seconds
+     * @return string Formatted time with appropriate unit
+     */
+    public static function format_load_time($seconds) {
+        if (!is_numeric($seconds) || $seconds < 0) {
+            return '0 ms';
+        }
+
+        if ($seconds < 1) {
+            return round($seconds * 1000, 2) . ' ms';
+        } else {
+            return round($seconds, 2) . ' s';
         }
     }
 
@@ -82,6 +154,10 @@ class GreenMetrics_Calculator {
      * @return array Array of optimization suggestions.
      */
     public static function get_optimization_suggestions($bytes) {
+        if (!is_numeric($bytes) || $bytes < 0) {
+            return array();
+        }
+
         $suggestions = array();
         
         // Check for large images
@@ -114,20 +190,11 @@ class GreenMetrics_Calculator {
             );
         }
         
+        greenmetrics_log('Generated optimization suggestions', array(
+            'bytes' => $bytes,
+            'suggestions_count' => count($suggestions)
+        ));
+        
         return $suggestions;
-    }
-
-    /**
-     * Format load time
-     *
-     * @param float $seconds Load time in seconds
-     * @return string Formatted time with appropriate unit
-     */
-    public static function format_load_time($seconds) {
-        if ($seconds < 1) {
-            return round($seconds * 1000, 2) . ' ms';
-        } else {
-            return round($seconds, 2) . ' s';
-        }
     }
 } 
