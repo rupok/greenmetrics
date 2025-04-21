@@ -193,9 +193,9 @@ class GreenMetrics_Tracker {
     }
 
     /**
-     * Get statistics.
+     * Get stats for a page or all pages.
      *
-     * @param int|null $page_id Optional. The page ID to filter by.
+     * @param int|null $page_id The page ID or null for all pages.
      * @return array The statistics.
      */
     public function get_stats($page_id = null) {
@@ -210,6 +210,11 @@ class GreenMetrics_Tracker {
             greenmetrics_log('Getting stats for all pages');
         }
 
+        // Get settings to use in SQL calculations
+        $settings = $this->get_settings();
+        $carbon_intensity = isset($settings['carbon_intensity']) ? floatval($settings['carbon_intensity']) : 0.475;
+        $energy_per_byte = isset($settings['energy_per_byte']) ? floatval($settings['energy_per_byte']) : 0.000000000072;
+        
         // Format the query with WHERE clause if needed
         $table_name_escaped = esc_sql($this->table_name);
         $sql = "SELECT 
@@ -217,6 +222,7 @@ class GreenMetrics_Tracker {
             SUM(data_transfer) as total_data_transfer,
             AVG(load_time) as avg_load_time,
             SUM(requests) as total_requests,
+            /* Calculate valid performance scores directly in SQL */
             AVG(CASE 
                 WHEN performance_score BETWEEN 0 AND 100 THEN performance_score 
                 ELSE NULL 
@@ -228,7 +234,11 @@ class GreenMetrics_Tracker {
             MAX(CASE 
                 WHEN performance_score BETWEEN 0 AND 100 THEN performance_score 
                 ELSE NULL 
-            END) as max_performance_score
+            END) as max_performance_score,
+            /* Pre-calculate energy consumption in SQL */
+            SUM(data_transfer) * $energy_per_byte as total_energy_consumption,
+            /* Pre-calculate carbon footprint in SQL (carbon_intensity is in kg/kWh, multiplied by 1000 for grams) */
+            SUM(data_transfer) * $energy_per_byte * $carbon_intensity * 1000 as total_carbon_footprint
         FROM $table_name_escaped";
         
         if ($page_id) {
@@ -248,24 +258,28 @@ class GreenMetrics_Tracker {
                 'max' => isset($stats['max_performance_score']) ? $stats['max_performance_score'] : 'N/A'
             ]);
             
+            // Optimize median calculation using a single query if possible
             // Initialize median calculation variables
             $total_rows = 0;
             $median_position = 0;
             $median_score = null;
             
-            // Get median performance score (more representative than average in some cases)
-            // Using a simpler approach that's more compatible with MySQL/MariaDB
-            $wpdb->query("SET @rownum:=0");
+            // Use a more efficient single query to find the count
             $count_query = "SELECT COUNT(*) FROM $table_name_escaped WHERE performance_score BETWEEN 0 AND 100";
+            if ($page_id) {
+                $count_query .= $wpdb->prepare(' AND page_id = %d', $page_id);
+            }
             $total_rows = $wpdb->get_var($count_query);
             
             if ($total_rows > 0) {
                 $median_position = floor($total_rows / 2);
                 
+                // Single efficient query to get the median
                 $median_query = $wpdb->prepare(
                     "SELECT performance_score 
                     FROM $table_name_escaped
                     WHERE performance_score BETWEEN 0 AND 100
+                    " . ($page_id ? $wpdb->prepare('AND page_id = %d', $page_id) : '') . "
                     ORDER BY performance_score
                     LIMIT %d, 1",
                     $median_position
@@ -288,22 +302,21 @@ class GreenMetrics_Tracker {
                 'total_data_transfer' => 0,
                 'avg_load_time' => 0,
                 'total_requests' => 0,
-                'avg_performance_score' => 100 // Default to 100% when no data
+                'avg_performance_score' => 100, // Default to 100% when no data
+                'total_energy_consumption' => 0,
+                'total_carbon_footprint' => 0
             );
         }
-
-        // Get settings with defaults
-        $settings = $this->get_settings();
 
         // Validate metrics to ensure they're all positive numbers
         $total_views = max(0, intval($stats['total_views']));
         $total_data_transfer = max(0, floatval($stats['total_data_transfer']));
         $avg_load_time = max(0, floatval($stats['avg_load_time']));
         $total_requests = max(0, intval($stats['total_requests']));
-
-        // Calculate current CO2 and energy based on total data transfer
-        $energy_consumption = $total_data_transfer * $settings['energy_per_byte'];
-        $carbon_footprint = $energy_consumption * $settings['carbon_intensity'] * 1000; // Convert kg to g
+        
+        // Get pre-calculated values from SQL
+        $total_energy_consumption = max(0, floatval($stats['total_energy_consumption']));
+        $total_carbon_footprint = max(0, floatval($stats['total_carbon_footprint']));
 
         // Ensure performance score is a valid percentage
         $performance_score = isset($stats['avg_performance_score']) && $stats['avg_performance_score'] !== null
@@ -348,8 +361,8 @@ class GreenMetrics_Tracker {
             'avg_load_time' => $avg_load_time,
             'total_requests' => $total_requests,
             'avg_performance_score' => $performance_score,
-            'total_energy_consumption' => floatval($energy_consumption),
-            'total_carbon_footprint' => floatval($carbon_footprint)
+            'total_energy_consumption' => floatval($total_energy_consumption),
+            'total_carbon_footprint' => floatval($total_carbon_footprint)
         );
         
         greenmetrics_log('Final calculation results', $result);
@@ -447,22 +460,30 @@ class GreenMetrics_Tracker {
         $table_name = $wpdb->prefix . 'greenmetrics_stats';
         $table_name_escaped = esc_sql($table_name);
 
+        // Get settings to use in SQL calculations
+        $settings = GreenMetrics_Settings_Manager::get_instance()->get();
+        $carbon_intensity = isset($settings['carbon_intensity']) ? floatval($settings['carbon_intensity']) : 0.475;
+        $energy_per_byte = isset($settings['energy_per_byte']) ? floatval($settings['energy_per_byte']) : 0.000000000072;
+
         greenmetrics_log('Getting total stats from', $table_name);
 
-        $stats = $wpdb->get_row(
-            "SELECT 
-                SUM(data_transfer) as total_data_transfer,
-                SUM(carbon_footprint) as total_carbon_footprint,
-                COUNT(*) as total_views
-            FROM $table_name_escaped"
-        );
+        $sql = "SELECT 
+            SUM(data_transfer) as total_data_transfer,
+            SUM(carbon_footprint) as total_carbon_footprint,
+            COUNT(*) as total_views,
+            /* Pre-calculate additional metrics in SQL if needed */
+            SUM(data_transfer) * $energy_per_byte as total_energy_consumption
+        FROM $table_name_escaped";
+
+        $stats = $wpdb->get_row($sql);
 
         if ($stats) {
             greenmetrics_log('Total stats found', $stats);
             return array(
                 'data_transfer' => $stats->total_data_transfer,
                 'carbon_footprint' => $stats->total_carbon_footprint,
-                'total_views' => $stats->total_views
+                'total_views' => $stats->total_views,
+                'energy_consumption' => $stats->total_energy_consumption
             );
         }
 
@@ -470,7 +491,8 @@ class GreenMetrics_Tracker {
         return array(
             'data_transfer' => 0,
             'carbon_footprint' => 0,
-            'total_views' => 0
+            'total_views' => 0,
+            'energy_consumption' => 0
         );
     }
 

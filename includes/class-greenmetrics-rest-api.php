@@ -93,7 +93,8 @@ class GreenMetrics_Rest_API {
                 );
             }
 
-            // Make sure we have the necessary values
+            // Extract and validate values from the stats array
+            // These values are already validated in the tracker's get_stats method
             $total_views = intval($stats['total_views']);
             $total_carbon_footprint = floatval($stats['total_carbon_footprint']);
             $total_energy_consumption = floatval($stats['total_energy_consumption']);
@@ -101,23 +102,13 @@ class GreenMetrics_Rest_API {
             $total_requests = intval($stats['total_requests']);
             $avg_performance_score = floatval($stats['avg_performance_score']);
 
-            // Ensure performance score is within bounds (0-100)
-            if ($avg_performance_score > 100 || $avg_performance_score < 0) {
-                greenmetrics_log('REST: Performance score out of bounds, adjusting', $avg_performance_score, 'warning');
-                $avg_performance_score = 0;
-                if ($stats['avg_load_time'] > 0) {
-                    // Use the tracker's standard calculation method for consistency
-                    $avg_performance_score = $tracker->calculate_performance_score($stats['avg_load_time']);
-                }
-            }
-
-            // Calculate averages per page view (if there are views)
+            // Calculate per-view averages only if there are views
             $avg_carbon_footprint = $total_views > 0 ? $total_carbon_footprint / $total_views : 0;
             $avg_energy_consumption = $total_views > 0 ? $total_energy_consumption / $total_views : 0;
             $avg_data_transfer = $total_views > 0 ? $total_data_transfer / $total_views : 0;
             $avg_requests = $total_views > 0 ? $total_requests / $total_views : 0;
 
-            // Convert data transfer from bytes to KB
+            // Convert data transfer from bytes to KB for display
             $avg_data_transfer_kb = $avg_data_transfer / 1024;
             $total_data_transfer_kb = $total_data_transfer / 1024;
 
