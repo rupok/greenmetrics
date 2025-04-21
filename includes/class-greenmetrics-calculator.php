@@ -103,8 +103,14 @@ class GreenMetrics_Calculator {
 
         if ($grams >= 1000) {
             return number_format($grams / 1000, 2) . ' kg';
+        } elseif ($grams >= 1) {
+            return number_format($grams, 2) . ' g';
+        } elseif ($grams >= 0.001) {
+            return number_format($grams * 1000, 2) . ' mg';
+        } else {
+            // For extremely small values, increase precision to avoid showing 0
+            return number_format($grams, 6) . ' g';
         }
-        return number_format($grams, 2) . ' g';
     }
 
     /**
@@ -127,6 +133,20 @@ class GreenMetrics_Calculator {
         } else {
             return round($bytes / 1073741824, 2) . ' GB';
         }
+    }
+
+    /**
+     * Format energy consumption for display.
+     *
+     * @param float $kwh Energy consumption in kWh.
+     * @return string Formatted string with appropriate unit.
+     */
+    public static function format_energy_consumption($kwh) {
+        if (!is_numeric($kwh) || $kwh < 0) {
+            return '0 kWh';
+        }
+
+        return number_format($kwh, 4) . ' kWh';
     }
 
     /**
@@ -166,7 +186,8 @@ class GreenMetrics_Calculator {
                 'id' => 'optimize_images',
                 'title' => __('Optimize Images', 'greenmetrics'),
                 'description' => __('Your page contains large images. Consider compressing them to reduce data transfer.', 'greenmetrics'),
-                'priority' => 'high'
+                'priority' => 'high',
+                'icon' => '<path fill="currentColor" d="M8.5,13.5L11,16.5L14.5,12L19,18H5M21,19V5C21,3.89 20.1,3 19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19Z" />'
             );
         }
         
@@ -176,7 +197,8 @@ class GreenMetrics_Calculator {
                 'id' => 'enable_caching',
                 'title' => __('Enable Caching', 'greenmetrics'),
                 'description' => __('Caching is not enabled. Enable caching to reduce server load and data transfer.', 'greenmetrics'),
-                'priority' => 'medium'
+                'priority' => 'medium',
+                'icon' => '<path fill="currentColor" d="M12,3C7.58,3 4,4.79 4,7C4,9.21 7.58,11 12,11C16.42,11 20,9.21 20,7C20,4.79 16.42,3 12,3M4,9V12C4,14.21 7.58,16 12,16C16.42,16 20,14.21 20,12V9C20,11.21 16.42,13 12,13C7.58,13 4,11.21 4,9M4,14V17C4,19.21 7.58,21 12,21C16.42,21 20,19.21 20,17V14C20,16.21 16.42,18 12,18C7.58,18 4,16.21 4,14Z" />'
             );
         }
         
@@ -186,7 +208,8 @@ class GreenMetrics_Calculator {
                 'id' => 'enable_lazy_loading',
                 'title' => __('Enable Lazy Loading', 'greenmetrics'),
                 'description' => __('Lazy loading is not enabled. Enable it to reduce initial page load size.', 'greenmetrics'),
-                'priority' => 'medium'
+                'priority' => 'medium',
+                'icon' => '<path fill="currentColor" d="M19,19H5V5H19M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M13.96,12.29L11.21,15.83L9.25,13.47L6.5,17H17.5L13.96,12.29Z" />'
             );
         }
         

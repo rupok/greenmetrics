@@ -235,10 +235,10 @@ class GreenMetrics_Tracker {
                 WHEN performance_score BETWEEN 0 AND 100 THEN performance_score 
                 ELSE NULL 
             END) as max_performance_score,
-            /* Pre-calculate energy consumption in SQL */
-            SUM(data_transfer) * $energy_per_byte as total_energy_consumption,
-            /* Pre-calculate carbon footprint in SQL (carbon_intensity is in kg/kWh, multiplied by 1000 for grams) */
-            SUM(data_transfer) * $energy_per_byte * $carbon_intensity * 1000 as total_carbon_footprint
+            /* Get average energy consumption and multiply by view count for correct totals */
+            AVG(energy_consumption) as avg_energy_consumption,
+            /* Get average carbon footprint and multiply by view count for correct totals */
+            AVG(carbon_footprint) as avg_carbon_footprint
         FROM $table_name_escaped";
         
         if ($page_id) {
@@ -248,6 +248,29 @@ class GreenMetrics_Tracker {
         $stats = $wpdb->get_row($sql, ARRAY_A);
 
         greenmetrics_log('Raw stats from query', $stats);
+        
+        // Calculate totals from average values * number of views
+        if (isset($stats['total_views']) && $stats['total_views'] > 0) {
+            // Get the actual averages from the database
+            $avg_energy_per_view = isset($stats['avg_energy_consumption']) ? floatval($stats['avg_energy_consumption']) : 0;
+            $avg_carbon_per_view = isset($stats['avg_carbon_footprint']) ? floatval($stats['avg_carbon_footprint']) : 0;
+            
+            // Simply multiply by the total number of views - no capping or scaling
+            $stats['total_energy_consumption'] = $avg_energy_per_view * $stats['total_views'];
+            $stats['total_carbon_footprint'] = $avg_carbon_per_view * $stats['total_views'];
+            
+            greenmetrics_log('Calculated total energy and carbon values from real database averages', [
+                'avg_energy_per_view' => $avg_energy_per_view,
+                'avg_carbon_per_view' => $avg_carbon_per_view,
+                'total_views' => $stats['total_views'],
+                'total_energy' => $stats['total_energy_consumption'],
+                'total_carbon' => $stats['total_carbon_footprint']
+            ]);
+        } else {
+            // No views yet, so set totals to 0
+            $stats['total_energy_consumption'] = 0;
+            $stats['total_carbon_footprint'] = 0;
+        }
         
         // Get a percentile-based score to avoid extreme outliers affecting the average
         if ($do_detailed_debug) {
@@ -315,28 +338,27 @@ class GreenMetrics_Tracker {
         $total_requests = max(0, intval($stats['total_requests']));
         
         // Get pre-calculated values from SQL
-        $total_energy_consumption = max(0, floatval($stats['total_energy_consumption']));
-        $total_carbon_footprint = max(0, floatval($stats['total_carbon_footprint']));
+        $total_energy_consumption = max(0, floatval($stats['avg_energy_consumption']) * $total_views);
+        $total_carbon_footprint = max(0, floatval($stats['avg_carbon_footprint']) * $total_views);
 
         // Ensure performance score is a valid percentage
-        $performance_score = isset($stats['avg_performance_score']) && $stats['avg_performance_score'] !== null
+        $avg_performance_score = isset($stats['avg_performance_score']) && $stats['avg_performance_score'] !== null
             ? floatval($stats['avg_performance_score'])
             : 100; // Default to 100 if NULL (which can happen if all records were filtered out)
             
-        if ($performance_score > 100 || $performance_score <= 0 || !is_numeric($performance_score) || is_nan($performance_score)) {
-            greenmetrics_log('Invalid performance score, recalculating', $performance_score, 'warning');
+        if ($avg_performance_score < 0 || $avg_performance_score > 100) {
+            greenmetrics_log('Invalid performance score from database', $avg_performance_score, 'warning');
+            // Calculate performance score using load time
             if ($avg_load_time > 0) {
-                // Use our standard calculation method instead of the simple formula
                 $performance_score = $this->calculate_performance_score($avg_load_time);
+                greenmetrics_log('Recalculated performance score', $performance_score);
             } else {
-                $performance_score = 100; // Default to 100% if no load time data
+                $performance_score = 100; // Default to 100% when no data
+                greenmetrics_log('Using default performance score', $performance_score);
             }
-        }
-
-        // Additional validation to ensure we return a valid float
-        if (!is_numeric($performance_score) || is_nan($performance_score)) {
-            greenmetrics_log('Performance score is still invalid after recalculation, using default', $performance_score, 'error');
-            $performance_score = 100;
+        } else {
+            $performance_score = $avg_performance_score;
+            greenmetrics_log('Using valid performance score from database', $performance_score);
         }
         
         // Check if we should use the median score instead - FOR DIAGNOSTIC ONLY
@@ -361,8 +383,8 @@ class GreenMetrics_Tracker {
             'avg_load_time' => $avg_load_time,
             'total_requests' => $total_requests,
             'avg_performance_score' => $performance_score,
-            'total_energy_consumption' => floatval($total_energy_consumption),
-            'total_carbon_footprint' => floatval($total_carbon_footprint)
+            'total_energy_consumption' => $total_energy_consumption,
+            'total_carbon_footprint' => $total_carbon_footprint
         );
         
         greenmetrics_log('Final calculation results', $result);
@@ -542,7 +564,7 @@ class GreenMetrics_Tracker {
             $carbon_footprint = GreenMetrics_Calculator::calculate_carbon_emissions($data_transfer);
             greenmetrics_log('process_and_save_metrics: Calculated carbon_footprint', $carbon_footprint);
             
-            $energy_consumption = $data_transfer * GreenMetrics_Calculator::ENERGY_PER_BYTE * GreenMetrics_Calculator::PUE;
+            $energy_consumption = GreenMetrics_Calculator::calculate_energy_consumption($data_transfer);
             greenmetrics_log('process_and_save_metrics: Calculated energy_consumption', $energy_consumption);
             
             // Calculate performance score

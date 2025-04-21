@@ -167,10 +167,10 @@ class GreenMetrics_Public {
         $wrapper_class = implode(' ', $wrapper_classes);
         $badge_class = implode(' ', $badge_classes);
 
-        // Format values with proper precision using number_format
-        $carbon_formatted = number_format($metrics['carbon_footprint'], 2) . ' g CO2';
-        $energy_formatted = number_format($metrics['energy_consumption'], 4) . ' kWh';
-        $data_formatted = size_format($metrics['data_transfer'], 2);
+        // Format values with proper precision using formatting methods from the Calculator class
+        $carbon_formatted = GreenMetrics_Calculator::format_carbon_emissions($metrics['carbon_footprint']);
+        $energy_formatted = GreenMetrics_Calculator::format_energy_consumption($metrics['energy_consumption']);
+        $data_formatted = GreenMetrics_Calculator::format_data_transfer($metrics['data_transfer']);
         $views_formatted = number_format($metrics['total_views']);
         $requests_formatted = number_format($metrics['requests']);
         $score_formatted = number_format($metrics['performance_score'], 2) . '%';
@@ -389,15 +389,15 @@ class GreenMetrics_Public {
                     switch ($metric) {
                         case 'carbon_footprint':
                             $label = 'Carbon Footprint';
-                            $value = number_format($metrics['carbon_footprint'], 2) . ' g CO2';
+                            $value = GreenMetrics_Calculator::format_carbon_emissions($metrics['carbon_footprint']);
                             break;
                         case 'energy_consumption':
                             $label = 'Energy Consumption';
-                            $value = number_format($metrics['energy_consumption'], 4) . ' kWh';
+                            $value = GreenMetrics_Calculator::format_energy_consumption($metrics['energy_consumption']);
                             break;
                         case 'data_transfer':
                             $label = 'Data Transfer';
-                            $value = size_format($metrics['data_transfer'], 2);
+                            $value = GreenMetrics_Calculator::format_data_transfer($metrics['data_transfer']);
                             break;
                         case 'views':
                             $label = 'Page Views';

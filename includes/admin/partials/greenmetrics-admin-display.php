@@ -42,8 +42,14 @@ $settings = get_option('greenmetrics_settings', array(
                             <h3><?php esc_html_e('Carbon Footprint Impact', 'greenmetrics'); ?></h3>
                             <p>
                                 <?php 
+                                    // Get the correctly calculated carbon footprint value
+                                    $total_carbon = $stats['total_carbon_footprint'];
+                                    if ($total_carbon < 0.00001) {
+                                        $total_carbon = \GreenMetrics\GreenMetrics_Calculator::calculate_carbon_emissions($stats['total_data_transfer']);
+                                    }
+                                    
                                     // Convert carbon to equivalent values
-                                    $carbon_kg = $stats['total_carbon_footprint'] / 1000; // Convert g to kg
+                                    $carbon_kg = $total_carbon / 1000; // Convert g to kg
                                     $tree_seconds = $carbon_kg * 4500; // 1 tree absorbs ~8 kg CO2 per year (4500 seconds to absorb 1g)
                                     
                                     // Format the time in appropriate units
@@ -66,7 +72,7 @@ $settings = get_option('greenmetrics_settings', array(
                                     
                                     printf(
                                         esc_html__('Your website has produced %1$s g of CO2, which would take a tree approximately %2$s to absorb.', 'greenmetrics'),
-                                        '<strong>' . number_format($stats['total_carbon_footprint'], 2) . '</strong>',
+                                        '<strong>' . \GreenMetrics\GreenMetrics_Calculator::format_carbon_emissions($total_carbon) . '</strong>',
                                         '<strong>' . $tree_time . '</strong>'
                                     );
                                 ?>
@@ -83,9 +89,15 @@ $settings = get_option('greenmetrics_settings', array(
                             <h3><?php esc_html_e('Energy Consumption Impact', 'greenmetrics'); ?></h3>
                             <p>
                                 <?php 
+                                    // Get the correctly calculated energy consumption value
+                                    $total_energy = $stats['total_energy_consumption'];
+                                    if ($total_energy < 0.00001) {
+                                        $total_energy = \GreenMetrics\GreenMetrics_Calculator::calculate_energy_consumption($stats['total_data_transfer']);
+                                    }
+                                    
                                     // Convert energy to equivalent values
-                                    $energy_kwh = $stats['total_energy_consumption'];
-                                    $lightbulb_hours = $energy_kwh * 10; // 10W LED bulb runs for ~100 hours on 1 kWh
+                                    $energy_kwh = $total_energy;
+                                    $lightbulb_hours = $energy_kwh * 100; // 10W LED bulb runs for ~100 hours on 1 kWh
                                     
                                     // Format the time in appropriate units
                                     if ($lightbulb_hours < 1) {
@@ -98,8 +110,8 @@ $settings = get_option('greenmetrics_settings', array(
                                     }
                                     
                                     printf(
-                                        esc_html__('Your website has consumed %1$s kWh of energy, equivalent to running a 10W LED light bulb for %2$s.', 'greenmetrics'),
-                                        '<strong>' . number_format($energy_kwh, 6) . '</strong>',
+                                        esc_html__('Your website has consumed %1$s of energy, equivalent to running a 10W LED light bulb for %2$s.', 'greenmetrics'),
+                                        '<strong>' . \GreenMetrics\GreenMetrics_Calculator::format_energy_consumption($energy_kwh) . '</strong>',
                                         '<strong>' . $lightbulb_time . '</strong>'
                                     );
                                 ?>
@@ -114,19 +126,35 @@ $settings = get_option('greenmetrics_settings', array(
                     <div class="greenmetrics-stat-card total">
                         <h4><?php esc_html_e('Total Carbon Footprint', 'greenmetrics'); ?></h4>
                         <div class="greenmetrics-stat-value" id="total-carbon-footprint">
-                            <?php echo esc_html(number_format($stats['total_carbon_footprint'], 2)); ?> g CO2
+                            <?php 
+                            // If total_carbon_footprint is too small, recalculate it
+                            $total_carbon = $stats['total_carbon_footprint'];
+                            if ($total_carbon < 0.00001) {
+                                // Recalculate carbon footprint using Calculator
+                                $total_carbon = \GreenMetrics\GreenMetrics_Calculator::calculate_carbon_emissions($stats['total_data_transfer']);
+                            }
+                            echo esc_html(\GreenMetrics\GreenMetrics_Calculator::format_carbon_emissions($total_carbon)); 
+                            ?>
                         </div>
                     </div>
                     <div class="greenmetrics-stat-card total">
                         <h4><?php esc_html_e('Total Energy Consumption', 'greenmetrics'); ?></h4>
                         <div class="greenmetrics-stat-value" id="total-energy-consumption">
-                            <?php echo esc_html(number_format($stats['total_energy_consumption'], 6)); ?> kWh
+                            <?php 
+                            // If total_energy_consumption is too small, recalculate it
+                            $total_energy = $stats['total_energy_consumption'];
+                            if ($total_energy < 0.00001) {
+                                // Recalculate energy consumption using Calculator
+                                $total_energy = \GreenMetrics\GreenMetrics_Calculator::calculate_energy_consumption($stats['total_data_transfer']);
+                            }
+                            echo esc_html(\GreenMetrics\GreenMetrics_Calculator::format_energy_consumption($total_energy)); 
+                            ?>
                         </div>
                     </div>
                     <div class="greenmetrics-stat-card total">
                         <h4><?php esc_html_e('Total Data Transfer', 'greenmetrics'); ?></h4>
                         <div class="greenmetrics-stat-value" id="total-data-transfer">
-                            <?php echo esc_html(size_format($stats['total_data_transfer'], 2)); ?>
+                            <?php echo esc_html(\GreenMetrics\GreenMetrics_Calculator::format_data_transfer($stats['total_data_transfer'])); ?>
                         </div>
                     </div>
                     <div class="greenmetrics-stat-card total">
@@ -149,8 +177,15 @@ $settings = get_option('greenmetrics_settings', array(
                         <div class="greenmetrics-stat-value" id="avg-carbon-footprint">
                             <?php 
                                 $avg_carbon = $stats['total_views'] > 0 ? $stats['total_carbon_footprint'] / $stats['total_views'] : 0;
-                                echo esc_html(number_format($avg_carbon, 4)); 
-                            ?> g CO2
+                                // If avg_carbon is too small or zero, recalculate it
+                                if ($avg_carbon < 0.00001) {
+                                    // Calculate average data transfer per page
+                                    $avg_data_transfer = $stats['total_views'] > 0 ? $stats['total_data_transfer'] / $stats['total_views'] : 0;
+                                    // Recalculate carbon footprint using Calculator
+                                    $avg_carbon = \GreenMetrics\GreenMetrics_Calculator::calculate_carbon_emissions($avg_data_transfer);
+                                }
+                                echo esc_html(\GreenMetrics\GreenMetrics_Calculator::format_carbon_emissions($avg_carbon)); 
+                            ?>
                         </div>
                     </div>
                     <div class="greenmetrics-stat-card average">
@@ -158,8 +193,15 @@ $settings = get_option('greenmetrics_settings', array(
                         <div class="greenmetrics-stat-value" id="avg-energy-consumption">
                             <?php 
                                 $avg_energy = $stats['total_views'] > 0 ? $stats['total_energy_consumption'] / $stats['total_views'] : 0;
-                                echo esc_html(number_format($avg_energy, 8)); 
-                            ?> kWh
+                                // If avg_energy is too small or zero, recalculate it
+                                if ($avg_energy < 0.00001) {
+                                    // Calculate average data transfer per page
+                                    $avg_data_transfer = $stats['total_views'] > 0 ? $stats['total_data_transfer'] / $stats['total_views'] : 0;
+                                    // Recalculate energy consumption using Calculator
+                                    $avg_energy = \GreenMetrics\GreenMetrics_Calculator::calculate_energy_consumption($avg_data_transfer);
+                                }
+                                echo esc_html(\GreenMetrics\GreenMetrics_Calculator::format_energy_consumption($avg_energy)); 
+                            ?>
                         </div>
                     </div>
                     <div class="greenmetrics-stat-card average">
@@ -167,7 +209,7 @@ $settings = get_option('greenmetrics_settings', array(
                         <div class="greenmetrics-stat-value" id="avg-data-transfer">
                             <?php 
                                 $avg_data = $stats['total_views'] > 0 ? $stats['total_data_transfer'] / $stats['total_views'] : 0;
-                                echo esc_html(size_format($avg_data, 2)); 
+                                echo esc_html(\GreenMetrics\GreenMetrics_Calculator::format_data_transfer($avg_data)); 
                             ?>
                         </div>
                     </div>
@@ -188,15 +230,7 @@ $settings = get_option('greenmetrics_settings', array(
                                 // Ensure it's a positive number
                                 $avg_load_time = max(0, $avg_load_time);
                                 
-                                // Format with appropriate units (ms vs seconds) based on value size
-                                if ($avg_load_time < 0.1) {
-                                    // For very small values, show milliseconds (more meaningful)
-                                    $ms_value = $avg_load_time * 1000;
-                                    echo esc_html(number_format($ms_value, 1)) . ' ' . esc_html__('ms', 'greenmetrics');
-                                } else {
-                                    // For larger values, continue showing seconds with more precision
-                                    echo esc_html(number_format($avg_load_time, 4)) . ' ' . esc_html__('seconds', 'greenmetrics');
-                                }
+                                echo esc_html(\GreenMetrics\GreenMetrics_Calculator::format_load_time($avg_load_time));
                             ?>
                         </div>
                     </div>
@@ -265,7 +299,7 @@ $settings = get_option('greenmetrics_settings', array(
                                 <?php 
                                 printf(
                                     esc_html__('Your average page size is %s which is quite large. Consider these optimizations:', 'greenmetrics'),
-                                    '<strong>' . size_format($avg_data_per_page, 2) . '</strong>'
+                                    '<strong>' . \GreenMetrics\GreenMetrics_Calculator::format_data_transfer($avg_data_per_page) . '</strong>'
                                 );
                                 ?>
                             </p>
@@ -280,7 +314,7 @@ $settings = get_option('greenmetrics_settings', array(
                                 <?php 
                                 printf(
                                     esc_html__('Your average page size is %s which is excellent! Small page sizes reduce energy consumption and carbon footprint.', 'greenmetrics'),
-                                    '<strong>' . size_format($avg_data_per_page, 2) . '</strong>'
+                                    '<strong>' . \GreenMetrics\GreenMetrics_Calculator::format_data_transfer($avg_data_per_page) . '</strong>'
                                 );
                                 ?>
                             </p>
@@ -359,6 +393,28 @@ $settings = get_option('greenmetrics_settings', array(
                             <?php endif; ?>
                         </div>
                     </li>
+
+                    <?php
+                    // Get dynamic optimization suggestions from Calculator class
+                    $avg_page_bytes = $stats['total_views'] > 0 ? $stats['total_data_transfer'] / $stats['total_views'] : 0;
+                    $dynamic_suggestions = \GreenMetrics\GreenMetrics_Calculator::get_optimization_suggestions($avg_page_bytes);
+                    
+                    // Display dynamic suggestions
+                    foreach ($dynamic_suggestions as $suggestion) :
+                        $priority_class = ($suggestion['priority'] === 'high') ? 'needs-improvement' : 'good-status';
+                    ?>
+                    <li class="optimization-item <?php echo esc_attr($priority_class); ?>">
+                        <div class="optimization-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                                <?php echo isset($suggestion['icon']) ? $suggestion['icon'] : '<path fill="currentColor" d="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16" />'; ?>
+                            </svg>
+                        </div>
+                        <div class="optimization-content">
+                            <h4><?php echo esc_html($suggestion['title']); ?></h4>
+                            <p><?php echo esc_html($suggestion['description']); ?></p>
+                        </div>
+                    </li>
+                    <?php endforeach; ?>
                     
                     <li class="optimization-item good-status">
                         <div class="optimization-icon">
