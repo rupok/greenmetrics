@@ -510,14 +510,15 @@ class GreenMetrics_Tracker {
      */
     public static function get_total_stats() {
         global $wpdb;
-        $table_name = $wpdb->prefix . 'greenmetrics_emissions';
+        // Use consistent table name across the codebase
+        $table_name = $wpdb->prefix . 'greenmetrics_stats';
 
         greenmetrics_log('Getting total stats from', $table_name);
 
         $stats = $wpdb->get_row(
             "SELECT 
                 SUM(data_transfer) as total_data_transfer,
-                SUM(co2_emissions) as total_co2_emissions,
+                SUM(carbon_footprint) as total_carbon_footprint,
                 COUNT(*) as total_views
             FROM $table_name"
         );
@@ -526,7 +527,7 @@ class GreenMetrics_Tracker {
             greenmetrics_log('Total stats found', $stats);
             return array(
                 'data_transfer' => $stats->total_data_transfer,
-                'co2_emissions' => $stats->total_co2_emissions,
+                'carbon_footprint' => $stats->total_carbon_footprint,
                 'total_views' => $stats->total_views
             );
         }
@@ -534,7 +535,7 @@ class GreenMetrics_Tracker {
         greenmetrics_log('No total stats found, returning defaults', null, 'warning');
         return array(
             'data_transfer' => 0,
-            'co2_emissions' => 0,
+            'carbon_footprint' => 0,
             'total_views' => 0
         );
     }

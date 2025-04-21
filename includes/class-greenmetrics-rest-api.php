@@ -144,6 +144,8 @@ class GreenMetrics_Rest_API {
                 'performance_score' => round($avg_performance_score, 2),
                 
                 // For backwards compatibility with existing JS
+                // Keep co2_emissions name for JS files that still use it
+                // But prefer carbon_footprint for consistency
                 'co2_emissions' => round($total_carbon_footprint, 2),
                 'energy_consumption' => round($total_energy_consumption, 4),
                 'requests' => $total_requests
