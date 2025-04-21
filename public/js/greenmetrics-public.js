@@ -9,43 +9,55 @@
         $(window).on('load', function() {
             const endTime = performance.now();
             const endBytes = performance.memory ? performance.memory.usedJSHeapSize : 0;
-            const loadTime = endTime - startTime;
+            const loadTimeMs = endTime - startTime;
             const dataTransfer = endBytes - startBytes;
+
+            // Convert milliseconds to seconds for server-side compatibility
+            const loadTimeSeconds = loadTimeMs / 1000;
 
             // Calculate rough requests count based on performance entries
             let requests = 0;
             if (window.performance && window.performance.getEntriesByType) {
                 requests = window.performance.getEntriesByType('resource').length;
             }
-
-            // Create metrics object
-            const metrics = {
+            
+            console.log('Sending metrics data:', {
                 data_transfer: dataTransfer,
-                load_time: loadTime,
+                load_time: loadTimeSeconds, // In seconds for the server
+                load_time_ms: loadTimeMs, // Original value in ms for reference
                 requests: requests,
                 page_id: greenmetricsPublic.page_id
-            };
-            
-            console.log('Sending metrics data:', metrics);
+            });
 
-            $.ajax({
-                url: greenmetricsPublic.ajax_url,
-                type: 'POST',
-                data: {
-                    action: 'greenmetrics_tracking',
-                    nonce: greenmetricsPublic.nonce,
-                    metrics: JSON.stringify(metrics)
+            // Use the REST API endpoint instead of AJAX
+            fetch(greenmetricsPublic.rest_url + '/track', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-WP-Nonce': greenmetricsPublic.rest_nonce
                 },
-                success: function(response) {
-                    if (response.success) {
-                        console.log('Page metrics tracked successfully');
-                    } else {
-                        console.error('Failed to track page metrics:', response.data);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error tracking page metrics:', error);
+                body: JSON.stringify({
+                    page_id: greenmetricsPublic.page_id,
+                    data_transfer: dataTransfer,
+                    load_time: loadTimeSeconds, // Send in seconds
+                    requests: requests
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
                 }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    console.log('Page metrics tracked successfully');
+                } else {
+                    console.error('Failed to track page metrics:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error tracking page metrics:', error);
             });
         });
     }

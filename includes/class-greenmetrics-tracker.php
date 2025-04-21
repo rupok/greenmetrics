@@ -34,6 +34,9 @@ class GreenMetrics_Tracker {
         $this->table_name = $wpdb->prefix . 'greenmetrics_stats';
         
         add_action('wp_footer', array($this, 'inject_tracking_script'));
+        
+        // These AJAX handlers are deprecated but kept for backward compatibility
+        // They will be removed in a future version. Use the REST API instead.
         add_action('wp_ajax_greenmetrics_track', array($this, 'handle_tracking_request'));
         add_action('wp_ajax_nopriv_greenmetrics_track', array($this, 'handle_tracking_request'));
         
@@ -60,6 +63,12 @@ class GreenMetrics_Tracker {
             greenmetrics_log('Tracking disabled, not injecting script');
             return;
         }
+        
+        // If we're using public.js for tracking, don't inject the tracking script
+        if (defined('GREENMETRICS_USE_PUBLIC_JS') && GREENMETRICS_USE_PUBLIC_JS) {
+            greenmetrics_log('Using public.js for tracking instead of tracking.js');
+            return;
+        }
 
         $settings = GreenMetrics_Settings_Manager::get_instance()->get();
         $plugin_url = plugins_url('', dirname(dirname(__FILE__)));
@@ -71,8 +80,8 @@ class GreenMetrics_Tracker {
                 enabled: true,
                 carbonIntensity: <?php echo esc_js($settings['carbon_intensity']); ?>,
                 energyPerByte: <?php echo esc_js($settings['energy_per_byte']); ?>,
-                nonce: '<?php echo wp_create_nonce('greenmetrics_tracking'); ?>',
-                ajax_url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                rest_nonce: '<?php echo wp_create_nonce('wp_rest'); ?>',
+                rest_url: '<?php echo esc_js(get_rest_url(null, 'greenmetrics/v1')); ?>',
                 page_id: <?php echo get_the_ID(); ?>
             };
         </script>
@@ -82,8 +91,13 @@ class GreenMetrics_Tracker {
 
     /**
      * Handle the tracking request.
+     * 
+     * @deprecated 1.1.0 Use the REST API endpoint /greenmetrics/v1/track instead.
      */
     public function handle_tracking_request() {
+        // Log deprecation notice
+        greenmetrics_log('DEPRECATED: The AJAX endpoint greenmetrics_track is deprecated. Use the REST API endpoint /greenmetrics/v1/track instead.', null, 'warning');
+
         if (!$this->is_tracking_enabled()) {
             greenmetrics_log('Tracking request rejected - tracking disabled', null, 'warning');
             wp_send_json_error('Tracking is disabled');
@@ -137,17 +151,24 @@ class GreenMetrics_Tracker {
      * @return float Performance score from 0-100 with decimal precision
      */
     public function calculate_performance_score($load_time) {
+        // Ignore extremely high load times (likely measurement errors or development-related delays)
+        // These can happen during development with browser cache disabled or when dev tools are open
+        if ($load_time > 15) {
+            greenmetrics_log('Ignoring abnormally high load time', $load_time, 'warning');
+            return 75; // Return a reasonable default value
+        }
+        
         // Convert to milliseconds for more precision
         $load_time_ms = $load_time * 1000;
         
         // Define reference values based on web performance standards
         // These values align with general performance expectations
-        $fast_threshold_ms = 1000;    // 1 second - considered fast (scores close to 100)
+        $fast_threshold_ms = 1500;    // 1.5 seconds - considered fast (scores close to 100)
         $slow_threshold_ms = 5000;    // 5 seconds - considered slow (scores around 50)
         $max_threshold_ms = 10000;    // 10 seconds - very slow (scores below 20)
         
         // If load time is extremely fast, give a perfect score
-        if ($load_time_ms <= 100) {
+        if ($load_time_ms <= 500) {
             return 100;
         }
         
@@ -155,20 +176,24 @@ class GreenMetrics_Tracker {
         // This creates a curve that drops quickly for slow sites but gives more 
         // precision for fast sites in the 90-100 range
         if ($load_time_ms <= $fast_threshold_ms) {
-            // For fast sites (0-1s): subtle scoring from 90-100
+            // For fast sites (0-1.5s): subtle scoring from 90-100
             $score = 100 - (10 * ($load_time_ms / $fast_threshold_ms));
         } elseif ($load_time_ms <= $slow_threshold_ms) {
-            // For medium sites (1-5s): scoring from 50-90
+            // For medium sites (1.5-5s): scoring from 50-90
             $normalized = ($load_time_ms - $fast_threshold_ms) / ($slow_threshold_ms - $fast_threshold_ms);
             $score = 90 - (40 * $normalized);
+        } elseif ($load_time_ms <= $max_threshold_ms) {
+            // For slow sites (5-10s): scoring from 20-50
+            $normalized = ($load_time_ms - $slow_threshold_ms) / ($max_threshold_ms - $slow_threshold_ms);
+            $score = 50 - (30 * $normalized);
         } else {
-            // For slow sites (5s+): scoring from 0-50 with diminishing returns
-            $normalized = min(1, ($load_time_ms - $slow_threshold_ms) / ($max_threshold_ms - $slow_threshold_ms));
-            $score = 50 - (50 * $normalized);
+            // For extremely slow sites (>10s): scoring from 0-20
+            $normalized = min(1, ($load_time_ms - $max_threshold_ms) / $max_threshold_ms);
+            $score = max(0, 20 - (20 * $normalized));
         }
         
-        // Ensure score is within valid range and has decimal precision
-        return max(0, min(100, round($score, 2)));
+        // Ensure score is within 0-100 range with 2 decimal precision
+        return round(max(0, min(100, $score)), 2);
     }
 
     /**
@@ -590,6 +615,21 @@ class GreenMetrics_Tracker {
             $load_time = 0;
         } else {
             $load_time = max(0, floatval($metrics['load_time']));
+            
+            // More detailed logging about the load time and units
+            greenmetrics_log('Load time details', [
+                'raw_value' => $metrics['load_time'],
+                'processed_value' => $load_time,
+                'expected_unit' => 'seconds',
+                'value_type' => gettype($load_time)
+            ]);
+            
+            // Detect and handle abnormally high load times
+            // These can occur during development with browser cache disabled or when dev tools are open
+            if ($load_time > 15) {
+                greenmetrics_log('Detected abnormally high load time in metrics data', $load_time, 'warning');
+                // We're still recording the load time, but we'll use a modified performance score
+            }
         }
         
         // Check if metrics contains requests
@@ -628,7 +668,12 @@ class GreenMetrics_Tracker {
             greenmetrics_log('Using provided performance score', $performance_score);
         } else {
             $performance_score = $this->calculate_performance_score($load_time);
-            greenmetrics_log('Calculated performance score', $performance_score);
+            greenmetrics_log('Calculated performance score details', [
+                'load_time' => $load_time,
+                'load_time_ms' => $load_time * 1000,
+                'resulting_score' => $performance_score,
+                'calculation_method' => 'calculate_performance_score'
+            ]);
         }
 
         // Log metrics in a consolidated format

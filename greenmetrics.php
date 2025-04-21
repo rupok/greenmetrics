@@ -19,11 +19,11 @@ if (!defined('WPINC')) {
 
 // Define plugin constants
 define('GREENMETRICS_VERSION', '1.0.0');
+define('GREENMETRICS_PLUGIN_FILE', __FILE__);
 define('GREENMETRICS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('GREENMETRICS_PLUGIN_URL', plugin_dir_url(__FILE__));
-
-// Define debug mode - should be set to false in production
-define('GREENMETRICS_DEBUG', true); // Temporarily enabled for debugging
+define('GREENMETRICS_USE_PUBLIC_JS', true); // Use only one tracking script to prevent double counting
+define('GREENMETRICS_DEBUG', true); // Enable debug logging for development
 
 /**
  * Helper function for logging debug messages.
