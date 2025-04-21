@@ -12,9 +12,8 @@ if (!defined('WPINC')) {
 }
 
 $settings = get_option('greenmetrics_settings', array());
-if (!isset($settings['enable_badge']) || $settings['enable_badge'] != 1) {
-    return;
-}
+// The enable_badge check is now handled in the shortcode handler
+// No need to check it again here
 
 $style = isset($attributes['style']) ? $attributes['style'] : ($settings['badge_style'] ?? 'light');
 $size = isset($attributes['size']) ? $attributes['size'] : 'medium';

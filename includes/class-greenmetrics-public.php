@@ -47,6 +47,11 @@ class GreenMetrics_Public {
         // Get settings
         $options = get_option('greenmetrics_settings');
         $tracking_enabled = isset($options['tracking_enabled']) ? $options['tracking_enabled'] : 0;
+        
+        greenmetrics_log('Enqueuing public scripts with settings', [
+            'tracking_enabled' => $tracking_enabled,
+            'options' => $options
+        ]);
 
         // Get the current page ID
         $page_id = get_queried_object_id();
@@ -76,11 +81,16 @@ class GreenMetrics_Public {
             true
         );
 
+        // Localize script with essential data
         wp_localize_script('greenmetrics-public', 'greenmetricsPublic', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'rest_url' => $rest_url,
-            'nonce' => wp_create_nonce('wp_rest')
+            'nonce' => $tracking_nonce,
+            'tracking_enabled' => $tracking_enabled ? true : false,
+            'page_id' => $page_id
         ));
+        
+        greenmetrics_log('Public scripts enqueued successfully');
     }
 
     /**
@@ -268,10 +278,11 @@ class GreenMetrics_Public {
     public function render_badge_block($attributes) {
         $settings_manager = GreenMetrics_Settings_Manager::get_instance();
         
-        // For blocks, we always display the badge regardless of the global setting
-        // This allows users to explicitly add the badge via block if they want it
-        // even if they've disabled the automatic placement via shortcode
-        greenmetrics_log('Block rendering - ignoring enable_badge setting', [
+        // IMPORTANT: For blocks, we ALWAYS display the badge regardless of the global enable_badge setting.
+        // This is different from shortcodes which respect the global setting.
+        // The logic is: if a user manually adds a block to their content, they want to see it
+        // regardless of the global setting which controls automatic placement.
+        greenmetrics_log('Block rendering - ALWAYS ignoring enable_badge setting', [
             'current_setting' => $settings_manager->get('enable_badge')
         ]);
 

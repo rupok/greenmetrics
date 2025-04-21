@@ -12,15 +12,29 @@
             const loadTime = endTime - startTime;
             const dataTransfer = endBytes - startBytes;
 
+            // Calculate rough requests count based on performance entries
+            let requests = 0;
+            if (window.performance && window.performance.getEntriesByType) {
+                requests = window.performance.getEntriesByType('resource').length;
+            }
+
+            // Create metrics object
+            const metrics = {
+                data_transfer: dataTransfer,
+                load_time: loadTime,
+                requests: requests,
+                page_id: greenmetricsPublic.page_id
+            };
+            
+            console.log('Sending metrics data:', metrics);
+
             $.ajax({
-                url: greenmetricsPublic.ajaxurl,
+                url: greenmetricsPublic.ajax_url,
                 type: 'POST',
                 data: {
-                    action: 'greenmetrics_track_page',
+                    action: 'greenmetrics_tracking',
                     nonce: greenmetricsPublic.nonce,
-                    page_id: greenmetricsPublic.page_id,
-                    data_transfer: dataTransfer,
-                    load_time: loadTime
+                    metrics: JSON.stringify(metrics)
                 },
                 success: function(response) {
                     if (response.success) {
