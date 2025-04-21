@@ -475,8 +475,6 @@ class GreenMetrics_Public {
      * @deprecated 1.1.0 Use the REST API endpoint /greenmetrics/v1/track instead.
      */
     public function forward_tracking_request() {
-        greenmetrics_log('DEPRECATED: The AJAX endpoint greenmetrics_tracking is deprecated. Use the REST API endpoint /greenmetrics/v1/track instead.', null, 'warning');
-        
         greenmetrics_log('Forwarding tracking request to tracker class');
         
         // Get the tracker instance
@@ -487,72 +485,6 @@ class GreenMetrics_Public {
         
         // The tracker will handle the response, so we don't need to do anything else
         exit;
-    }
-
-    public function render_shortcode($atts) {
-        greenmetrics_log('Starting render_shortcode');
-        $atts = shortcode_atts(array(
-            'metric' => 'carbon_footprint',
-            'icon' => 'chart-bar',
-            'size' => 'medium',
-            'theme' => 'light',
-            'position' => 'bottom-right',
-            'animation' => 'true'
-        ), $atts);
-
-        // Get metrics data
-        $metrics = $this->get_metrics_data();
-        greenmetrics_log('Shortcode metrics', $metrics);
-        
-        // Format the value based on the metric
-        $value = '';
-        switch ($atts['metric']) {
-            case 'carbon_footprint':
-                $value = number_format($metrics['carbon_footprint'], 2) . ' g CO2';
-                break;
-            case 'energy_consumption':
-                $value = number_format($metrics['energy_consumption'], 4) . ' kWh';
-                break;
-            case 'data_transfer':
-                $value = size_format($metrics['data_transfer'], 2);
-                break;
-            case 'views':
-                $value = number_format($metrics['total_views']);
-                break;
-            case 'http_requests':
-                $value = number_format($metrics['requests']);
-                break;
-            case 'performance_score':
-                $value = number_format($metrics['performance_score'], 2) . '%';
-                break;
-            default:
-                $value = '0';
-        }
-        greenmetrics_log('Formatted value for ' . $atts['metric'], $value);
-
-        // Get icon SVG
-        $icon_svg = $this->get_icon_svg($atts['icon']);
-
-        // Build the badge HTML
-        $badge_class = "greenmetrics-badge greenmetrics-badge-{$atts['size']} greenmetrics-badge-{$atts['theme']} greenmetrics-badge-{$atts['position']}";
-        if ($atts['animation'] === 'true') {
-            $badge_class .= ' greenmetrics-badge-animated';
-        }
-
-        ob_start();
-        ?>
-        <div class="<?php echo esc_attr($badge_class); ?>">
-            <?php if ($icon_svg) : ?>
-                <div class="greenmetrics-badge-icon">
-                    <?php echo $icon_svg; ?>
-                </div>
-            <?php endif; ?>
-            <div class="greenmetrics-badge-value">
-                <?php echo esc_html($value); ?>
-            </div>
-        </div>
-        <?php
-        return ob_get_clean();
     }
 
     /**
