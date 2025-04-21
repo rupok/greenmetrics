@@ -1,5 +1,5 @@
 === GreenMetrics – Website Carbon Footprint, Sustainability & Performance Metrics ===
-Contributors: greenmetrics, wpdeveloper
+Contributors: re_enter_rupok
 Tags: sustainability, carbon footprint, website performance, energy usage, eco-friendly, co2, green web, optimization, website efficiency
 Requires at least: 5.5
 Tested up to: 6.5
@@ -14,6 +14,8 @@ Measure and reduce your website's environmental impact. Track CO2, energy, and p
 
 **GreenMetrics helps you build a more sustainable internet.**  
 This plugin tracks your website's **carbon footprint**, **energy consumption**, and **resource usage**, offering insights and recommendations for eco-friendly performance.
+
+For more information, visit [getgreenmetrics.com](https://getgreenmetrics.com).
 
 === Free Features ===
 - **Comprehensive Dashboard**: Real-time metrics showing Carbon Footprint (g CO2), Energy Consumption (kWh), Data Transfer, HTTP Requests, Page Views, and Performance Score.

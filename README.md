@@ -2,6 +2,8 @@
 
 GreenMetrics helps you build a more sustainable internet by tracking your website's carbon footprint, energy consumption, and resource usage, offering insights and recommendations for eco-friendly performance.
 
+Website: [getgreenmetrics.com](https://getgreenmetrics.com)
+
 ## Features
 
 - **Comprehensive Dashboard**: Real-time metrics showing Carbon Footprint (g CO2), Energy Consumption (kWh), Data Transfer, HTTP Requests, Page Views, and Performance Score
