@@ -450,53 +450,6 @@ class GreenMetrics_Tracker {
     }
 
     /**
-     * Get total statistics for all pages.
-     *
-     * @return array Total statistics.
-     */
-    public static function get_total_stats() {
-        global $wpdb;
-        // Use consistent table name across the codebase
-        $table_name = $wpdb->prefix . 'greenmetrics_stats';
-        $table_name_escaped = esc_sql($table_name);
-
-        // Get settings to use in SQL calculations
-        $settings = GreenMetrics_Settings_Manager::get_instance()->get();
-        $carbon_intensity = isset($settings['carbon_intensity']) ? floatval($settings['carbon_intensity']) : 0.475;
-        $energy_per_byte = isset($settings['energy_per_byte']) ? floatval($settings['energy_per_byte']) : 0.000000000072;
-
-        greenmetrics_log('Getting total stats from', $table_name);
-
-        $sql = "SELECT 
-            SUM(data_transfer) as total_data_transfer,
-            SUM(carbon_footprint) as total_carbon_footprint,
-            COUNT(*) as total_views,
-            /* Pre-calculate additional metrics in SQL if needed */
-            SUM(data_transfer) * $energy_per_byte as total_energy_consumption
-        FROM $table_name_escaped";
-
-        $stats = $wpdb->get_row($sql);
-
-        if ($stats) {
-            greenmetrics_log('Total stats found', $stats);
-            return array(
-                'data_transfer' => $stats->total_data_transfer,
-                'carbon_footprint' => $stats->total_carbon_footprint,
-                'total_views' => $stats->total_views,
-                'energy_consumption' => $stats->total_energy_consumption
-            );
-        }
-
-        greenmetrics_log('No total stats found, returning defaults', null, 'warning');
-        return array(
-            'data_transfer' => 0,
-            'carbon_footprint' => 0,
-            'total_views' => 0,
-            'energy_consumption' => 0
-        );
-    }
-
-    /**
      * Get plugin settings with defaults
      *
      * @return array Settings
