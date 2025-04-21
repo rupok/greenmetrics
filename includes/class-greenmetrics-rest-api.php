@@ -106,8 +106,8 @@ class GreenMetrics_Rest_API {
                 greenmetrics_log('REST: Performance score out of bounds, adjusting', $avg_performance_score, 'warning');
                 $avg_performance_score = 0;
                 if ($stats['avg_load_time'] > 0) {
-                    // Calculate a reasonable performance score based on load time
-                    $avg_performance_score = max(0, min(100, 100 - ($stats['avg_load_time'] * 10)));
+                    // Use the tracker's standard calculation method for consistency
+                    $avg_performance_score = $tracker->calculate_performance_score($stats['avg_load_time']);
                 }
             }
 

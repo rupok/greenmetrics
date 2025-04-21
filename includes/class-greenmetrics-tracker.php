@@ -313,7 +313,8 @@ class GreenMetrics_Tracker {
         if ($performance_score > 100 || $performance_score <= 0 || !is_numeric($performance_score) || is_nan($performance_score)) {
             greenmetrics_log('Invalid performance score, recalculating', $performance_score, 'warning');
             if ($avg_load_time > 0) {
-                $performance_score = max(0, min(100, 100 - ($avg_load_time * 10)));
+                // Use our standard calculation method instead of the simple formula
+                $performance_score = $this->calculate_performance_score($avg_load_time);
             } else {
                 $performance_score = 100; // Default to 100% if no load time data
             }
