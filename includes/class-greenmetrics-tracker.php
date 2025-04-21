@@ -9,8 +9,8 @@
 namespace GreenMetrics;
 
 // Include required classes
-require_once plugin_dir_path(dirname(__FILE__)) . 'includes/class-greenmetrics-calculator.php';
-require_once plugin_dir_path(dirname(__FILE__)) . 'includes/class-greenmetrics-settings-manager.php';
+require_once dirname(__FILE__) . '/class-greenmetrics-calculator.php';
+require_once dirname(__FILE__) . '/class-greenmetrics-settings-manager.php';
 
 /**
  * The tracker functionality of the plugin.
@@ -570,7 +570,7 @@ class GreenMetrics_Tracker {
             greenmetrics_log('Calculated metrics', array(
                 'data_transfer' => GreenMetrics_Calculator::format_data_transfer($data_transfer),
                 'carbon_footprint' => GreenMetrics_Calculator::format_carbon_emissions($carbon_footprint),
-                'energy_consumption' => number_format($energy_consumption, 6) . ' kWh',
+                'energy_consumption' => GreenMetrics_Calculator::format_energy_consumption($energy_consumption),
                 'load_time' => GreenMetrics_Calculator::format_load_time($load_time),
                 'performance_score' => $performance_score
             ));
