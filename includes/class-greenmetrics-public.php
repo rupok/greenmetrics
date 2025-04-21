@@ -21,8 +21,10 @@ class GreenMetrics_Public {
         add_action('enqueue_block_editor_assets', array($this, 'enqueue_editor_assets'));
         add_shortcode('greenmetrics_badge', array($this, 'render_badge_shortcode'));
         add_action('init', array($this, 'register_blocks'));
-        add_action('wp_ajax_greenmetrics_tracking', array($this, 'handle_tracking'));
-        add_action('wp_ajax_nopriv_greenmetrics_tracking', array($this, 'handle_tracking'));
+        
+        // Forward AJAX tracking requests to the tracker
+        add_action('wp_ajax_greenmetrics_tracking', array($this, 'forward_tracking_request'));
+        add_action('wp_ajax_nopriv_greenmetrics_tracking', array($this, 'forward_tracking_request'));
     }
 
     /**
@@ -456,89 +458,21 @@ class GreenMetrics_Public {
         ));
     }
 
-    public function handle_tracking() {
-        greenmetrics_log('Received tracking request');
-        greenmetrics_log('POST data', $_POST);
-
-        if (!isset($_POST['nonce'])) {
-            greenmetrics_log('No nonce provided', null, 'error');
-            wp_send_json_error('No nonce provided');
-            return;
-        }
-
-        if (!wp_verify_nonce($_POST['nonce'], 'greenmetrics_tracking')) {
-            greenmetrics_log('Invalid nonce', null, 'error');
-            wp_send_json_error('Invalid nonce');
-            return;
-        }
-
-        if (!isset($_POST['metrics'])) {
-            greenmetrics_log('No metrics provided', null, 'error');
-            wp_send_json_error('No metrics provided');
-            return;
-        }
-
-        $metrics = json_decode(stripslashes($_POST['metrics']), true);
-        greenmetrics_log('Decoded metrics', $metrics);
+    /**
+     * Forward tracking requests to the tracker class to avoid duplicate code
+     * This maintains backward compatibility with existing JavaScript files
+     */
+    public function forward_tracking_request() {
+        greenmetrics_log('Forwarding tracking request to tracker class');
         
-        if (!is_array($metrics)) {
-            greenmetrics_log('Invalid metrics format', null, 'error');
-            wp_send_json_error('Invalid metrics format');
-            return;
-        }
-
-        // Get settings with defaults
-        $options = get_option('greenmetrics_settings', array());
-        $settings = array_merge(
-            array(
-                'carbon_intensity' => 0.475, // Default carbon intensity factor (kg CO2/kWh)
-                'energy_per_byte' => 0.000000000072 // Default energy per byte (kWh/byte)
-            ),
-            is_array($options) ? $options : array()
-        );
-
-        // Calculate carbon footprint and energy consumption
-        $energy_consumption = $metrics['data_transfer'] * $settings['energy_per_byte'];
-        $co2_emissions = $energy_consumption * $settings['carbon_intensity'];
-
-        // Calculate performance score
-        $load_time_score = max(0, 100 - ($metrics['load_time'] * 10));
-        $requests_score = max(0, 100 - ($metrics['requests'] * 2));
-        $performance_score = ($load_time_score + $requests_score) / 2;
-
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'greenmetrics_stats';
-
-        $result = $wpdb->insert(
-            $table_name,
-            array(
-                'page_id' => get_the_ID(),
-                'data_transfer' => $metrics['data_transfer'],
-                'load_time' => $metrics['load_time'],
-                'requests' => $metrics['requests'],
-                'carbon_footprint' => $co2_emissions,
-                'energy_consumption' => $energy_consumption,
-                'performance_score' => $performance_score
-            ),
-            array(
-                '%d',
-                '%d',
-                '%f',
-                '%d',
-                '%f',
-                '%f',
-                '%f'
-            )
-        );
-
-        if ($result === false) {
-            greenmetrics_log('Database error', $wpdb->last_error, 'error');
-            wp_send_json_error('Failed to save metrics: ' . $wpdb->last_error);
-            return;
-        }
-
-        greenmetrics_log('Metrics saved successfully');
-        wp_send_json_success('Metrics saved successfully');
+        // Get the tracker instance
+        $tracker = GreenMetrics_Tracker::get_instance();
+        
+        // Forward the request to the tracker's handler
+        $tracker->handle_tracking_request_from_post();
+        
+        // The tracker will handle the response, so we don't need to do anything else
+        exit;
     }
 
     public function render_shortcode($atts) {

@@ -103,50 +103,14 @@ class GreenMetrics_Tracker {
             wp_send_json_error('Invalid page ID');
         }
 
-        // Validate input data
-        $data_transfer = max(0, intval($data['data_transfer']));
-        $load_time = max(0, floatval($data['load_time']));
-        $requests = max(0, intval($data['requests']));
-
-        // Calculate additional metrics
-        $settings = get_option('greenmetrics_settings');
-        $carbon_footprint = $this->calculate_carbon_footprint($data_transfer, $settings['carbon_intensity']);
-        $energy_consumption = $this->calculate_energy_consumption($data_transfer, $settings['energy_per_byte']);
-        $performance_score = $this->calculate_performance_score($load_time);
-
-        // Log metrics in a consolidated format
-        $metrics_data = [
-            'data_transfer' => $data_transfer,
-            'load_time' => $load_time,
-            'carbon_footprint' => $carbon_footprint,
-            'energy_consumption' => $energy_consumption,
-            'performance_score' => $performance_score
-        ];
-        greenmetrics_log('Calculated metrics', $metrics_data);
-
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'greenmetrics_stats';
-        $result = $wpdb->insert(
-            $table_name,
-            array(
-                'page_id' => $page_id,
-                'data_transfer' => $data_transfer,
-                'load_time' => $load_time,
-                'requests' => $requests,
-                'carbon_footprint' => $carbon_footprint,
-                'energy_consumption' => $energy_consumption,
-                'performance_score' => $performance_score
-            ),
-            array('%d', '%d', '%f', '%d', '%f', '%f', '%f')
-        );
-
-        if ($result === false) {
-            greenmetrics_log('Database error', $wpdb->last_error, 'error');
-            wp_send_json_error('Database error: ' . $wpdb->last_error);
+        // Process the metrics using our common function
+        $result = $this->process_and_save_metrics($page_id, $data);
+        
+        if ($result) {
+            wp_send_json_success();
+        } else {
+            wp_send_json_error('Failed to save metrics');
         }
-
-        greenmetrics_log('Data inserted successfully', $table_name);
-        wp_send_json_success();
     }
 
     /**
@@ -394,47 +358,10 @@ class GreenMetrics_Tracker {
 
         try {
             $page_id = intval($data['page_id']);
-            $data_transfer = max(0, floatval($data['data_transfer']));
-            $load_time = max(0, floatval($data['load_time']));
-            $requests = isset($data['requests']) ? max(0, intval($data['requests'])) : 1;
+            greenmetrics_log('REST tracking for page ID', $page_id);
             
-            // Calculate metrics
-            $settings = get_option('greenmetrics_settings');
-            $carbon_footprint = $this->calculate_carbon_footprint($data_transfer, $settings['carbon_intensity']);
-            $energy_consumption = $this->calculate_energy_consumption($data_transfer, $settings['energy_per_byte']);
-            $performance_score = $this->calculate_performance_score($load_time);
-            
-            $metrics = [
-                'page_id' => $page_id,
-                'data_transfer' => $data_transfer,
-                'load_time' => $load_time,
-                'carbon' => $carbon_footprint,
-                'performance_score' => $performance_score
-            ];
-            greenmetrics_log('REST tracking metrics', $metrics);
-
-            global $wpdb;
-            $result = $wpdb->insert(
-                $this->table_name,
-                array(
-                    'page_id' => $page_id,
-                    'data_transfer' => $data_transfer,
-                    'load_time' => $load_time,
-                    'requests' => $requests,
-                    'carbon_footprint' => $carbon_footprint,
-                    'energy_consumption' => $energy_consumption,
-                    'performance_score' => $performance_score
-                ),
-                array('%d', '%d', '%f', '%d', '%f', '%f', '%f')
-            );
-
-            if ($result === false) {
-                greenmetrics_log('Database error in REST tracking', $wpdb->last_error, 'error');
-                return false;
-            }
-
-            greenmetrics_log('REST tracking data saved successfully');
-            return true;
+            // Use common method to process and save metrics
+            return $this->process_and_save_metrics($page_id, $data);
         } catch (\Exception $e) {
             greenmetrics_log('Exception in REST tracking', $e->getMessage(), 'error');
             return false;
@@ -493,5 +420,171 @@ class GreenMetrics_Tracker {
         greenmetrics_log('Using settings', $settings);
         
         return $settings;
+    }
+
+    /**
+     * Handle the tracking request from POST data (legacy format from greenmetrics_tracking action)
+     * This handles tracking requests from the older AJAX endpoint
+     */
+    public function handle_tracking_request_from_post() {
+        if (!$this->is_tracking_enabled()) {
+            greenmetrics_log('Tracking request rejected - tracking disabled', null, 'warning');
+            wp_send_json_error('Tracking is disabled');
+            return;
+        }
+
+        greenmetrics_log('Received POST tracking request');
+        
+        if (!isset($_POST['nonce'])) {
+            greenmetrics_log('No nonce provided', null, 'error');
+            wp_send_json_error('No nonce provided');
+            return;
+        }
+
+        if (!wp_verify_nonce($_POST['nonce'], 'greenmetrics_tracking')) {
+            greenmetrics_log('Invalid nonce', null, 'error');
+            wp_send_json_error('Invalid nonce');
+            return;
+        }
+
+        if (!isset($_POST['metrics'])) {
+            greenmetrics_log('No metrics provided', null, 'error');
+            wp_send_json_error('No metrics provided');
+            return;
+        }
+
+        $metrics = json_decode(stripslashes($_POST['metrics']), true);
+        greenmetrics_log('Decoded metrics from POST', $metrics);
+        
+        if (!is_array($metrics)) {
+            greenmetrics_log('Invalid metrics format', null, 'error');
+            wp_send_json_error('Invalid metrics format');
+            return;
+        }
+
+        // Get page ID - either from metrics or current page
+        $page_id = isset($metrics['page_id']) ? intval($metrics['page_id']) : get_the_ID();
+        
+        if (!$page_id) {
+            greenmetrics_log('Invalid page ID in tracking request', null, 'error');
+            wp_send_json_error('Invalid page ID');
+            return;
+        }
+
+        // Process the metrics
+        $result = $this->process_and_save_metrics($page_id, $metrics);
+        
+        if ($result) {
+            wp_send_json_success('Metrics saved successfully');
+        } else {
+            wp_send_json_error('Failed to save metrics');
+        }
+    }
+
+    /**
+     * Process and save metrics to database
+     * This is a common function used by both tracking methods
+     * 
+     * @param int $page_id The page ID
+     * @param array $metrics The metrics to process
+     * @return bool Success status
+     */
+    private function process_and_save_metrics($page_id, $metrics) {
+        // Validate and sanitize all inputs
+        $page_id = intval($page_id);
+        
+        // Validate input data with detailed logging
+        greenmetrics_log('Processing metrics for page', $page_id);
+        
+        // Check if metrics contains data_transfer
+        if (!isset($metrics['data_transfer'])) {
+            greenmetrics_log('Missing data_transfer in metrics', $metrics, 'warning');
+            $data_transfer = 0;
+        } else {
+            $data_transfer = max(0, intval($metrics['data_transfer']));
+        }
+        
+        // Check if metrics contains load_time
+        if (!isset($metrics['load_time'])) {
+            greenmetrics_log('Missing load_time in metrics', $metrics, 'warning');
+            $load_time = 0;
+        } else {
+            $load_time = max(0, floatval($metrics['load_time']));
+        }
+        
+        // Check if metrics contains requests
+        if (!isset($metrics['requests'])) {
+            greenmetrics_log('Missing requests in metrics', $metrics, 'warning');
+            $requests = 0;
+        } else {
+            $requests = max(0, intval($metrics['requests']));
+        }
+        
+        // Get settings with defaults
+        $settings = $this->get_settings();
+        
+        // Calculate metrics if they weren't provided
+        if (isset($metrics['carbon_footprint']) && isset($metrics['energy_consumption'])) {
+            // Use the provided values
+            $carbon_footprint = floatval($metrics['carbon_footprint']);
+            $energy_consumption = floatval($metrics['energy_consumption']);
+            greenmetrics_log('Using provided carbon and energy values', [
+                'carbon' => $carbon_footprint,
+                'energy' => $energy_consumption
+            ]);
+        } else {
+            // Calculate them
+            $carbon_footprint = $this->calculate_carbon_footprint($data_transfer, $settings['carbon_intensity']);
+            $energy_consumption = $this->calculate_energy_consumption($data_transfer, $settings['energy_per_byte']);
+            greenmetrics_log('Calculated carbon and energy values', [
+                'carbon' => $carbon_footprint,
+                'energy' => $energy_consumption
+            ]);
+        }
+        
+        // Calculate performance score if not provided
+        if (isset($metrics['performance_score'])) {
+            $performance_score = floatval($metrics['performance_score']);
+            greenmetrics_log('Using provided performance score', $performance_score);
+        } else {
+            $performance_score = $this->calculate_performance_score($load_time);
+            greenmetrics_log('Calculated performance score', $performance_score);
+        }
+
+        // Log metrics in a consolidated format
+        $metrics_data = [
+            'page_id' => $page_id,
+            'data_transfer' => $data_transfer,
+            'load_time' => $load_time,
+            'requests' => $requests,
+            'carbon_footprint' => $carbon_footprint,
+            'energy_consumption' => $energy_consumption,
+            'performance_score' => $performance_score
+        ];
+        greenmetrics_log('Final metrics to be saved', $metrics_data);
+
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'greenmetrics_stats';
+        $result = $wpdb->insert(
+            $table_name,
+            array(
+                'page_id' => $page_id,
+                'data_transfer' => $data_transfer,
+                'load_time' => $load_time,
+                'requests' => $requests,
+                'carbon_footprint' => $carbon_footprint,
+                'energy_consumption' => $energy_consumption,
+                'performance_score' => $performance_score
+            ),
+            array('%d', '%d', '%f', '%d', '%f', '%f', '%f')
+        );
+
+        if ($result === false) {
+            greenmetrics_log('Database error', $wpdb->last_error, 'error');
+            return false;
+        }
+
+        greenmetrics_log('Metrics saved successfully for page_id: ' . $page_id);
+        return true;
     }
 } 
