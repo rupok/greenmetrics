@@ -23,17 +23,68 @@ namespace GreenMetrics;
 
 class GreenMetrics_Deactivator {
     /**
-     * Clean up plugin data on deactivation.
+     * Handle plugin deactivation tasks.
      *
-     * @since    1.0.0
+     * Performs necessary cleanup when the plugin is deactivated:
+     * - Clear scheduled events
+     * - Flush rewrite rules
+     * - Clean up transients
      */
     public static function deactivate() {
-        // Clear any scheduled events
-        wp_clear_scheduled_hook('greenmetrics_cleanup_old_data');
+        // Log deactivation process start
+        greenmetrics_log('Plugin deactivation started', null, 'info');
+
+        // Remove scheduled events
+        self::clear_scheduled_events();
         
-        // Note: We don't delete the database table or options here
-        // as that would cause data loss. Instead, we provide an uninstall.php
-        // file for complete removal if needed.
+        // Clear any transients
+        self::clear_transients();
+        
+        // Flush rewrite rules
         flush_rewrite_rules();
+        
+        // Log completed deactivation
+        greenmetrics_log('Plugin deactivation completed', null, 'info');
+    }
+
+    /**
+     * Clear all scheduled events created by this plugin.
+     */
+    private static function clear_scheduled_events() {
+        // Get timestamp of next scheduled event if it exists
+        $timestamp = wp_next_scheduled('greenmetrics_daily_cleanup');
+        
+        // If a timestamp was found, unschedule the event
+        if ($timestamp) {
+            wp_unschedule_event($timestamp, 'greenmetrics_daily_cleanup');
+            greenmetrics_log('Unscheduled daily cleanup event', null, 'info');
+        }
+        
+        // Do the same for any other scheduled events
+        $scheduled_events = [
+            'greenmetrics_weekly_report',
+            'greenmetrics_monthly_aggregate'
+        ];
+        
+        foreach ($scheduled_events as $event) {
+            $timestamp = wp_next_scheduled($event);
+            if ($timestamp) {
+                wp_unschedule_event($timestamp, $event);
+                greenmetrics_log("Unscheduled event: $event", null, 'info');
+            }
+        }
+    }
+    
+    /**
+     * Clear any transients created by this plugin.
+     */
+    private static function clear_transients() {
+        global $wpdb;
+        
+        // Delete all transients with our prefix
+        $sql = "DELETE FROM $wpdb->options WHERE option_name LIKE '%_transient_greenmetrics_%' OR option_name LIKE '%_transient_timeout_greenmetrics_%'";
+        $result = $wpdb->query($sql);
+        
+        greenmetrics_log('Cleared plugin transients', $result, 'info');
     }
 } 

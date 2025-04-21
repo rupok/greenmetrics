@@ -174,5 +174,6 @@ add_action('plugins_loaded', function() {
 
 // Deactivation hook
 register_deactivation_hook(__FILE__, function() {
-    // Clean up if needed
+    require_once plugin_dir_path(__FILE__) . 'includes/class-greenmetrics-deactivator.php';
+    GreenMetrics\GreenMetrics_Deactivator::deactivate();
 }); 
