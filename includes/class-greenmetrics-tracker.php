@@ -237,6 +237,43 @@ class GreenMetrics_Tracker {
             $sample_values_sql = "SELECT id, page_id, load_time, performance_score FROM {$this->table_name} ORDER BY id DESC LIMIT 5";
             $sample_values = $wpdb->get_results($sample_values_sql, ARRAY_A);
             greenmetrics_log('Recent records', $sample_values);
+            
+            // Get some insights into score distribution
+            $distribution_sql = "
+                SELECT 
+                    CASE 
+                        WHEN performance_score BETWEEN 0 AND 50 THEN '0-50'
+                        WHEN performance_score BETWEEN 50.01 AND 70 THEN '50-70'
+                        WHEN performance_score BETWEEN 70.01 AND 90 THEN '70-90'
+                        WHEN performance_score BETWEEN 90.01 AND 100 THEN '90-100'
+                        ELSE 'invalid' 
+                    END as score_range,
+                    COUNT(*) as count_value
+                FROM {$this->table_name}
+                GROUP BY score_range
+                ORDER BY FIELD(score_range, '0-50', '50-70', '70-90', '90-100', 'invalid')
+            ";
+            $distribution = $wpdb->get_results($distribution_sql, ARRAY_A);
+            if ($wpdb->last_error) {
+                greenmetrics_log('Error in performance score distribution query', $wpdb->last_error, 'error');
+            } else {
+                greenmetrics_log('Performance score distribution', $distribution);
+            }
+            
+            // Get the 10 lowest scores to identify potential issues
+            $lowest_scores_sql = "
+                SELECT id, page_id, load_time, performance_score, created_at
+                FROM {$this->table_name}
+                WHERE performance_score BETWEEN 0 AND 100
+                ORDER BY performance_score ASC
+                LIMIT 10
+            ";
+            $lowest_scores = $wpdb->get_results($lowest_scores_sql, ARRAY_A);
+            if ($wpdb->last_error) {
+                greenmetrics_log('Error in lowest scores query', $wpdb->last_error, 'error');
+            } else {
+                greenmetrics_log('Lowest performance scores', $lowest_scores);
+            }
         }
 
         $stats = $wpdb->get_row("
@@ -248,12 +285,57 @@ class GreenMetrics_Tracker {
                 AVG(CASE 
                     WHEN performance_score BETWEEN 0 AND 100 THEN performance_score 
                     ELSE NULL 
-                END) as avg_performance_score
+                END) as avg_performance_score,
+                MIN(CASE 
+                    WHEN performance_score BETWEEN 0 AND 100 THEN performance_score 
+                    ELSE NULL 
+                END) as min_performance_score,
+                MAX(CASE 
+                    WHEN performance_score BETWEEN 0 AND 100 THEN performance_score 
+                    ELSE NULL 
+                END) as max_performance_score
             FROM {$this->table_name}
             {$where}
         ", ARRAY_A);
 
         greenmetrics_log('Raw stats from query', $stats);
+        
+        // Get a percentile-based score to avoid extreme outliers affecting the average
+        if ($do_detailed_debug) {
+            // Log the raw stats for diagnostics but don't modify the returned value
+            greenmetrics_log('Performance score diagnostics', [
+                'average' => isset($stats['avg_performance_score']) ? $stats['avg_performance_score'] : 'N/A',
+                'min' => isset($stats['min_performance_score']) ? $stats['min_performance_score'] : 'N/A',
+                'max' => isset($stats['max_performance_score']) ? $stats['max_performance_score'] : 'N/A'
+            ]);
+            
+            // Get median performance score (more representative than average in some cases)
+            // Using a simpler approach that's more compatible with MySQL/MariaDB
+            $wpdb->query("SET @rownum:=0");
+            $count_query = "SELECT COUNT(*) FROM {$this->table_name} WHERE performance_score BETWEEN 0 AND 100";
+            $total_rows = $wpdb->get_var($count_query);
+            
+            if ($total_rows > 0) {
+                $median_position = floor($total_rows / 2);
+                
+                $median_query = "
+                    SELECT performance_score 
+                    FROM {$this->table_name}
+                    WHERE performance_score BETWEEN 0 AND 100
+                    ORDER BY performance_score
+                    LIMIT {$median_position}, 1
+                ";
+                
+                $median_score = $wpdb->get_var($median_query);
+                greenmetrics_log('Median calculation', [
+                    'total_rows' => $total_rows,
+                    'median_position' => $median_position,
+                    'median_score' => $median_score
+                ]);
+            } else {
+                $median_score = null;
+            }
+        }
 
         if (!$stats) {
             greenmetrics_log('No stats found in database', null, 'warning');
@@ -304,6 +386,19 @@ class GreenMetrics_Tracker {
         if (!is_numeric($performance_score) || is_nan($performance_score)) {
             greenmetrics_log('Performance score is still invalid after recalculation, using default', $performance_score, 'error');
             $performance_score = 100;
+        }
+        
+        // Check if we should use the median score instead - FOR DIAGNOSTIC ONLY
+        if ($do_detailed_debug && isset($median_score) && $median_score !== null) {
+            // Only log the difference, don't actually change the reported score
+            if (abs($median_score - $performance_score) > 5) {
+                greenmetrics_log('Note: Large difference between median and average', [
+                    'average' => $performance_score,
+                    'median' => $median_score,
+                    'difference' => abs($median_score - $performance_score),
+                    'using' => 'average (original)'  // We're sticking with the average
+                ]);
+            }
         }
         
         // Ensure the score is within the valid range with proper decimal precision
