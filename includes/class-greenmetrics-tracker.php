@@ -410,12 +410,12 @@ class GreenMetrics_Tracker {
             
             if (!$this->is_tracking_enabled()) {
                 greenmetrics_log('REST tracking rejected - tracking disabled', null, 'warning');
-                return false;
+                return GreenMetrics_Error_Handler::create_error('tracking_disabled', 'Tracking is disabled');
             }
 
             if (empty($data['page_id']) || !isset($data['data_transfer']) || !isset($data['load_time'])) {
                 greenmetrics_log('REST tracking missing required data', $data, 'warning');
-                return false;
+                return GreenMetrics_Error_Handler::create_error('invalid_data', 'Missing required data');
             }
 
             try {
@@ -445,20 +445,25 @@ class GreenMetrics_Tracker {
                 greenmetrics_log('Tracker: About to call process_and_save_metrics');
                 $result = $this->process_and_save_metrics($page_id, $data);
                 greenmetrics_log('Tracker: process_and_save_metrics result', ['success' => $result]);
-                return $result;
+                
+                if (GreenMetrics_Error_Handler::is_error($result)) {
+                    return $result;
+                }
+                
+                return GreenMetrics_Error_Handler::success();
             } catch (\Exception $e) {
                 greenmetrics_log('Exception in REST tracking', [
                     'message' => $e->getMessage(), 
                     'trace' => $e->getTraceAsString()
                 ], 'error');
-                return false;
+                return GreenMetrics_Error_Handler::handle_exception($e, 'tracking_exception');
             }
         } catch (\Exception $e) {
             greenmetrics_log('Exception in handle_track_page', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ], 'error');
-            return false;
+            return GreenMetrics_Error_Handler::handle_exception($e, 'tracking_exception');
         }
     }
 
@@ -550,7 +555,7 @@ class GreenMetrics_Tracker {
             
             if (!$page_id || !is_array($metrics)) {
                 greenmetrics_log('Invalid page ID or metrics data', array('page_id' => $page_id, 'metrics' => $metrics), 'error');
-                return false;
+                return GreenMetrics_Error_Handler::create_error('invalid_data', 'Invalid page ID or metrics data');
             }
 
             // Get settings for calculations
@@ -601,7 +606,7 @@ class GreenMetrics_Tracker {
             $table_name_escaped = esc_sql($this->table_name);
             if ($wpdb->get_var("SHOW TABLES LIKE '$table_name_escaped'") === null) {
                 greenmetrics_log('process_and_save_metrics: Table does not exist', $this->table_name, 'error');
-                return false;
+                return GreenMetrics_Error_Handler::create_error('table_not_found', 'Database table does not exist');
             }
             
             // Log the SQL query that would be executed
@@ -618,7 +623,7 @@ class GreenMetrics_Tracker {
             
             if ($result === false) {
                 greenmetrics_log('Failed to save metrics', ['error' => $wpdb->last_error, 'query' => $wpdb->last_query], 'error');
-                return false;
+                return GreenMetrics_Error_Handler::create_error('database_error', 'Failed to save metrics');
             }
             
             greenmetrics_log('Metrics saved successfully', array('page_id' => $page_id, 'metrics_id' => $wpdb->insert_id));
@@ -628,7 +633,7 @@ class GreenMetrics_Tracker {
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ], 'error');
-            return false;
+            return GreenMetrics_Error_Handler::handle_exception($e, 'tracking_exception');
         }
     }
 } 

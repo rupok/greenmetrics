@@ -86,10 +86,11 @@ class GreenMetrics_Rest_API {
 
             if (!is_array($stats)) {
                 greenmetrics_log('REST: Failed to retrieve statistics', null, 'error');
-                return new \WP_Error(
+                return GreenMetrics_Error_Handler::create_error(
                     'invalid_stats',
                     'Failed to retrieve statistics',
-                    array('status' => 500)
+                    array(),
+                    500
                 );
             }
 
@@ -142,10 +143,11 @@ class GreenMetrics_Rest_API {
             ));
         } catch (\Exception $e) {
             greenmetrics_log('REST: Error retrieving statistics', $e->getMessage(), 'error');
-            return new \WP_Error(
+            return GreenMetrics_Error_Handler::handle_exception(
+                $e,
                 'stats_error',
                 'Error retrieving statistics: ' . $e->getMessage(),
-                array('status' => 500)
+                500
             );
         }
     }
@@ -170,10 +172,11 @@ class GreenMetrics_Rest_API {
 
             if (!isset($options['tracking_enabled']) || !$options['tracking_enabled']) {
                 greenmetrics_log('REST: Tracking request denied - tracking is disabled', null, 'warning');
-                return new \WP_Error(
+                return GreenMetrics_Error_Handler::create_error(
                     'tracking_disabled',
                     'Tracking is disabled',
-                    array('status' => 403)
+                    array(),
+                    403
                 );
             }
 
@@ -204,23 +207,25 @@ class GreenMetrics_Rest_API {
 
             if (!$success) {
                 greenmetrics_log('REST: Failed to track page metrics', null, 'error');
-                return new \WP_Error(
+                return GreenMetrics_Error_Handler::create_error(
                     'tracking_failed',
                     'Failed to track page metrics',
-                    array('status' => 500)
+                    array(),
+                    500
                 );
             }
 
-            return rest_ensure_response(array('success' => true));
+            return rest_ensure_response(GreenMetrics_Error_Handler::success(true));
         } catch (\Exception $e) {
             greenmetrics_log('REST: Exception in track_page', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ], 'error');
-            return new \WP_Error(
+            return GreenMetrics_Error_Handler::handle_exception(
+                $e,
                 'tracking_exception',
                 'Exception tracking page: ' . $e->getMessage(),
-                array('status' => 500)
+                500
             );
         }
     }

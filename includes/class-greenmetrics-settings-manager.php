@@ -120,7 +120,7 @@ class GreenMetrics_Settings_Manager {
     public function update_batch($settings) {
         if (!is_array($settings)) {
             greenmetrics_log('Invalid settings array', $settings, 'error');
-            return false;
+            return GreenMetrics_Error_Handler::create_error('invalid_settings', 'Invalid settings array');
         }
         
         $current_settings = $this->get();
@@ -132,11 +132,11 @@ class GreenMetrics_Settings_Manager {
             // Update cache
             $this->settings_cache = $updated_settings;
             greenmetrics_log('Settings batch updated', $settings);
+            return GreenMetrics_Error_Handler::success();
         } else {
             greenmetrics_log('Failed to update settings batch', $settings, 'error');
+            return GreenMetrics_Error_Handler::create_error('update_failed', 'Failed to update settings');
         }
-        
-        return $result;
     }
 
     /**
