@@ -22,21 +22,52 @@ define('GREENMETRICS_VERSION', '1.0.0');
 define('GREENMETRICS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('GREENMETRICS_PLUGIN_URL', plugin_dir_url(__FILE__));
 
+// Define debug mode - should be set to false in production
+define('GREENMETRICS_DEBUG', true); // Temporarily enabled for debugging
+
+/**
+ * Helper function for logging debug messages.
+ * Only logs if GREENMETRICS_DEBUG is enabled.
+ * 
+ * @param string $message The message to log
+ * @param mixed $data Optional data to include in the log
+ * @param string $level The log level ('info', 'warning', 'error')
+ * @return void
+ */
+function greenmetrics_log($message, $data = null, $level = 'info') {
+    if (!defined('GREENMETRICS_DEBUG') || !GREENMETRICS_DEBUG) {
+        return;
+    }
+    
+    $log_message = date('[Y-m-d H:i:s]') . " GreenMetrics: $message";
+    
+    if (null !== $data) {
+        // Only do print_r for arrays and objects to improve performance
+        if (is_array($data) || is_object($data)) {
+            $log_message .= ' - ' . print_r($data, true);
+        } else {
+            $log_message .= ' - ' . $data;
+        }
+    }
+    
+    // Write to plugin's own log file that's easily accessible
+    $log_file = GREENMETRICS_PLUGIN_DIR . 'debug.log';
+    file_put_contents($log_file, $log_message . PHP_EOL, FILE_APPEND);
+    
+    // Also use error_log for standard WordPress logging
+    error_log($log_message);
+}
+
 // Autoloader
 spl_autoload_register(function ($class) {
-    // Debug logging
-    error_log('GreenMetrics Autoloader: Attempting to load class: ' . $class);
-
     // Only handle classes in our namespace
     $prefix = 'GreenMetrics\\';
     if (strpos($class, $prefix) !== 0) {
-        error_log('GreenMetrics Autoloader: Class ' . $class . ' is not in our namespace');
         return;
     }
 
     // Remove namespace prefix to get relative class name
     $relative_class = substr($class, strlen($prefix));
-    error_log('GreenMetrics Autoloader: Relative class name: ' . $relative_class);
 
     // Handle subnamespaces
     $parts = explode('\\', $relative_class);
@@ -45,20 +76,18 @@ spl_autoload_register(function ($class) {
 
     // Build file path
     $file = GREENMETRICS_PLUGIN_DIR . 'includes/' . $subdir . 'class-' . strtolower($class_name) . '.php';
-    error_log('GreenMetrics Autoloader: Looking for file: ' . $file);
+    
+    greenmetrics_log('Autoloader: Looking for file', $file);
 
     if (file_exists($file)) {
-        error_log('GreenMetrics Autoloader: Found file: ' . $file);
         require_once $file;
         
-        // Verify class was loaded
-        if (class_exists($class, false)) {
-            error_log('GreenMetrics Autoloader: Successfully loaded class: ' . $class);
-        } else {
-            error_log('GreenMetrics Autoloader: File loaded but class ' . $class . ' not found');
+        // Verify class was loaded in debug mode only
+        if (!class_exists($class, false)) {
+            greenmetrics_log('Autoloader: File loaded but class not found', $class, 'error');
         }
     } else {
-        error_log('GreenMetrics Autoloader: File not found: ' . $file);
+        greenmetrics_log('Autoloader: File not found', $file, 'warning');
     }
 });
 
@@ -67,36 +96,50 @@ function greenmetrics_init() {
     // Load text domain
     load_plugin_textdomain('greenmetrics', false, dirname(plugin_basename(__FILE__)) . '/languages');
 
+    // TEMPORARY DEBUG - Reset settings to default
+    if (defined('GREENMETRICS_DEBUG') && GREENMETRICS_DEBUG) {
+        // Clear any potentially cached version of the settings
+        wp_cache_delete('greenmetrics_settings', 'options');
+        
+        // Get current settings
+        $settings = get_option('greenmetrics_settings', array());
+        greenmetrics_log('Plugin Initialization - Current settings (before reset)', $settings);
+        
+        // Force deletion and recreation of option (TEMPORARY for debugging)
+        // Uncomment this block to force reset the option
+        /*
+        delete_option('greenmetrics_settings');
+        $default_settings = array(
+            'tracking_enabled' => 1,
+            'enable_badge' => 1
+        );
+        update_option('greenmetrics_settings', $default_settings);
+        greenmetrics_log('Plugin Initialization - Settings reset to defaults', $default_settings);
+        */
+        
+        // Check settings again
+        $settings = get_option('greenmetrics_settings', array());
+        greenmetrics_log('Plugin Initialization - Current settings', $settings);
+    }
+
     // Initialize components
     try {
         // Require all class files directly
-        error_log('GreenMetrics: Loading admin class...');
         require_once GREENMETRICS_PLUGIN_DIR . 'includes/admin/class-greenmetrics-admin.php';
-        
-        error_log('GreenMetrics: Loading public class...');
         require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-public.php';
-        
-        error_log('GreenMetrics: Loading tracker class...');
         require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-tracker.php';
-        
-        error_log('GreenMetrics: Loading REST API class...');
         require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-rest-api.php';
         
-        error_log('GreenMetrics: Initializing admin...');
+        // Initialize components
         $admin = new \GreenMetrics\Admin\GreenMetrics_Admin();
-        
-        error_log('GreenMetrics: Initializing public...');
         $public = new \GreenMetrics\GreenMetrics_Public();
-        
-        error_log('GreenMetrics: Initializing tracker...');
         $tracker = \GreenMetrics\GreenMetrics_Tracker::get_instance();
-        
-        error_log('GreenMetrics: Initializing REST API...');
         $rest_api = new \GreenMetrics\GreenMetrics_Rest_API();
 
         // Register REST API routes
         add_action('rest_api_init', array($rest_api, 'register_routes'));
-        error_log('GreenMetrics: All components initialized successfully.');
+        
+        greenmetrics_log('All components initialized successfully');
     } catch (Exception $e) {
         // Log error and show admin notice
         error_log('GreenMetrics Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());

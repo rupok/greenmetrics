@@ -20,6 +20,22 @@ class GreenMetrics_Admin {
         add_action('admin_init', array($this, 'register_settings'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_scripts'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_styles'));
+        add_action('admin_notices', array($this, 'show_settings_update_notice'));
+    }
+
+    /**
+     * Display notices for settings updates
+     */
+    public function show_settings_update_notice() {
+        if (isset($_GET['settings-updated']) && $_GET['settings-updated']) {
+            // Log the current settings after update
+            if (defined('GREENMETRICS_DEBUG') && GREENMETRICS_DEBUG) {
+                $settings = get_option('greenmetrics_settings', array());
+                greenmetrics_log('Settings updated via WP Settings API', $settings);
+            }
+            
+            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Settings saved successfully!', 'greenmetrics') . '</p></div>';
+        }
     }
 
     /**
@@ -87,9 +103,37 @@ class GreenMetrics_Admin {
      * @return array The sanitized settings.
      */
     public function sanitize_settings($input) {
-        $sanitized = array();
-        $sanitized['tracking_enabled'] = isset($input['tracking_enabled']) ? 1 : 0;
-        $sanitized['enable_badge'] = isset($input['enable_badge']) ? 1 : 0;
+        // Log the raw input for debugging
+        if (defined('GREENMETRICS_DEBUG') && GREENMETRICS_DEBUG) {
+            greenmetrics_log('Settings sanitize - Raw input', $input);
+        }
+        
+        $current_settings = get_option('greenmetrics_settings', array());
+        
+        if (defined('GREENMETRICS_DEBUG') && GREENMETRICS_DEBUG) {
+            greenmetrics_log('Settings sanitize - Current settings', $current_settings);
+        }
+        
+        // Create a new settings array with all values explicitly set to 0 (disabled) by default
+        $sanitized = array(
+            'tracking_enabled' => 0,
+            'enable_badge' => 0
+        );
+        
+        // Only if the checkboxes are checked in the input, set them to 1
+        if (isset($input['tracking_enabled']) && $input['tracking_enabled']) {
+            $sanitized['tracking_enabled'] = 1;
+        }
+        
+        if (isset($input['enable_badge']) && $input['enable_badge']) {
+            $sanitized['enable_badge'] = 1;
+        }
+        
+        // Log the result
+        if (defined('GREENMETRICS_DEBUG') && GREENMETRICS_DEBUG) {
+            greenmetrics_log('Settings sanitize - Sanitized result', $sanitized);
+        }
+        
         return $sanitized;
     }
 

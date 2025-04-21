@@ -13,6 +13,7 @@ class GreenMetrics_Public {
      * Initialize the class and set its properties.
      */
     public function __construct() {
+        greenmetrics_log('Public class initialized');
         $this->init_hooks();
     }
 
@@ -28,6 +29,9 @@ class GreenMetrics_Public {
         $settings = get_option('greenmetrics_settings', array());
         if (isset($settings['tracking_enabled']) && $settings['tracking_enabled']) {
             add_action('wp_footer', array($this, 'add_tracking_script'));
+            greenmetrics_log('Tracking enabled, adding tracking script to footer');
+        } else {
+            greenmetrics_log('Tracking disabled, not adding tracking script');
         }
     }
 
@@ -42,6 +46,8 @@ class GreenMetrics_Public {
             GREENMETRICS_VERSION,
             'all'
         );
+        
+        greenmetrics_log('Public styles enqueued');
     }
 
     /**
@@ -55,6 +61,8 @@ class GreenMetrics_Public {
             GREENMETRICS_VERSION,
             false
         );
+        
+        greenmetrics_log('Public scripts enqueued');
     }
 
     /**
@@ -75,6 +83,8 @@ class GreenMetrics_Public {
                 'nonce' => wp_create_nonce('greenmetrics_track_page'),
                 'page_id' => get_the_ID()
             ));
+            
+            greenmetrics_log('Tracking script added to page', get_the_ID());
         }
     }
 
@@ -86,7 +96,18 @@ class GreenMetrics_Public {
      */
     public function green_badge_shortcode($atts) {
         $settings = get_option('greenmetrics_settings', array());
-        if (!isset($settings['enable_badge']) || $settings['enable_badge'] != 1) {
+        greenmetrics_log('Public Badge shortcode - Settings retrieved', $settings);
+        
+        // Check if badge is enabled - handle both string '1' and integer 1
+        $badge_enabled = isset($settings['enable_badge']) && 
+                         ($settings['enable_badge'] === 1 || $settings['enable_badge'] === '1');
+        
+        if (!$badge_enabled) {
+            greenmetrics_log('Badge display disabled by settings - Public class', [
+                'enable_badge' => isset($settings['enable_badge']) ? $settings['enable_badge'] : 'not set',
+                'badge_enabled' => $badge_enabled,
+                'value_type' => isset($settings['enable_badge']) ? gettype($settings['enable_badge']) : 'undefined'
+            ]);
             return '';
         }
 
@@ -95,6 +116,8 @@ class GreenMetrics_Public {
             'style' => 'light',
             'placement' => 'bottom-right'
         ), $atts);
+        
+        greenmetrics_log('Rendering badge with attributes', $attributes);
 
         ob_start();
         include GREENMETRICS_PLUGIN_DIR . 'public/partials/greenmetrics-badge.php';

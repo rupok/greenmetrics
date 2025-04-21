@@ -17,6 +17,8 @@ class GreenMetrics_Rest_API {
      */
     public function __construct() {
         add_action('rest_api_init', array($this, 'register_routes'));
+        
+        greenmetrics_log('REST API initialized');
     }
 
     /**
@@ -58,6 +60,8 @@ class GreenMetrics_Rest_API {
                 )
             )
         ));
+        
+        greenmetrics_log('REST routes registered');
     }
 
     /**
@@ -69,10 +73,14 @@ class GreenMetrics_Rest_API {
     public function get_stats($request) {
         try {
             $page_id = $request->get_param('page_id');
+            
+            greenmetrics_log('REST: Getting stats for page_id', $page_id ? $page_id : 'all pages');
+            
             $tracker = GreenMetrics_Tracker::get_instance();
             $stats = $tracker->get_stats($page_id);
 
             if (!is_array($stats)) {
+                greenmetrics_log('REST: Failed to retrieve statistics', null, 'error');
                 return new \WP_Error(
                     'invalid_stats',
                     'Failed to retrieve statistics',
@@ -90,6 +98,7 @@ class GreenMetrics_Rest_API {
 
             // Ensure performance score is within bounds (0-100)
             if ($avg_performance_score > 100 || $avg_performance_score < 0) {
+                greenmetrics_log('REST: Performance score out of bounds, adjusting', $avg_performance_score, 'warning');
                 $avg_performance_score = 0;
                 if ($stats['avg_load_time'] > 0) {
                     // Calculate a reasonable performance score based on load time
@@ -106,6 +115,12 @@ class GreenMetrics_Rest_API {
             // Convert data transfer from bytes to KB
             $avg_data_transfer_kb = $avg_data_transfer / 1024;
             $total_data_transfer_kb = $total_data_transfer / 1024;
+
+            greenmetrics_log('REST: Stats response prepared', [
+                'views' => $total_views,
+                'carbon' => round($total_carbon_footprint, 2),
+                'data' => round($total_data_transfer_kb, 2) . 'KB'
+            ]);
 
             // Format the response to include both total and average metrics
             return rest_ensure_response(array(
@@ -129,6 +144,7 @@ class GreenMetrics_Rest_API {
                 'requests' => $total_requests
             ));
         } catch (\Exception $e) {
+            greenmetrics_log('REST: Error retrieving statistics', $e->getMessage(), 'error');
             return new \WP_Error(
                 'stats_error',
                 'Error retrieving statistics: ' . $e->getMessage(),
@@ -146,6 +162,7 @@ class GreenMetrics_Rest_API {
     public function track_page($request) {
         $options = get_option('greenmetrics_settings');
         if (!isset($options['tracking_enabled']) || !$options['tracking_enabled']) {
+            greenmetrics_log('REST: Tracking request denied - tracking is disabled', null, 'warning');
             return new \WP_Error(
                 'tracking_disabled',
                 'Tracking is disabled',
@@ -158,11 +175,18 @@ class GreenMetrics_Rest_API {
             'data_transfer' => $request->get_param('data_transfer'),
             'load_time' => $request->get_param('load_time')
         );
+        
+        greenmetrics_log('REST: Tracking page', [
+            'ID' => $data['page_id'],
+            'data' => round($data['data_transfer']/1024, 2) . 'KB',
+            'load_time' => round($data['load_time'], 2) . 'ms'
+        ]);
 
         $tracker = GreenMetrics_Tracker::get_instance();
         $success = $tracker->handle_track_page($data);
 
         if (!$success) {
+            greenmetrics_log('REST: Failed to track page metrics', null, 'error');
             return new \WP_Error(
                 'tracking_failed',
                 'Failed to track page metrics',

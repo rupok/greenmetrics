@@ -11,33 +11,6 @@ jQuery(document).ready(function($) {
         setupEventListeners();
     }
 
-    // Save settings
-    $('#greenmetrics-settings-form').on('submit', function(e) {
-        e.preventDefault();
-        
-        const formData = $(this).serialize();
-        
-        $.ajax({
-            url: greenmetricsAdmin.ajaxurl,
-            type: 'POST',
-            data: {
-                action: 'greenmetrics_save_settings',
-                nonce: greenmetricsAdmin.nonce,
-                settings: formData
-            },
-            success: function(response) {
-                if (response.success) {
-                    showNotice('Settings saved successfully!', 'success');
-                } else {
-                    showNotice('Error saving settings: ' + response.data, 'error');
-                }
-            },
-            error: function() {
-                showNotice('Error saving settings. Please try again.', 'error');
-            }
-        });
-    });
-
     // Get stats
     function getStats() {
         $.ajax({
@@ -157,7 +130,7 @@ jQuery(document).ready(function($) {
         });
     }
 
-    // Show notice
+    // Show notice - used for displaying success/error messages
     function showNotice(message, type) {
         const notice = $('<div class="notice notice-' + type + ' is-dismissible"><p>' + message + '</p></div>');
         $('.wrap h1').after(notice);
@@ -190,50 +163,4 @@ jQuery(document).ready(function($) {
     // Update stats on page load and every 30 seconds
     updateStats();
     setInterval(updateStats, 30000);
-
-    // Handle settings form submission
-    $('form').on('submit', function(e) {
-        const $form = $(this);
-        const $submitButton = $form.find('input[type="submit"]');
-        
-        $submitButton.prop('disabled', true);
-        
-        $.ajax({
-            url: greenmetricsAdmin.ajaxurl,
-            type: 'POST',
-            data: {
-                action: 'greenmetrics_save_settings',
-                nonce: greenmetricsAdmin.nonce,
-                settings: $form.serialize()
-            },
-            success: function(response) {
-                if (response.success) {
-                    // Show success message
-                    const $notice = $('<div class="notice notice-success is-dismissible"><p>' + response.data.message + '</p></div>');
-                    $('.wrap h1').after($notice);
-                    
-                    // Remove notice after 3 seconds
-                    setTimeout(function() {
-                        $notice.fadeOut(function() {
-                            $(this).remove();
-                        });
-                    }, 3000);
-                } else {
-                    // Show error message
-                    const $notice = $('<div class="notice notice-error is-dismissible"><p>' + response.data.message + '</p></div>');
-                    $('.wrap h1').after($notice);
-                }
-            },
-            error: function() {
-                // Show error message
-                const $notice = $('<div class="notice notice-error is-dismissible"><p>Failed to save settings. Please try again.</p></div>');
-                $('.wrap h1').after($notice);
-            },
-            complete: function() {
-                $submitButton.prop('disabled', false);
-            }
-        });
-        
-        e.preventDefault();
-    });
 }); 

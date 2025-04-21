@@ -16,9 +16,11 @@ class GreenMetrics_Activator {
         global $wpdb;
         $table_name = $wpdb->prefix . 'greenmetrics_stats';
         
+        greenmetrics_log('Activator - Creating tables');
+        
         $charset_collate = $wpdb->get_charset_collate();
 
-        $sql = "CREATE TABLE $table_name (
+        $sql = "CREATE TABLE IF NOT EXISTS $table_name (
             id bigint(20) NOT NULL AUTO_INCREMENT,
             page_id bigint(20) NOT NULL,
             data_transfer bigint(20) NOT NULL,
@@ -33,7 +35,20 @@ class GreenMetrics_Activator {
         ) $charset_collate;";
 
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($sql);
+        $result = dbDelta($sql);
+        
+        greenmetrics_log('Activator - Table creation result', $result);
+        
+        // Check if table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table_name'");
+        greenmetrics_log('Activator - Table exists', $table_exists ? 'Yes' : 'No');
+        
+        if ($table_exists) {
+            // Get table columns
+            $columns = $wpdb->get_results("DESCRIBE $table_name");
+            $column_names = array_map(function($col) { return $col->Field; }, $columns);
+            greenmetrics_log('Activator - Table columns', implode(', ', $column_names));
+        }
 
         // Set default options
         $default_options = array(
@@ -44,6 +59,14 @@ class GreenMetrics_Activator {
             'carbon_intensity' => 0.475, // Default carbon intensity in gCO2/kWh
             'energy_per_byte' => 0.000000000072 // Default energy per byte in kWh
         );
-        add_option('greenmetrics_settings', $default_options);
+        
+        $existing_options = get_option('greenmetrics_settings', array());
+        
+        if (empty($existing_options)) {
+            greenmetrics_log('Activator - Setting default options');
+            add_option('greenmetrics_settings', $default_options);
+        } else {
+            greenmetrics_log('Activator - Options already exist, not overwriting');
+        }
     }
 } 
