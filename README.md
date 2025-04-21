@@ -1,22 +1,24 @@
-# GreenMetrics - WordPress Environmental Impact Plugin
+# GreenMetrics - Website Carbon Footprint, Sustainability & Performance Metrics
 
-GreenMetrics helps you track and reduce your website's environmental impact by monitoring carbon emissions and data transfer.
+GreenMetrics helps you build a more sustainable internet by tracking your website's carbon footprint, energy consumption, and resource usage, offering insights and recommendations for eco-friendly performance.
 
 ## Features
 
-- Track page load metrics (data transfer, load time)
-- Display an eco-friendly badge on your website
-- Monitor your website's environmental impact
-- Get optimization suggestions
-- Easy-to-use admin dashboard
-- Gutenberg block and shortcode support
+- **Comprehensive Dashboard**: Real-time metrics showing Carbon Footprint (g CO2), Energy Consumption (kWh), Data Transfer, HTTP Requests, Page Views, and Performance Score
+- **Environmental Impact Context**: Understanding the real-world impact of your website through relatable metrics
+- **Optimization Suggestions**: Actionable advice with status indicators for Page Size, HTTP Requests, Performance Score, and Green Hosting
+- **Gutenberg Block & Shortcode**: Easily display your environmental stats on any page
+- **Customizable Badge**: Control the position, theme, and size of your eco-metrics badge
+- **Real-time Tracking**: Continuous monitoring of your site's performance and environmental impact metrics
+- **Per-Page and Total Website Metrics**: View both aggregated stats and per-page averages
+- **Carbon Intensity Settings**: Configure your energy consumption calculations based on your hosting location
 
 ## Installation
 
-1. Download the plugin zip file
-2. Go to WordPress admin > Plugins > Add New
-3. Click "Upload Plugin" and select the zip file
-4. Activate the plugin
+1. Upload the plugin files to the `/wp-content/plugins/greenmetrics` directory, or install the plugin through the WordPress plugins screen directly
+2. Activate the plugin through the 'Plugins' screen in WordPress
+3. Go to your WordPress dashboard to view the metrics
+4. Use the GreenMetrics block or `[greenmetrics_badge]` shortcode to display your site's stats
 
 ## Usage
 
@@ -24,7 +26,7 @@ GreenMetrics helps you track and reduce your website's environmental impact by m
 
 1. Go to WordPress admin > GreenMetrics
 2. Enable/disable tracking and badge display
-3. View your website's performance metrics
+3. View your website's performance metrics and environmental impact
 
 ### Display Badge
 
@@ -44,31 +46,35 @@ You can display the eco-friendly badge in two ways:
    - `size`: small, medium, large (default: medium)
    - `position`: bottom-right, bottom-left, top-right, top-left (default: bottom-right)
 
+## Who is it for?
+
+GreenMetrics is ideal for:
+- Eco-conscious website owners who want to reduce their digital carbon footprint
+- Developers looking to optimize website performance and efficiency
+- Businesses striving to meet sustainability goals and showcase environmental responsibility
+- Bloggers and content creators focusing on green initiatives
+
+## Frequently Asked Questions
+
+### How does GreenMetrics calculate my site's environmental impact?
+We use a combination of observed data based on asset size, page views, and HTTP requests. Our calculations account for data transfer, energy consumption per byte, and regional carbon intensity to provide meaningful insights.
+
+### Will it slow down my website?
+No. GreenMetrics is lightweight and designed for performance. It uses efficient tracking methods and does not load external scripts on the frontend.
+
+### How accurate are the carbon and energy calculations?
+Our calculations are based on industry research regarding energy consumption per byte of data transferred and carbon intensity of electrical grids. While they provide meaningful approximations, they may not account for all variables in the hosting infrastructure.
+
+### Can I track individual page performance?
+Yes, GreenMetrics tracks metrics on a per-page basis, allowing you to identify which pages have the highest environmental impact and optimize them accordingly.
+
 ## Development
 
 ### Requirements
 
-- WordPress 5.8+
-- PHP 7.4+
+- WordPress 5.5+
+- PHP 7.2+
 - MySQL 5.6+
-
-### Setup
-
-1. Clone the repository
-   ```bash
-   git clone https://github.com/yourusername/greenmetrics.git
-   ```
-
-2. Install dependencies
-   ```bash
-   cd greenmetrics
-   npm install
-   ```
-
-3. Build assets
-   ```bash
-   npm run build
-   ```
 
 ### Directory Structure
 
@@ -77,8 +83,8 @@ greenmetrics/
 ├── admin/              # Admin-specific files
 ├── includes/           # Core plugin files
 ├── languages/          # Translation files
-├── public/            # Public-facing files
-└── greenmetrics.php   # Main plugin file
+├── public/             # Public-facing files
+└── greenmetrics.php    # Main plugin file
 ```
 
 ## Contributing
