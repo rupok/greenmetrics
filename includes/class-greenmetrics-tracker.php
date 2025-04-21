@@ -36,6 +36,8 @@ class GreenMetrics_Tracker {
         add_action('wp_footer', array($this, 'inject_tracking_script'));
         add_action('wp_ajax_greenmetrics_track', array($this, 'handle_tracking_request'));
         add_action('wp_ajax_nopriv_greenmetrics_track', array($this, 'handle_tracking_request'));
+        
+        greenmetrics_log('Tracker initialized', $this->table_name);
     }
 
     /**
@@ -55,11 +57,14 @@ class GreenMetrics_Tracker {
      */
     public function inject_tracking_script() {
         if (!$this->is_tracking_enabled()) {
+            greenmetrics_log('Tracking disabled, not injecting script');
             return;
         }
 
         $settings = $this->get_settings();
         $plugin_url = plugins_url('', dirname(dirname(__FILE__)));
+        
+        greenmetrics_log('Injecting tracking script', get_the_ID());
         ?>
         <script>
             window.greenmetricsTracking = {
@@ -80,18 +85,21 @@ class GreenMetrics_Tracker {
      */
     public function handle_tracking_request() {
         if (!$this->is_tracking_enabled()) {
+            greenmetrics_log('Tracking request rejected - tracking disabled', null, 'warning');
             wp_send_json_error('Tracking is disabled');
         }
 
         $data = json_decode(file_get_contents('php://input'), true);
         if (!$data) {
+            greenmetrics_log('Invalid data in tracking request', null, 'error');
             wp_send_json_error('Invalid data');
         }
 
-        error_log('GreenMetrics Debug - Tracking Request Data: ' . print_r($data, true));
+        greenmetrics_log('Tracking request received', $data);
 
         $page_id = get_the_ID();
         if (!$page_id) {
+            greenmetrics_log('Invalid page ID in tracking request', null, 'error');
             wp_send_json_error('Invalid page ID');
         }
 
@@ -102,18 +110,19 @@ class GreenMetrics_Tracker {
 
         // Calculate additional metrics
         $settings = get_option('greenmetrics_settings');
-        error_log('GreenMetrics Debug - Tracking Settings: ' . print_r($settings, true));
-
         $carbon_footprint = $this->calculate_carbon_footprint($data_transfer, $settings['carbon_intensity']);
         $energy_consumption = $this->calculate_energy_consumption($data_transfer, $settings['energy_per_byte']);
         $performance_score = $this->calculate_performance_score($load_time);
 
-        error_log('GreenMetrics Debug - Calculated Metrics:');
-        error_log('Data Transfer: ' . $data_transfer);
-        error_log('Load Time: ' . $load_time);
-        error_log('Carbon Footprint: ' . $carbon_footprint);
-        error_log('Energy Consumption: ' . $energy_consumption);
-        error_log('Performance Score: ' . $performance_score);
+        // Log metrics in a consolidated format
+        $metrics_data = [
+            'data_transfer' => $data_transfer,
+            'load_time' => $load_time,
+            'carbon_footprint' => $carbon_footprint,
+            'energy_consumption' => $energy_consumption,
+            'performance_score' => $performance_score
+        ];
+        greenmetrics_log('Calculated metrics', $metrics_data);
 
         global $wpdb;
         $table_name = $wpdb->prefix . 'greenmetrics_stats';
@@ -128,15 +137,15 @@ class GreenMetrics_Tracker {
                 'energy_consumption' => $energy_consumption,
                 'performance_score' => $performance_score
             ),
-            array('%d', '%d', '%f', '%d', '%f', '%f', '%d')
+            array('%d', '%d', '%f', '%d', '%f', '%f', '%f')
         );
 
         if ($result === false) {
-            error_log('GreenMetrics Debug - Database Error: ' . $wpdb->last_error);
+            greenmetrics_log('Database error', $wpdb->last_error, 'error');
             wp_send_json_error('Database error: ' . $wpdb->last_error);
         }
 
-        error_log('GreenMetrics Debug - Data inserted successfully');
+        greenmetrics_log('Data inserted successfully', $table_name);
         wp_send_json_success();
     }
 
@@ -218,17 +227,24 @@ class GreenMetrics_Tracker {
         $where = '';
         if ($page_id) {
             $where = $wpdb->prepare('WHERE page_id = %d', $page_id);
+            greenmetrics_log('Getting stats for page ID', $page_id);
+        } else {
+            greenmetrics_log('Getting stats for all pages');
         }
 
-        // Get the raw data directly via SQL to see exactly what's in the database
-        $raw_load_time_sql = "SELECT AVG(load_time) as raw_avg_load_time FROM {$this->table_name}";
-        $raw_load_time_result = $wpdb->get_var($raw_load_time_sql);
-        error_log('GreenMetrics Debug - Raw Load Time From DB: ' . $raw_load_time_result);
-        
-        // Get some sample values to understand what's in the database
-        $sample_values_sql = "SELECT id, page_id, load_time FROM {$this->table_name} ORDER BY id DESC LIMIT 5";
-        $sample_values = $wpdb->get_results($sample_values_sql, ARRAY_A);
-        error_log('GreenMetrics Debug - Recent load_time values: ' . print_r($sample_values, true));
+        // For troubleshooting database issues, we'll keep more detailed logging
+        // but only during active debugging
+        $do_detailed_debug = false; // Set to true only when troubleshooting DB issues
+        if ($do_detailed_debug) {
+            $raw_load_time_sql = "SELECT AVG(load_time) as raw_avg_load_time FROM {$this->table_name}";
+            $raw_load_time_result = $wpdb->get_var($raw_load_time_sql);
+            greenmetrics_log('Raw load time average', $raw_load_time_result);
+            
+            // Get some sample values to understand what's in the database
+            $sample_values_sql = "SELECT id, page_id, load_time FROM {$this->table_name} ORDER BY id DESC LIMIT 5";
+            $sample_values = $wpdb->get_results($sample_values_sql, ARRAY_A);
+            greenmetrics_log('Recent records', $sample_values);
+        }
 
         $stats = $wpdb->get_row("
             SELECT 
@@ -241,11 +257,10 @@ class GreenMetrics_Tracker {
             {$where}
         ", ARRAY_A);
 
-        error_log('GreenMetrics Debug - Raw Stats: ' . print_r($stats, true));
-        error_log('GreenMetrics Debug - Raw avg_load_time before validation: ' . (isset($stats['avg_load_time']) ? $stats['avg_load_time'] : 'NULL'));
+        greenmetrics_log('Raw stats from query', $stats);
 
         if (!$stats) {
-            error_log('GreenMetrics Debug - No stats found in database');
+            greenmetrics_log('No stats found in database', null, 'warning');
             return array(
                 'total_views' => 0,
                 'total_data_transfer' => 0,
@@ -257,8 +272,6 @@ class GreenMetrics_Tracker {
 
         // Get settings with defaults
         $options = get_option('greenmetrics_settings', array());
-        error_log('GreenMetrics Debug - Raw Options: ' . print_r($options, true));
-
         $settings = array_merge(
             array(
                 'carbon_intensity' => 0.475, // Default carbon intensity factor (kg CO2/kWh)
@@ -266,8 +279,6 @@ class GreenMetrics_Tracker {
             ),
             is_array($options) ? $options : array()
         );
-
-        error_log('GreenMetrics Debug - Settings: ' . print_r($settings, true));
 
         // Validate metrics to ensure they're all positive numbers
         $total_views = max(0, intval($stats['total_views']));
@@ -281,7 +292,8 @@ class GreenMetrics_Tracker {
 
         // Ensure performance score is a valid percentage
         $performance_score = floatval($stats['avg_performance_score']);
-        if ($performance_score > 100 || $performance_score <= 0) {
+        if ($performance_score > 100 || $performance_score <= 0 || !is_numeric($performance_score) || is_nan($performance_score)) {
+            greenmetrics_log('Invalid performance score, recalculating', $performance_score, 'warning');
             if ($avg_load_time > 0) {
                 $performance_score = max(0, min(100, 100 - ($avg_load_time * 10)));
             } else {
@@ -289,16 +301,16 @@ class GreenMetrics_Tracker {
             }
         }
 
-        error_log('GreenMetrics Debug - Calculations:');
-        error_log('Total Data Transfer: ' . $total_data_transfer);
-        error_log('Energy per Byte: ' . $settings['energy_per_byte']);
-        error_log('Energy Consumption: ' . $energy_consumption);
-        error_log('Carbon Intensity: ' . $settings['carbon_intensity']);
-        error_log('Carbon Footprint: ' . $carbon_footprint);
-        error_log('Avg Load Time: ' . $avg_load_time);
-        error_log('Performance Score: ' . $performance_score);
+        // Additional validation to ensure we return a valid float
+        if (!is_numeric($performance_score) || is_nan($performance_score)) {
+            greenmetrics_log('Performance score is still invalid after recalculation, using default', $performance_score, 'error');
+            $performance_score = 100;
+        }
+        
+        // Ensure the score is within the valid range with proper decimal precision
+        $performance_score = max(0, min(100, floatval($performance_score)));
 
-        return array(
+        $result = array(
             'total_views' => $total_views,
             'total_data_transfer' => $total_data_transfer,
             'avg_load_time' => $avg_load_time,
@@ -307,6 +319,9 @@ class GreenMetrics_Tracker {
             'total_energy_consumption' => floatval($energy_consumption),
             'total_carbon_footprint' => floatval($carbon_footprint)
         );
+        
+        greenmetrics_log('Final calculation results', $result);
+        return $result;
     }
 
     /**
@@ -317,16 +332,77 @@ class GreenMetrics_Tracker {
      */
     public function track_page($page_id) {
         try {
-            if (GREENMETRICS_DEBUG) {
-                error_log("GreenMetrics: Tracking page ID: " . $page_id);
-            }
+            greenmetrics_log('Tracking page ID', $page_id);
             // TODO: Implement actual tracking logic
             // This will be called when a page is loaded
         } catch (Exception $e) {
-            if (GREENMETRICS_DEBUG) {
-                error_log("GreenMetrics Error in track_page: " . $e->getMessage());
-                error_log("Stack trace: " . $e->getTraceAsString());
+            greenmetrics_log('Error in track_page', $e->getMessage() . "\n" . $e->getTraceAsString(), 'error');
+        }
+    }
+
+    /**
+     * Handle tracking page from REST API
+     * 
+     * @param array $data Tracking data
+     * @return bool Success status
+     */
+    public function handle_track_page($data) {
+        if (!$this->is_tracking_enabled()) {
+            greenmetrics_log('REST tracking rejected - tracking disabled', null, 'warning');
+            return false;
+        }
+
+        if (empty($data['page_id']) || !isset($data['data_transfer']) || !isset($data['load_time'])) {
+            greenmetrics_log('REST tracking missing required data', $data, 'warning');
+            return false;
+        }
+
+        try {
+            $page_id = intval($data['page_id']);
+            $data_transfer = max(0, floatval($data['data_transfer']));
+            $load_time = max(0, floatval($data['load_time']));
+            $requests = isset($data['requests']) ? max(0, intval($data['requests'])) : 1;
+            
+            // Calculate metrics
+            $settings = get_option('greenmetrics_settings');
+            $carbon_footprint = $this->calculate_carbon_footprint($data_transfer, $settings['carbon_intensity']);
+            $energy_consumption = $this->calculate_energy_consumption($data_transfer, $settings['energy_per_byte']);
+            $performance_score = $this->calculate_performance_score($load_time);
+            
+            $metrics = [
+                'page_id' => $page_id,
+                'data_transfer' => $data_transfer,
+                'load_time' => $load_time,
+                'carbon' => $carbon_footprint,
+                'performance_score' => $performance_score
+            ];
+            greenmetrics_log('REST tracking metrics', $metrics);
+
+            global $wpdb;
+            $result = $wpdb->insert(
+                $this->table_name,
+                array(
+                    'page_id' => $page_id,
+                    'data_transfer' => $data_transfer,
+                    'load_time' => $load_time,
+                    'requests' => $requests,
+                    'carbon_footprint' => $carbon_footprint,
+                    'energy_consumption' => $energy_consumption,
+                    'performance_score' => $performance_score
+                ),
+                array('%d', '%d', '%f', '%d', '%f', '%f', '%f')
+            );
+
+            if ($result === false) {
+                greenmetrics_log('Database error in REST tracking', $wpdb->last_error, 'error');
+                return false;
             }
+
+            greenmetrics_log('REST tracking data saved successfully');
+            return true;
+        } catch (\Exception $e) {
+            greenmetrics_log('Exception in REST tracking', $e->getMessage(), 'error');
+            return false;
         }
     }
 
@@ -339,6 +415,8 @@ class GreenMetrics_Tracker {
         global $wpdb;
         $table_name = $wpdb->prefix . 'greenmetrics_emissions';
 
+        greenmetrics_log('Getting total stats from', $table_name);
+
         $stats = $wpdb->get_row(
             "SELECT 
                 SUM(data_transfer) as total_data_transfer,
@@ -348,6 +426,7 @@ class GreenMetrics_Tracker {
         );
 
         if ($stats) {
+            greenmetrics_log('Total stats found', $stats);
             return array(
                 'data_transfer' => $stats->total_data_transfer,
                 'co2_emissions' => $stats->total_co2_emissions,
@@ -355,6 +434,7 @@ class GreenMetrics_Tracker {
             );
         }
 
+        greenmetrics_log('No total stats found, returning defaults', null, 'warning');
         return array(
             'data_transfer' => 0,
             'co2_emissions' => 0,
@@ -362,12 +442,21 @@ class GreenMetrics_Tracker {
         );
     }
 
+    /**
+     * Get plugin settings with defaults
+     *
+     * @return array Settings
+     */
     public function get_settings() {
         $options = get_option('greenmetrics_settings', array());
-        return array(
+        $settings = array(
             'carbon_intensity' => isset($options['carbon_intensity']) ? $options['carbon_intensity'] : 0.5,
             'energy_per_byte' => isset($options['energy_per_byte']) ? $options['energy_per_byte'] : 0.000001,
             'tracking_enabled' => isset($options['tracking_enabled']) ? $options['tracking_enabled'] : 0
         );
+        
+        greenmetrics_log('Using settings', $settings);
+        
+        return $settings;
     }
 } 
