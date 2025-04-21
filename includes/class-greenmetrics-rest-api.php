@@ -33,7 +33,7 @@ class GreenMetrics_Rest_API {
                 'page_id' => array(
                     'required' => false,
                     'type' => 'integer',
-                    'sanitize_callback' => 'absint'
+                    'sanitize_callback' => function($param) { return absint($param); }
                 )
             )
         ));
@@ -46,17 +46,22 @@ class GreenMetrics_Rest_API {
                 'page_id' => array(
                     'required' => true,
                     'type' => 'integer',
-                    'sanitize_callback' => 'absint'
+                    'sanitize_callback' => function($param) { return absint($param); }
                 ),
                 'data_transfer' => array(
                     'required' => true,
                     'type' => 'number',
-                    'sanitize_callback' => 'floatval'
+                    'sanitize_callback' => function($param) { return floatval($param); }
                 ),
                 'load_time' => array(
                     'required' => true,
                     'type' => 'number',
-                    'sanitize_callback' => 'floatval'
+                    'sanitize_callback' => function($param) { return floatval($param); }
+                ),
+                'requests' => array(
+                    'required' => false,
+                    'type' => 'integer',
+                    'sanitize_callback' => function($param) { return absint($param); }
                 )
             )
         ));
@@ -160,40 +165,57 @@ class GreenMetrics_Rest_API {
      * @return \WP_REST_Response The response object.
      */
     public function track_page($request) {
-        $options = get_option('greenmetrics_settings');
-        if (!isset($options['tracking_enabled']) || !$options['tracking_enabled']) {
-            greenmetrics_log('REST: Tracking request denied - tracking is disabled', null, 'warning');
-            return new \WP_Error(
-                'tracking_disabled',
-                'Tracking is disabled',
-                array('status' => 403)
+        try {
+            $options = get_option('greenmetrics_settings');
+            if (!isset($options['tracking_enabled']) || !$options['tracking_enabled']) {
+                greenmetrics_log('REST: Tracking request denied - tracking is disabled', null, 'warning');
+                return new \WP_Error(
+                    'tracking_disabled',
+                    'Tracking is disabled',
+                    array('status' => 403)
+                );
+            }
+
+            // Collect all parameters
+            $data = array(
+                'page_id' => $request->get_param('page_id'),
+                'data_transfer' => $request->get_param('data_transfer'),
+                'load_time' => $request->get_param('load_time')
             );
-        }
+            
+            // Add optional requests parameter if present
+            if ($request->has_param('requests')) {
+                $data['requests'] = $request->get_param('requests');
+            }
+            
+            greenmetrics_log('REST: Full request received', $request->get_params());
+            greenmetrics_log('REST: Tracking page', [
+                'ID' => $data['page_id'],
+                'data' => round($data['data_transfer']/1024, 2) . 'KB',
+                'load_time' => round($data['load_time'], 2) . 'ms',
+                'requests' => isset($data['requests']) ? $data['requests'] : 'not set'
+            ]);
 
-        $data = array(
-            'page_id' => $request->get_param('page_id'),
-            'data_transfer' => $request->get_param('data_transfer'),
-            'load_time' => $request->get_param('load_time')
-        );
-        
-        greenmetrics_log('REST: Tracking page', [
-            'ID' => $data['page_id'],
-            'data' => round($data['data_transfer']/1024, 2) . 'KB',
-            'load_time' => round($data['load_time'], 2) . 'ms'
-        ]);
+            $tracker = GreenMetrics_Tracker::get_instance();
+            $success = $tracker->handle_track_page($data);
 
-        $tracker = GreenMetrics_Tracker::get_instance();
-        $success = $tracker->handle_track_page($data);
+            if (!$success) {
+                greenmetrics_log('REST: Failed to track page metrics', null, 'error');
+                return new \WP_Error(
+                    'tracking_failed',
+                    'Failed to track page metrics',
+                    array('status' => 500)
+                );
+            }
 
-        if (!$success) {
-            greenmetrics_log('REST: Failed to track page metrics', null, 'error');
+            return rest_ensure_response(array('success' => true));
+        } catch (\Exception $e) {
+            greenmetrics_log('REST: Exception in track_page', $e->getMessage(), 'error');
             return new \WP_Error(
-                'tracking_failed',
-                'Failed to track page metrics',
+                'tracking_exception',
+                'Exception tracking page: ' . $e->getMessage(),
                 array('status' => 500)
             );
         }
-
-        return rest_ensure_response(array('success' => true));
     }
 }

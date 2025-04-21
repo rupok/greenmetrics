@@ -91,28 +91,34 @@
                 requests: requests
             });
 
-            // Send data to server
-            const formData = new FormData();
-            formData.append('action', 'greenmetrics_tracking');
-            formData.append('nonce', window.greenmetricsTracking.nonce);
-            formData.append('metrics', JSON.stringify({
-                data_transfer: dataTransfer,
-                load_time: loadTime, // Already converted to seconds and validated
-                requests: requests,
-                carbon_footprint: carbonFootprint,
-                energy_consumption: energyConsumption,
-                page_id: window.greenmetricsTracking.page_id
-            }));
-
-            fetch(window.greenmetricsTracking.ajax_url, {
+            // Send data to server using REST API
+            fetch(window.greenmetricsTracking.rest_url + '/track', {
                 method: 'POST',
-                body: formData
-            }).then(response => {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-WP-Nonce': window.greenmetricsTracking.rest_nonce
+                },
+                body: JSON.stringify({
+                    page_id: window.greenmetricsTracking.page_id,
+                    data_transfer: dataTransfer,
+                    load_time: loadTime,
+                    requests: requests
+                })
+            })
+            .then(response => {
+                console.log('GreenMetrics tracking response status:', response.status);
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
                 return response.json();
-            }).catch(error => {
+            })
+            .then(data => {
+                console.log('GreenMetrics tracking response data:', data);
+                if (data.success) {
+                    console.log('Metrics tracked successfully via REST API');
+                }
+            })
+            .catch(error => {
                 console.error('Error tracking metrics:', error);
             });
         }, 500); // Small delay to ensure everything is fully measured
