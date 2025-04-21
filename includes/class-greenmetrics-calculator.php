@@ -1,7 +1,12 @@
 <?php
 /**
- * The calculator functionality of the plugin.
+ * Class responsible for calculating carbon emissions and energy consumption.
  *
+ * This class provides methods to calculate and format environmental impact metrics
+ * based on data transfer. The default constants are aligned with the Settings Manager
+ * and can be overridden by user settings.
+ *
+ * @since      1.0.0
  * @package    GreenMetrics
  * @subpackage GreenMetrics/includes
  */
@@ -10,22 +15,22 @@ namespace GreenMetrics;
 
 class GreenMetrics_Calculator {
     /**
-     * Average carbon intensity of electricity (gCO2/kWh)
-     * Source: https://www.iea.org/reports/global-energy-co2-status-report-2019
+     * Carbon intensity in kg CO2/kWh.
+     * This default value is consistent with the Settings Manager and can be overridden by user settings.
      */
-    const CARBON_INTENSITY = 475;
+    const CARBON_INTENSITY = 0.475; // kg CO2/kWh
 
     /**
-     * Average data center PUE (Power Usage Effectiveness)
-     * Source: https://www.uptimeinstitute.com/resources/asset/2019-uptime-institute-data-center-industry-survey
+     * Power Usage Effectiveness (PUE).
+     * Represents data center efficiency factor.
      */
     const PUE = 1.67;
 
     /**
-     * Energy per byte (kWh/GB)
-     * Source: https://www.researchgate.net/publication/320225452_Energy_Proportionality_in_Near-Zero_Power_Systems
+     * Energy consumption per byte in kWh/byte.
+     * This default value is consistent with the Settings Manager and can be overridden by user settings.
      */
-    const ENERGY_PER_BYTE = 0.000001805;
+    const ENERGY_PER_BYTE = 0.000000000072; // kWh/byte
 
     /**
      * Calculate carbon emissions for data transfer.
@@ -39,22 +44,18 @@ class GreenMetrics_Calculator {
             greenmetrics_log('Invalid data transfer value', $bytes, 'error');
             return 0;
         }
-
-        // Convert bytes to GB
-        $gigabytes = $bytes / (1024 * 1024 * 1024);
         
-        // Calculate energy consumption
-        $energy_kwh = $gigabytes * self::ENERGY_PER_BYTE * self::PUE;
+        // Calculate energy consumption directly in kWh (ENERGY_PER_BYTE is now in kWh/byte)
+        $energy_kwh = $bytes * self::ENERGY_PER_BYTE * self::PUE;
         
         // Use provided carbon intensity or default
         $intensity = $carbon_intensity ?? self::CARBON_INTENSITY;
         
-        // Calculate carbon emissions
-        $carbon_grams = $energy_kwh * $intensity;
+        // Calculate carbon emissions (intensity is in kg CO2/kWh, we need grams)
+        $carbon_grams = $energy_kwh * $intensity * 1000; // Convert kg to grams
         
         greenmetrics_log('Carbon emissions calculated', array(
             'bytes' => $bytes,
-            'gigabytes' => $gigabytes,
             'energy_kwh' => $energy_kwh,
             'carbon_intensity' => $intensity,
             'carbon_grams' => $carbon_grams
@@ -74,16 +75,12 @@ class GreenMetrics_Calculator {
             greenmetrics_log('Invalid data transfer value', $bytes, 'error');
             return 0;
         }
-
-        // Convert bytes to GB
-        $gigabytes = $bytes / (1024 * 1024 * 1024);
         
-        // Calculate energy consumption
-        $energy_kwh = $gigabytes * self::ENERGY_PER_BYTE * self::PUE;
+        // Calculate energy consumption directly in kWh (ENERGY_PER_BYTE is now in kWh/byte)
+        $energy_kwh = $bytes * self::ENERGY_PER_BYTE * self::PUE;
         
         greenmetrics_log('Energy consumption calculated', array(
             'bytes' => $bytes,
-            'gigabytes' => $gigabytes,
             'energy_kwh' => $energy_kwh
         ));
         
