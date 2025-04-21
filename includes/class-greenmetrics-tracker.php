@@ -234,14 +234,43 @@ class GreenMetrics_Tracker {
 
         // For troubleshooting database issues, we'll keep more detailed logging
         // but only during active debugging
-        $do_detailed_debug = false; // Set to true only when troubleshooting DB issues
+        $do_detailed_debug = true; // Set to true to find source of corrupted data
         if ($do_detailed_debug) {
+            // Check for problematic performance_score values
+            $invalid_scores_sql = "SELECT id, page_id, performance_score 
+                                FROM {$this->table_name} 
+                                WHERE performance_score > 100 OR performance_score < 0
+                                LIMIT 10";
+            $invalid_scores = $wpdb->get_results($invalid_scores_sql, ARRAY_A);
+            if (!empty($invalid_scores)) {
+                greenmetrics_log('Found invalid performance scores in database:', $invalid_scores, 'warning');
+                
+                // Perform data cleanup if needed
+                // This is a safe way to fix corrupted data while preserving records
+                $cleanup_sql = "UPDATE {$this->table_name} 
+                                SET performance_score = 
+                                    CASE 
+                                        WHEN performance_score > 100 THEN 100 
+                                        WHEN performance_score < 0 THEN 0
+                                        ELSE performance_score
+                                    END
+                                WHERE performance_score > 100 OR performance_score < 0";
+                $cleanup_result = $wpdb->query($cleanup_sql);
+                if ($cleanup_result !== false) {
+                    greenmetrics_log('Cleaned up invalid performance scores', [
+                        'rows_updated' => $cleanup_result
+                    ]);
+                }
+            } else {
+                greenmetrics_log('No invalid performance scores found in database');
+            }
+            
             $raw_load_time_sql = "SELECT AVG(load_time) as raw_avg_load_time FROM {$this->table_name}";
             $raw_load_time_result = $wpdb->get_var($raw_load_time_sql);
             greenmetrics_log('Raw load time average', $raw_load_time_result);
             
             // Get some sample values to understand what's in the database
-            $sample_values_sql = "SELECT id, page_id, load_time FROM {$this->table_name} ORDER BY id DESC LIMIT 5";
+            $sample_values_sql = "SELECT id, page_id, load_time, performance_score FROM {$this->table_name} ORDER BY id DESC LIMIT 5";
             $sample_values = $wpdb->get_results($sample_values_sql, ARRAY_A);
             greenmetrics_log('Recent records', $sample_values);
         }
@@ -252,7 +281,10 @@ class GreenMetrics_Tracker {
                 SUM(data_transfer) as total_data_transfer,
                 AVG(load_time) as avg_load_time,
                 SUM(requests) as total_requests,
-                AVG(performance_score) as avg_performance_score
+                AVG(CASE 
+                    WHEN performance_score BETWEEN 0 AND 100 THEN performance_score 
+                    ELSE NULL 
+                END) as avg_performance_score
             FROM {$this->table_name}
             {$where}
         ", ARRAY_A);
@@ -291,7 +323,10 @@ class GreenMetrics_Tracker {
         $carbon_footprint = $energy_consumption * $settings['carbon_intensity'] * 1000; // Convert kg to g
 
         // Ensure performance score is a valid percentage
-        $performance_score = floatval($stats['avg_performance_score']);
+        $performance_score = isset($stats['avg_performance_score']) && $stats['avg_performance_score'] !== null
+            ? floatval($stats['avg_performance_score'])
+            : 100; // Default to 100 if NULL (which can happen if all records were filtered out)
+            
         if ($performance_score > 100 || $performance_score <= 0 || !is_numeric($performance_score) || is_nan($performance_score)) {
             greenmetrics_log('Invalid performance score, recalculating', $performance_score, 'warning');
             if ($avg_load_time > 0) {
