@@ -143,11 +143,10 @@ class GreenMetrics_Rest_API {
                 'avg_requests' => round($avg_requests, 1),
                 'performance_score' => round($avg_performance_score, 2),
                 
-                // For backwards compatibility with existing JS
-                // Keep co2_emissions name for JS files that still use it
-                // But prefer carbon_footprint for consistency
-                'co2_emissions' => round($total_carbon_footprint, 2),
+                // Standard metrics for consistency throughout the codebase
+                'carbon_footprint' => round($total_carbon_footprint, 2),
                 'energy_consumption' => round($total_energy_consumption, 4),
+                'data_transfer' => round($total_data_transfer_kb, 2),
                 'requests' => $total_requests
             ));
         } catch (\Exception $e) {

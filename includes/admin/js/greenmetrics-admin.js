@@ -39,7 +39,7 @@ jQuery(document).ready(function($) {
                 </div>
                 <div class="stat-card">
                     <h3>Carbon Footprint</h3>
-                    <p class="stat-value">${stats.co2_emissions.toFixed(2)} g CO2</p>
+                    <p class="stat-value">${stats.carbon_footprint.toFixed(2)} g CO2</p>
                 </div>
                 <div class="stat-card">
                     <h3>Energy Consumption</h3>
@@ -93,7 +93,7 @@ jQuery(document).ready(function($) {
         }
 
         // Check for high CO2 emissions
-        if (data.co2_emissions > 1000) { // More than 1kg
+        if (data.carbon_footprint > 1000) { // More than 1kg
             suggestions.push({
                 title: 'High Carbon Emissions',
                 description: 'Your website is generating significant carbon emissions. Consider using a green hosting provider.',
@@ -151,7 +151,7 @@ jQuery(document).ready(function($) {
             },
             success: function(response) {
                 $('#total-views').text(response.total_views.toLocaleString());
-                $('#carbon-footprint').text(response.co2_emissions.toFixed(2) + ' g CO2');
+                $('#carbon-footprint').text(response.carbon_footprint.toFixed(2) + ' g CO2');
                 $('#energy-consumption').text(response.energy_consumption.toFixed(2) + ' kWh');
                 $('#data-transfer').text(response.avg_data_transfer.toFixed(2) + ' KB');
                 $('#requests').text(response.requests);
