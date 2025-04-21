@@ -173,7 +173,7 @@ class GreenMetrics_Public {
         $data_formatted = size_format($metrics['data_transfer'], 2);
         $views_formatted = number_format($metrics['total_views']);
         $requests_formatted = number_format($metrics['requests']);
-        $score_formatted = number_format($metrics['performance_score'], 1) . '%';
+        $score_formatted = number_format($metrics['performance_score'], 2) . '%';
 
         greenmetrics_log('Formatted metrics values', [
             'carbon' => $carbon_formatted,
@@ -603,7 +603,8 @@ class GreenMetrics_Public {
         if ($performance_score > 100 || $performance_score < 0) {
             greenmetrics_log('Invalid performance score, recalculating', $performance_score, 'warning');
             if ($load_time > 0) {
-                $performance_score = max(0, min(100, 100 - ($load_time * 10)));
+                // Use the tracker's standard calculation method for consistency
+                $performance_score = $tracker->calculate_performance_score($load_time);
             } else {
                 $performance_score = 100; // If no load time data, assume perfect score
             }
