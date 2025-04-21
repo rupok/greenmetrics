@@ -55,12 +55,13 @@ class GreenMetrics_Activator {
 
         // Set default options
         $default_options = array(
-            'enable_badge' => true,
-            'badge_style' => 'light',
-            'badge_placement' => 'bottom-right',
-            'tracking_enabled' => true,
-            'carbon_intensity' => 0.475, // Default carbon intensity in gCO2/kWh
-            'energy_per_byte' => 0.000000000072 // Default energy per byte in kWh
+            'carbon_intensity' => 0.475,         // Default carbon intensity factor (kg CO2/kWh)
+            'energy_per_byte' => 0.000000000072, // Default energy per byte (kWh/byte)
+            'tracking_enabled' => 1,             // Tracking enabled by default
+            'enable_badge' => 0,                 // Badge disabled by default
+            'badge_position' => 'bottom-right',  // Default badge position
+            'badge_theme' => 'light',            // Default badge theme
+            'badge_size' => 'medium'             // Default badge size
         );
         
         $existing_options = get_option('greenmetrics_settings', array());
