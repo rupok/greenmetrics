@@ -40,12 +40,15 @@ class GreenMetrics_Activator {
         greenmetrics_log('Activator - Table creation result', $result);
         
         // Check if table exists
-        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table_name'");
+        $table_exists = $wpdb->get_var(
+            $wpdb->prepare("SHOW TABLES LIKE %s", $table_name)
+        );
         greenmetrics_log('Activator - Table exists', $table_exists ? 'Yes' : 'No');
         
         if ($table_exists) {
-            // Get table columns
-            $columns = $wpdb->get_results("DESCRIBE $table_name");
+            // Get table columns - can't use %s placeholder for table name in DESCRIBE
+            $table_name_escaped = esc_sql($table_name);
+            $columns = $wpdb->get_results("DESCRIBE $table_name_escaped");
             $column_names = array_map(function($col) { return $col->Field; }, $columns);
             greenmetrics_log('Activator - Table columns', implode(', ', $column_names));
         }

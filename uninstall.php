@@ -25,11 +25,19 @@ delete_option('greenmetrics_settings');
 
 // Delete any transients
 global $wpdb;
-$wpdb->query("DELETE FROM $wpdb->options WHERE option_name LIKE '%_transient_greenmetrics_%' OR option_name LIKE '%_transient_timeout_greenmetrics_%'");
+$wpdb->query(
+    $wpdb->prepare(
+        "DELETE FROM $wpdb->options WHERE option_name LIKE %s OR option_name LIKE %s",
+        '%_transient_greenmetrics_%',
+        '%_transient_timeout_greenmetrics_%'
+    )
+);
 
 // Drop the stats table
 $table_name = $wpdb->prefix . 'greenmetrics_stats';
-$wpdb->query("DROP TABLE IF EXISTS $table_name");
+$wpdb->query(
+    $wpdb->prepare("DROP TABLE IF EXISTS %s", $table_name)
+);
 
 // Clear any scheduled events
 $events = [

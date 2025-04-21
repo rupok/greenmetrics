@@ -166,13 +166,15 @@ add_action('plugins_loaded', function() {
     global $wpdb;
     $table_name = $wpdb->prefix . 'greenmetrics_stats';
     
-    if($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+    // SHOW TABLES can use prepare with LIKE %s
+    if($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table_name)) != $table_name) {
         require_once plugin_dir_path(__FILE__) . 'includes/class-greenmetrics-activator.php';
         GreenMetrics\GreenMetrics_Activator::activate();
         greenmetrics_log('Created missing database table on plugins_loaded', $table_name);
     } else {
-        // Check if all required columns exist
-        $columns = $wpdb->get_results("DESCRIBE $table_name");
+        // Check if all required columns exist - can't use placeholder for table name
+        $table_name_escaped = esc_sql($table_name);
+        $columns = $wpdb->get_results("DESCRIBE $table_name_escaped");
         $column_names = array_map(function($col) { return $col->Field; }, $columns);
         
         // Make sure all required columns exist

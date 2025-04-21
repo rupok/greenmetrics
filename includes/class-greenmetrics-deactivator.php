@@ -82,7 +82,11 @@ class GreenMetrics_Deactivator {
         global $wpdb;
         
         // Delete all transients with our prefix
-        $sql = "DELETE FROM $wpdb->options WHERE option_name LIKE '%_transient_greenmetrics_%' OR option_name LIKE '%_transient_timeout_greenmetrics_%'";
+        $sql = $wpdb->prepare(
+            "DELETE FROM $wpdb->options WHERE option_name LIKE %s OR option_name LIKE %s",
+            '%_transient_greenmetrics_%',
+            '%_transient_timeout_greenmetrics_%'
+        );
         $result = $wpdb->query($sql);
         
         greenmetrics_log('Cleared plugin transients', $result, 'info');

@@ -200,116 +200,42 @@ class GreenMetrics_Tracker {
      */
     public function get_stats($page_id = null) {
         global $wpdb;
-
-        $where = '';
+        
+        // Set flag for detailed debugging
+        $do_detailed_debug = true; // Enable detailed logging for diagnostics
+        
         if ($page_id) {
-            $where = $wpdb->prepare('WHERE page_id = %d', $page_id);
             greenmetrics_log('Getting stats for page ID', $page_id);
         } else {
             greenmetrics_log('Getting stats for all pages');
         }
 
-        // For troubleshooting database issues, we'll keep more detailed logging
-        // but only during active debugging
-        $do_detailed_debug = true; // Set to true to find source of corrupted data
-        if ($do_detailed_debug) {
-            // Check for problematic performance_score values
-            $invalid_scores_sql = "SELECT id, page_id, performance_score 
-                                FROM {$this->table_name} 
-                                WHERE performance_score > 100 OR performance_score < 0
-                                LIMIT 10";
-            $invalid_scores = $wpdb->get_results($invalid_scores_sql, ARRAY_A);
-            if (!empty($invalid_scores)) {
-                greenmetrics_log('Found invalid performance scores in database:', $invalid_scores, 'warning');
-                
-                // Perform data cleanup if needed
-                // This is a safe way to fix corrupted data while preserving records
-                $cleanup_sql = "UPDATE {$this->table_name} 
-                                SET performance_score = 
-                                    CASE 
-                                        WHEN performance_score > 100 THEN 100 
-                                        WHEN performance_score < 0 THEN 0
-                                        ELSE performance_score
-                                    END
-                                WHERE performance_score > 100 OR performance_score < 0";
-                $cleanup_result = $wpdb->query($cleanup_sql);
-                if ($cleanup_result !== false) {
-                    greenmetrics_log('Cleaned up invalid performance scores', [
-                        'rows_updated' => $cleanup_result
-                    ]);
-                }
-            } else {
-                greenmetrics_log('No invalid performance scores found in database');
-            }
-            
-            $raw_load_time_sql = "SELECT AVG(load_time) as raw_avg_load_time FROM {$this->table_name}";
-            $raw_load_time_result = $wpdb->get_var($raw_load_time_sql);
-            greenmetrics_log('Raw load time average', $raw_load_time_result);
-            
-            // Get some sample values to understand what's in the database
-            $sample_values_sql = "SELECT id, page_id, load_time, performance_score FROM {$this->table_name} ORDER BY id DESC LIMIT 5";
-            $sample_values = $wpdb->get_results($sample_values_sql, ARRAY_A);
-            greenmetrics_log('Recent records', $sample_values);
-            
-            // Get some insights into score distribution
-            $distribution_sql = "
-                SELECT 
-                    CASE 
-                        WHEN performance_score BETWEEN 0 AND 50 THEN '0-50'
-                        WHEN performance_score BETWEEN 50.01 AND 70 THEN '50-70'
-                        WHEN performance_score BETWEEN 70.01 AND 90 THEN '70-90'
-                        WHEN performance_score BETWEEN 90.01 AND 100 THEN '90-100'
-                        ELSE 'invalid' 
-                    END as score_range,
-                    COUNT(*) as count_value
-                FROM {$this->table_name}
-                GROUP BY score_range
-                ORDER BY FIELD(score_range, '0-50', '50-70', '70-90', '90-100', 'invalid')
-            ";
-            $distribution = $wpdb->get_results($distribution_sql, ARRAY_A);
-            if ($wpdb->last_error) {
-                greenmetrics_log('Error in performance score distribution query', $wpdb->last_error, 'error');
-            } else {
-                greenmetrics_log('Performance score distribution', $distribution);
-            }
-            
-            // Get the 10 lowest scores to identify potential issues
-            $lowest_scores_sql = "
-                SELECT id, page_id, load_time, performance_score, created_at
-                FROM {$this->table_name}
-                WHERE performance_score BETWEEN 0 AND 100
-                ORDER BY performance_score ASC
-                LIMIT 10
-            ";
-            $lowest_scores = $wpdb->get_results($lowest_scores_sql, ARRAY_A);
-            if ($wpdb->last_error) {
-                greenmetrics_log('Error in lowest scores query', $wpdb->last_error, 'error');
-            } else {
-                greenmetrics_log('Lowest performance scores', $lowest_scores);
-            }
+        // Format the query with WHERE clause if needed
+        $table_name_escaped = esc_sql($this->table_name);
+        $sql = "SELECT 
+            COUNT(*) as total_views,
+            SUM(data_transfer) as total_data_transfer,
+            AVG(load_time) as avg_load_time,
+            SUM(requests) as total_requests,
+            AVG(CASE 
+                WHEN performance_score BETWEEN 0 AND 100 THEN performance_score 
+                ELSE NULL 
+            END) as avg_performance_score,
+            MIN(CASE 
+                WHEN performance_score BETWEEN 0 AND 100 THEN performance_score 
+                ELSE NULL 
+            END) as min_performance_score,
+            MAX(CASE 
+                WHEN performance_score BETWEEN 0 AND 100 THEN performance_score 
+                ELSE NULL 
+            END) as max_performance_score
+        FROM $table_name_escaped";
+        
+        if ($page_id) {
+            $sql .= $wpdb->prepare(' WHERE page_id = %d', $page_id);
         }
 
-        $stats = $wpdb->get_row("
-            SELECT 
-                COUNT(*) as total_views,
-                SUM(data_transfer) as total_data_transfer,
-                AVG(load_time) as avg_load_time,
-                SUM(requests) as total_requests,
-                AVG(CASE 
-                    WHEN performance_score BETWEEN 0 AND 100 THEN performance_score 
-                    ELSE NULL 
-                END) as avg_performance_score,
-                MIN(CASE 
-                    WHEN performance_score BETWEEN 0 AND 100 THEN performance_score 
-                    ELSE NULL 
-                END) as min_performance_score,
-                MAX(CASE 
-                    WHEN performance_score BETWEEN 0 AND 100 THEN performance_score 
-                    ELSE NULL 
-                END) as max_performance_score
-            FROM {$this->table_name}
-            {$where}
-        ", ARRAY_A);
+        $stats = $wpdb->get_row($sql, ARRAY_A);
 
         greenmetrics_log('Raw stats from query', $stats);
         
@@ -322,31 +248,36 @@ class GreenMetrics_Tracker {
                 'max' => isset($stats['max_performance_score']) ? $stats['max_performance_score'] : 'N/A'
             ]);
             
+            // Initialize median calculation variables
+            $total_rows = 0;
+            $median_position = 0;
+            $median_score = null;
+            
             // Get median performance score (more representative than average in some cases)
             // Using a simpler approach that's more compatible with MySQL/MariaDB
             $wpdb->query("SET @rownum:=0");
-            $count_query = "SELECT COUNT(*) FROM {$this->table_name} WHERE performance_score BETWEEN 0 AND 100";
+            $count_query = "SELECT COUNT(*) FROM $table_name_escaped WHERE performance_score BETWEEN 0 AND 100";
             $total_rows = $wpdb->get_var($count_query);
             
             if ($total_rows > 0) {
                 $median_position = floor($total_rows / 2);
                 
-                $median_query = "
-                    SELECT performance_score 
-                    FROM {$this->table_name}
+                $median_query = $wpdb->prepare(
+                    "SELECT performance_score 
+                    FROM $table_name_escaped
                     WHERE performance_score BETWEEN 0 AND 100
                     ORDER BY performance_score
-                    LIMIT {$median_position}, 1
-                ";
+                    LIMIT %d, 1",
+                    $median_position
+                );
                 
                 $median_score = $wpdb->get_var($median_query);
+                
                 greenmetrics_log('Median calculation', [
                     'total_rows' => $total_rows,
                     'median_position' => $median_position,
                     'median_score' => $median_score
                 ]);
-            } else {
-                $median_score = null;
             }
         }
 
@@ -468,11 +399,12 @@ class GreenMetrics_Tracker {
                 global $wpdb;
                 greenmetrics_log('Tracker: Database table name', $this->table_name);
                 
-                $table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$this->table_name}'");
+                $table_name_escaped = esc_sql($this->table_name);
+                $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table_name_escaped'");
                 greenmetrics_log('Tracker: Table exists check', ['exists' => !empty($table_exists), 'result' => $table_exists]);
                 
                 if ($table_exists) {
-                    $columns = $wpdb->get_results("DESCRIBE {$this->table_name}");
+                    $columns = $wpdb->get_results("DESCRIBE $table_name_escaped");
                     $column_names = array_map(function($col) { return $col->Field; }, $columns);
                     greenmetrics_log('Tracker: Table columns', $column_names);
                 } else {
@@ -512,6 +444,7 @@ class GreenMetrics_Tracker {
         global $wpdb;
         // Use consistent table name across the codebase
         $table_name = $wpdb->prefix . 'greenmetrics_stats';
+        $table_name_escaped = esc_sql($table_name);
 
         greenmetrics_log('Getting total stats from', $table_name);
 
@@ -520,7 +453,7 @@ class GreenMetrics_Tracker {
                 SUM(data_transfer) as total_data_transfer,
                 SUM(carbon_footprint) as total_carbon_footprint,
                 COUNT(*) as total_views
-            FROM $table_name"
+            FROM $table_name_escaped"
         );
 
         if ($stats) {
@@ -676,13 +609,14 @@ class GreenMetrics_Tracker {
             ));
             
             // Check if the table exists before attempting to insert
-            if ($wpdb->get_var("SHOW TABLES LIKE '{$this->table_name}'") === null) {
+            $table_name_escaped = esc_sql($this->table_name);
+            if ($wpdb->get_var("SHOW TABLES LIKE '$table_name_escaped'") === null) {
                 greenmetrics_log('process_and_save_metrics: Table does not exist', $this->table_name, 'error');
                 return false;
             }
             
             // Log the SQL query that would be executed
-            $placeholder_sql = "INSERT INTO {$this->table_name} (" . 
+            $placeholder_sql = "INSERT INTO $table_name_escaped (" . 
                 implode(', ', array_keys($data)) . 
                 ") VALUES ('" . 
                 implode("', '", array_values($data)) . 
