@@ -89,8 +89,7 @@ class GreenMetrics_Public {
      * @return bool Whether tracking is enabled.
      */
     private function is_tracking_enabled() {
-        $options = get_option('greenmetrics_settings');
-        return isset($options['tracking_enabled']) && $options['tracking_enabled'];
+        return GreenMetrics_Settings_Manager::get_instance()->is_enabled('tracking_enabled');
     }
 
     /**
@@ -116,27 +115,23 @@ class GreenMetrics_Public {
      * @return string HTML output
      */
     public function render_badge_shortcode($atts) {
-        $options = get_option('greenmetrics_settings', array());
-        greenmetrics_log('Badge shortcode - Settings retrieved', $options);
+        $settings_manager = GreenMetrics_Settings_Manager::get_instance();
+        greenmetrics_log('Badge shortcode - Settings retrieved', $settings_manager->get());
         
-        // Check if badge is enabled - handle both string '1' and integer 1
-        $badge_enabled = isset($options['enable_badge']) && 
-                         ($options['enable_badge'] === 1 || $options['enable_badge'] === '1');
-        
-        if (!$badge_enabled) {
+        // Check if badge is enabled
+        if (!$settings_manager->is_enabled('enable_badge')) {
             greenmetrics_log('Badge display disabled by settings', [
-                'enable_badge' => isset($options['enable_badge']) ? $options['enable_badge'] : 'not set',
-                'badge_enabled' => $badge_enabled,
-                'value_type' => isset($options['enable_badge']) ? gettype($options['enable_badge']) : 'undefined'
+                'enable_badge' => $settings_manager->get('enable_badge'),
+                'value_type' => gettype($settings_manager->get('enable_badge'))
             ]);
             return '';
         }
 
         // Parse attributes
         $atts = shortcode_atts(array(
-            'position' => isset($options['badge_position']) ? $options['badge_position'] : 'bottom-right',
-            'theme' => isset($options['badge_theme']) ? $options['badge_theme'] : 'light',
-            'size' => isset($options['badge_size']) ? $options['badge_size'] : 'medium'
+            'position' => $settings_manager->get('badge_position', 'bottom-right'),
+            'theme' => $settings_manager->get('badge_theme', 'light'),
+            'size' => $settings_manager->get('badge_size', 'medium')
         ), $atts);
 
         // Get metrics data
@@ -271,13 +266,13 @@ class GreenMetrics_Public {
      * @return string HTML output
      */
     public function render_badge_block($attributes) {
-        $options = get_option('greenmetrics_settings');
+        $settings_manager = GreenMetrics_Settings_Manager::get_instance();
         
         // For blocks, we always display the badge regardless of the global setting
         // This allows users to explicitly add the badge via block if they want it
         // even if they've disabled the automatic placement via shortcode
         greenmetrics_log('Block rendering - ignoring enable_badge setting', [
-            'current_setting' => isset($options['enable_badge']) ? $options['enable_badge'] : 'not set'
+            'current_setting' => $settings_manager->get('enable_badge')
         ]);
 
         // Set default values for attributes

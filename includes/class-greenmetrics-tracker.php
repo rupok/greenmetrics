@@ -61,7 +61,7 @@ class GreenMetrics_Tracker {
             return;
         }
 
-        $settings = $this->get_settings();
+        $settings = GreenMetrics_Settings_Manager::get_instance()->get();
         $plugin_url = plugins_url('', dirname(dirname(__FILE__)));
         
         greenmetrics_log('Injecting tracking script', get_the_ID());
@@ -175,8 +175,7 @@ class GreenMetrics_Tracker {
      * Check if tracking is enabled.
      */
     private function is_tracking_enabled() {
-        $settings = get_option('greenmetrics_settings');
-        return isset($settings['tracking_enabled']) && $settings['tracking_enabled'];
+        return GreenMetrics_Settings_Manager::get_instance()->is_enabled('tracking_enabled');
     }
 
     /**
@@ -349,14 +348,7 @@ class GreenMetrics_Tracker {
         }
 
         // Get settings with defaults
-        $options = get_option('greenmetrics_settings', array());
-        $settings = array_merge(
-            array(
-                'carbon_intensity' => 0.475, // Default carbon intensity factor (kg CO2/kWh)
-                'energy_per_byte' => 0.000000000072 // Default energy per byte (kWh/byte)
-            ),
-            is_array($options) ? $options : array()
-        );
+        $settings = $this->get_settings();
 
         // Validate metrics to ensure they're all positive numbers
         $total_views = max(0, intval($stats['total_views']));
@@ -505,15 +497,8 @@ class GreenMetrics_Tracker {
      * @return array Settings
      */
     public function get_settings() {
-        $options = get_option('greenmetrics_settings', array());
-        $settings = array(
-            'carbon_intensity' => isset($options['carbon_intensity']) ? $options['carbon_intensity'] : 0.5,
-            'energy_per_byte' => isset($options['energy_per_byte']) ? $options['energy_per_byte'] : 0.000001,
-            'tracking_enabled' => isset($options['tracking_enabled']) ? $options['tracking_enabled'] : 0
-        );
-        
+        $settings = GreenMetrics_Settings_Manager::get_instance()->get();
         greenmetrics_log('Using settings', $settings);
-        
         return $settings;
     }
 

@@ -125,6 +125,7 @@ function greenmetrics_init() {
     // Initialize components
     try {
         // Require all class files directly
+        require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-settings-manager.php';
         require_once GREENMETRICS_PLUGIN_DIR . 'includes/admin/class-greenmetrics-admin.php';
         require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-public.php';
         require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-tracker.php';
