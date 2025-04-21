@@ -375,15 +375,6 @@ class GreenMetrics_Tracker {
      * @param int $page_id The page ID to track
      * @return void
      */
-    public function track_page($page_id) {
-        try {
-            greenmetrics_log('Tracking page ID', $page_id);
-            // TODO: Implement actual tracking logic
-            // This will be called when a page is loaded
-        } catch (Exception $e) {
-            greenmetrics_log('Error in track_page', $e->getMessage() . "\n" . $e->getTraceAsString(), 'error');
-        }
-    }
 
     /**
      * Handle tracking page from REST API
