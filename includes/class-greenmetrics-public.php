@@ -55,7 +55,7 @@ class GreenMetrics_Public {
         // Ensure we have a valid REST URL
         $rest_url = get_rest_url(null, 'greenmetrics/v1');
         if (!$rest_url) {
-            error_log('GreenMetrics: Failed to get REST URL');
+            greenmetrics_log('Failed to get REST URL', null, 'error');
             return;
         }
 
@@ -92,27 +92,55 @@ class GreenMetrics_Public {
     }
 
     /**
+     * Add REST URL to script localization
+     *
+     * @param array $data The existing data.
+     * @return array The data with REST URL added.
+     */
+    public function add_rest_url($data) {
+        $data['rest_url'] = get_rest_url(null, 'greenmetrics/v1');
+        
+        if (!$data['rest_url']) {
+            greenmetrics_log('Failed to get REST URL', null, 'error');
+        }
+        
+        return $data;
+    }
+
+    /**
      * Render the badge shortcode
      *
      * @param array $atts Shortcode attributes
      * @return string HTML output
      */
     public function render_badge_shortcode($atts) {
-        $options = get_option('greenmetrics_settings');
-        if (!isset($options['enable_badge']) || !$options['enable_badge']) {
+        $options = get_option('greenmetrics_settings', array());
+        greenmetrics_log('Badge shortcode - Settings retrieved', $options);
+        
+        // Check if badge is enabled - handle both string '1' and integer 1
+        $badge_enabled = isset($options['enable_badge']) && 
+                         ($options['enable_badge'] === 1 || $options['enable_badge'] === '1');
+        
+        if (!$badge_enabled) {
+            greenmetrics_log('Badge display disabled by settings', [
+                'enable_badge' => isset($options['enable_badge']) ? $options['enable_badge'] : 'not set',
+                'badge_enabled' => $badge_enabled,
+                'value_type' => isset($options['enable_badge']) ? gettype($options['enable_badge']) : 'undefined'
+            ]);
             return '';
         }
 
         // Parse attributes
         $atts = shortcode_atts(array(
-            'position' => '',
-            'theme' => '',
-            'size' => ''
+            'position' => isset($options['badge_position']) ? $options['badge_position'] : 'bottom-right',
+            'theme' => isset($options['badge_theme']) ? $options['badge_theme'] : 'light',
+            'size' => isset($options['badge_size']) ? $options['badge_size'] : 'medium'
         ), $atts);
 
         // Get metrics data
         $metrics = $this->get_metrics_data();
-        error_log('GreenMetrics Debug - Shortcode metrics: ' . print_r($metrics, true));
+        
+        greenmetrics_log('Shortcode metrics', $metrics);
 
         // Build classes
         $wrapper_classes = array('greenmetrics-badge-wrapper');
@@ -131,21 +159,19 @@ class GreenMetrics_Public {
         $wrapper_class = implode(' ', $wrapper_classes);
         $badge_class = implode(' ', $badge_classes);
 
-        // Format values with proper precision
+        // Format values with proper precision using number_format
         $carbon_formatted = number_format($metrics['carbon_footprint'], 2) . ' g CO2';
         $energy_formatted = number_format($metrics['energy_consumption'], 4) . ' kWh';
         $data_formatted = size_format($metrics['data_transfer'], 2);
         $views_formatted = number_format($metrics['total_views']);
         $requests_formatted = number_format($metrics['requests']);
-        $score_formatted = number_format($metrics['performance_score'], 2) . '%';
+        $score_formatted = number_format($metrics['performance_score'], 1) . '%';
 
-        error_log('GreenMetrics Debug - Formatted metrics values:');
-        error_log('Carbon footprint: ' . $carbon_formatted . ' (raw: ' . $metrics['carbon_footprint'] . ')');
-        error_log('Energy consumption: ' . $energy_formatted . ' (raw: ' . $metrics['energy_consumption'] . ')');
-        error_log('Data transfer: ' . $data_formatted . ' (raw: ' . $metrics['data_transfer'] . ')');
-        error_log('Views: ' . $views_formatted . ' (raw: ' . $metrics['total_views'] . ')');
-        error_log('Requests: ' . $requests_formatted . ' (raw: ' . $metrics['requests'] . ')');
-        error_log('Score: ' . $score_formatted . ' (raw: ' . $metrics['performance_score'] . ')');
+        greenmetrics_log('Formatted metrics values', [
+            'carbon' => $carbon_formatted,
+            'energy' => $energy_formatted,
+            'data' => $data_formatted
+        ]);
 
         // Build HTML
         $html = sprintf(
@@ -244,9 +270,13 @@ class GreenMetrics_Public {
      */
     public function render_badge_block($attributes) {
         $options = get_option('greenmetrics_settings');
-        if (!isset($options['enable_badge']) || !$options['enable_badge']) {
-            return '';
-        }
+        
+        // For blocks, we always display the badge regardless of the global setting
+        // This allows users to explicitly add the badge via block if they want it
+        // even if they've disabled the automatic placement via shortcode
+        greenmetrics_log('Block rendering - ignoring enable_badge setting', [
+            'current_setting' => isset($options['enable_badge']) ? $options['enable_badge'] : 'not set'
+        ]);
 
         // Set default values for attributes
         $attributes = wp_parse_args($attributes, array(
@@ -427,32 +457,32 @@ class GreenMetrics_Public {
     }
 
     public function handle_tracking() {
-        error_log('GreenMetrics: Received tracking request');
-        error_log('GreenMetrics: POST data: ' . print_r($_POST, true));
+        greenmetrics_log('Received tracking request');
+        greenmetrics_log('POST data', $_POST);
 
         if (!isset($_POST['nonce'])) {
-            error_log('GreenMetrics: No nonce provided');
+            greenmetrics_log('No nonce provided', null, 'error');
             wp_send_json_error('No nonce provided');
             return;
         }
 
         if (!wp_verify_nonce($_POST['nonce'], 'greenmetrics_tracking')) {
-            error_log('GreenMetrics: Invalid nonce');
+            greenmetrics_log('Invalid nonce', null, 'error');
             wp_send_json_error('Invalid nonce');
             return;
         }
 
         if (!isset($_POST['metrics'])) {
-            error_log('GreenMetrics: No metrics provided');
+            greenmetrics_log('No metrics provided', null, 'error');
             wp_send_json_error('No metrics provided');
             return;
         }
 
         $metrics = json_decode(stripslashes($_POST['metrics']), true);
-        error_log('GreenMetrics: Decoded metrics: ' . print_r($metrics, true));
+        greenmetrics_log('Decoded metrics', $metrics);
         
         if (!is_array($metrics)) {
-            error_log('GreenMetrics: Invalid metrics format');
+            greenmetrics_log('Invalid metrics format', null, 'error');
             wp_send_json_error('Invalid metrics format');
             return;
         }
@@ -502,17 +532,17 @@ class GreenMetrics_Public {
         );
 
         if ($result === false) {
-            error_log('GreenMetrics: Database error: ' . $wpdb->last_error);
+            greenmetrics_log('Database error', $wpdb->last_error, 'error');
             wp_send_json_error('Failed to save metrics: ' . $wpdb->last_error);
             return;
         }
 
-        error_log('GreenMetrics: Metrics saved successfully');
+        greenmetrics_log('Metrics saved successfully');
         wp_send_json_success('Metrics saved successfully');
     }
 
     public function render_shortcode($atts) {
-        error_log('GreenMetrics Debug - Starting render_shortcode');
+        greenmetrics_log('Starting render_shortcode');
         $atts = shortcode_atts(array(
             'metric' => 'carbon_footprint',
             'icon' => 'chart-bar',
@@ -524,7 +554,7 @@ class GreenMetrics_Public {
 
         // Get metrics data
         $metrics = $this->get_metrics_data();
-        error_log('GreenMetrics Debug - Shortcode metrics: ' . print_r($metrics, true));
+        greenmetrics_log('Shortcode metrics', $metrics);
         
         // Format the value based on the metric
         $value = '';
@@ -550,7 +580,7 @@ class GreenMetrics_Public {
             default:
                 $value = '0';
         }
-        error_log('GreenMetrics Debug - Formatted value for ' . $atts['metric'] . ': ' . $value);
+        greenmetrics_log('Formatted value for ' . $atts['metric'], $value);
 
         // Get icon SVG
         $icon_svg = $this->get_icon_svg($atts['icon']);
@@ -583,11 +613,11 @@ class GreenMetrics_Public {
      * @return array Metrics data
      */
     private function get_metrics_data() {
-        error_log('GreenMetrics Debug - Starting get_metrics_data');
+        greenmetrics_log('Starting get_metrics_data');
         // Get stats from tracker
         $tracker = GreenMetrics_Tracker::get_instance();
         $stats = $tracker->get_stats();
-        error_log('GreenMetrics Debug - Stats from tracker: ' . print_r($stats, true));
+        greenmetrics_log('Stats from tracker', $stats);
 
         // Get settings with defaults
         $options = get_option('greenmetrics_settings');
@@ -598,7 +628,7 @@ class GreenMetrics_Public {
             ),
             is_array($options) ? $options : array()
         );
-        error_log('GreenMetrics Debug - Settings: ' . print_r($settings, true));
+        greenmetrics_log('Settings', $settings);
 
         // Use the values directly from the tracker
         $data_transfer = isset($stats['total_data_transfer']) ? floatval($stats['total_data_transfer']) : 0;
@@ -610,16 +640,20 @@ class GreenMetrics_Public {
         $energy_consumption = isset($stats['total_energy_consumption']) ? floatval($stats['total_energy_consumption']) : 0;
         $carbon_footprint = isset($stats['total_carbon_footprint']) ? floatval($stats['total_carbon_footprint']) : 0;
         
-        error_log('GreenMetrics Debug - Metrics data:');
-        error_log('GreenMetrics Debug - Data transfer: ' . $data_transfer);
-        error_log('GreenMetrics Debug - Energy consumption: ' . $energy_consumption);
-        error_log('GreenMetrics Debug - Carbon footprint: ' . $carbon_footprint);
+        // Log metrics data summary
+        $metrics_summary = [
+            'data_transfer' => $data_transfer,
+            'energy_consumption' => $energy_consumption,
+            'carbon_footprint' => $carbon_footprint
+        ];
+        greenmetrics_log('Metrics data summary', $metrics_summary);
 
         // Calculate performance score - ensure it's within 0-100 range
         $performance_score = isset($stats['avg_performance_score']) ? floatval($stats['avg_performance_score']) : 100;
         
         // Make sure performance score is a valid percentage (0-100)
         if ($performance_score > 100 || $performance_score < 0) {
+            greenmetrics_log('Invalid performance score, recalculating', $performance_score, 'warning');
             if ($load_time > 0) {
                 $performance_score = max(0, min(100, 100 - ($load_time * 10)));
             } else {
@@ -627,7 +661,7 @@ class GreenMetrics_Public {
             }
         }
         
-        error_log('GreenMetrics Debug - Performance score: ' . $performance_score);
+        greenmetrics_log('Performance score', $performance_score);
 
         $result = array(
             'data_transfer' => $data_transfer,
@@ -639,7 +673,7 @@ class GreenMetrics_Public {
             'performance_score' => $performance_score
         );
         
-        error_log('GreenMetrics Debug - Returning metrics data: ' . print_r($result, true));
+        greenmetrics_log('Returning metrics data', $result);
         
         return $result;
     }
@@ -654,12 +688,12 @@ class GreenMetrics_Public {
         // Include and get icons
         $icons_file = GREENMETRICS_PLUGIN_DIR . 'public/js/blocks/badge/src/icons.php';
         if (!file_exists($icons_file)) {
-            error_log('GreenMetrics: Icons file not found at ' . $icons_file);
+            greenmetrics_log('Icons file not found', $icons_file, 'error');
             return null;
         }
         include $icons_file;
         if (!isset($icons) || !is_array($icons)) {
-            error_log('GreenMetrics: Icons array not properly defined');
+            greenmetrics_log('Icons array not properly defined', null, 'error');
             return null;
         }
 
@@ -679,12 +713,12 @@ class GreenMetrics_Public {
         // Include and get icons
         $icons_file = GREENMETRICS_PLUGIN_DIR . 'public/js/blocks/badge/src/icons.php';
         if (!file_exists($icons_file)) {
-            error_log('GreenMetrics: Icons file not found at ' . $icons_file);
+            greenmetrics_log('Icons file not found', $icons_file, 'error');
             return '';
         }
         include $icons_file;
         if (!isset($icons) || !is_array($icons)) {
-            error_log('GreenMetrics: Icons array not properly defined');
+            greenmetrics_log('Icons array not properly defined', null, 'error');
             return '';
         }
 
