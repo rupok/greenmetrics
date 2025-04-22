@@ -68,15 +68,22 @@ spl_autoload_register(
 		}
 
 		// Remove namespace prefix to get relative class name
-		$relative_class = substr( $class, strlen( $prefix ) );
+		$relative_class = substr( $class, strlen( $prefix ) ); // e.g., Admin\GreenMetrics_Admin
 
-		// Handle subnamespaces
-		$parts      = explode( '\\', $relative_class );
-		$class_name = array_pop( $parts );
-		$subdir     = ! empty( $parts ) ? implode( '/', $parts ) . '/' : '';
+		// Split the relative class name into parts
+		$parts = explode( '\\', $relative_class ); // e.g., ['Admin', 'GreenMetrics_Admin']
+		
+		// The last part is the class name
+		$class_name_raw = array_pop( $parts ); // e.g., 'GreenMetrics_Admin'
+		
+		// The remaining parts form the subdirectory path (convert to lowercase)
+		$subdir = ! empty( $parts ) ? strtolower( implode( '/', $parts ) ) . '/' : ''; // e.g., 'admin/'
 
-		// Build file path
-		$file = GREENMETRICS_PLUGIN_DIR . 'includes/' . $subdir . 'class-' . strtolower( $class_name ) . '.php';
+		// Convert the raw class name (e.g., GreenMetrics_Admin) to lowercase kebab-case (greenmetrics-admin)
+		$class_name_kebab = strtolower( str_replace( '_', '-', $class_name_raw ) );
+
+		// Build the full file path
+		$file = GREENMETRICS_PLUGIN_DIR . 'includes/' . $subdir . 'class-' . $class_name_kebab . '.php';
 
 		greenmetrics_log( 'Autoloader: Looking for file', $file );
 
@@ -93,8 +100,8 @@ spl_autoload_register(
 	}
 );
 
-// Require DB helper.
-require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-db-helper.php';
+// The custom autoloader above handles these, so manual requires are redundant.
+// require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-db-helper.php';
 
 // Initialize the plugin
 function greenmetrics_init() {
@@ -129,13 +136,13 @@ function greenmetrics_init() {
 
 	// Initialize components
 	try {
-		// Require all class files directly
-		require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-error-handler.php';
-		require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-settings-manager.php';
-		require_once GREENMETRICS_PLUGIN_DIR . 'includes/admin/class-greenmetrics-admin.php';
-		require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-public.php';
-		require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-tracker.php';
-		require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-rest-api.php';
+		// The custom autoloader handles these requires
+		// require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-error-handler.php';
+		// require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-settings-manager.php';
+		// require_once GREENMETRICS_PLUGIN_DIR . 'includes/admin/class-greenmetrics-admin.php'; // Autoloader handles subdirs
+		// require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-public.php';
+		// require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-tracker.php';
+		// require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-rest-api.php';
 
 		// Initialize components
 		$admin    = new \GreenMetrics\Admin\GreenMetrics_Admin();
@@ -144,7 +151,8 @@ function greenmetrics_init() {
 		$rest_api = new \GreenMetrics\GreenMetrics_Rest_API();
 
 		// Register REST API routes
-		add_action( 'rest_api_init', array( $rest_api, 'register_routes' ) );
+		// Note: The rest_api_init hook is inside the GreenMetrics_Rest_API constructor
+		// add_action( 'rest_api_init', array( $rest_api, 'register_routes' ) ); // This is redundant
 
 		greenmetrics_log( 'All components initialized successfully' );
 	} catch ( Exception $e ) {
@@ -168,7 +176,8 @@ add_action( 'plugins_loaded', 'greenmetrics_init' );
 register_activation_hook(
 	__FILE__,
 	function () {
-		require_once plugin_dir_path( __FILE__ ) . 'includes/class-greenmetrics-activator.php';
+		// Autoloader handles this require
+		// require_once plugin_dir_path( __FILE__ ) . 'includes/class-greenmetrics-activator.php';
 		GreenMetrics\GreenMetrics_Activator::activate();
 	}
 );
@@ -178,7 +187,8 @@ add_action(
 	'plugins_loaded',
 	function () {
 		// Run version check and upgrade if needed
-		require_once plugin_dir_path( __FILE__ ) . 'includes/class-greenmetrics-upgrader.php';
+		// Autoloader handles this require
+		// require_once plugin_dir_path( __FILE__ ) . 'includes/class-greenmetrics-upgrader.php';
 		\GreenMetrics\GreenMetrics_Upgrader::check_for_upgrades();
 	}
 );
@@ -187,7 +197,8 @@ add_action(
 register_deactivation_hook(
 	__FILE__,
 	function () {
-		require_once plugin_dir_path( __FILE__ ) . 'includes/class-greenmetrics-deactivator.php';
+		// Autoloader handles this require
+		// require_once plugin_dir_path( __FILE__ ) . 'includes/class-greenmetrics-deactivator.php';
 		GreenMetrics\GreenMetrics_Deactivator::deactivate();
 	}
 );
