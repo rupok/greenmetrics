@@ -238,6 +238,18 @@ $settings = get_option(
 						</div>
 					</div>
 					<div class="greenmetrics-stat-card average">
+						<h4><?php esc_html_e( 'Median Load Time', 'greenmetrics' ); ?></h4>
+						<div class="greenmetrics-stat-value" id="median-load-time">
+							<?php
+								$median_load_time = isset( $stats['median_load_time'] ) ? floatval( $stats['median_load_time'] ) : $avg_load_time;
+								// Ensure it's a positive number
+								$median_load_time = max( 0, $median_load_time );
+
+								echo esc_html( \GreenMetrics\GreenMetrics_Calculator::format_load_time( $median_load_time ) );
+							?>
+						</div>
+					</div>
+					<div class="greenmetrics-stat-card average">
 						<h4><?php esc_html_e( 'Performance Score', 'greenmetrics' ); ?></h4>
 						<div class="greenmetrics-stat-value" id="performance-score">
 							<?php

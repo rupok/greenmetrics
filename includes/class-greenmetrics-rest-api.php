@@ -115,6 +115,8 @@ class GreenMetrics_Rest_API {
 			$total_data_transfer      = floatval( $stats['total_data_transfer'] );
 			$total_requests           = intval( $stats['total_requests'] );
 			$avg_performance_score    = floatval( $stats['avg_performance_score'] );
+			$avg_load_time            = floatval( $stats['avg_load_time'] );
+			$median_load_time         = isset( $stats['median_load_time'] ) ? floatval( $stats['median_load_time'] ) : $avg_load_time;
 
 			// Calculate per-view averages only if there are views
 			$avg_carbon_footprint   = $total_views > 0 ? $total_carbon_footprint / $total_views : 0;
@@ -150,6 +152,8 @@ class GreenMetrics_Rest_API {
 					'avg_energy_consumption'   => round( $avg_energy_consumption, 6 ),
 					'avg_data_transfer'        => round( $avg_data_transfer_kb, 2 ),
 					'avg_requests'             => round( $avg_requests, 1 ),
+					'avg_load_time'            => round( $avg_load_time, 3 ),
+					'median_load_time'         => round( $median_load_time, 3 ),
 					'performance_score'        => round( $avg_performance_score, 2 ),
 
 					// Standard metrics for consistency throughout the codebase
