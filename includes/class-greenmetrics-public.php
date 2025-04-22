@@ -21,6 +21,9 @@ class GreenMetrics_Public {
 		add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_editor_assets' ) );
 		add_shortcode( 'greenmetrics_badge', array( $this, 'render_badge_shortcode' ) );
 		add_action( 'init', array( $this, 'register_blocks' ) );
+		
+		// Add global badge to footer if enabled in settings
+		add_action( 'wp_footer', array( $this, 'display_global_badge' ) );
 
 		// Forward AJAX tracking requests to the tracker
 		// This is deprecated and will be removed in a future version
@@ -653,5 +656,62 @@ class GreenMetrics_Public {
 		</script>
 		<script src="<?php echo esc_url( $plugin_url . '/greenmetrics/public/js/greenmetrics-tracking.js' ); ?>"></script>
 		<?php
+	}
+
+	/**
+	 * Display a global badge in the footer if enabled in settings.
+	 * This is different from shortcodes and blocks which require manual placement.
+	 */
+	public function display_global_badge() {
+		$settings_manager = GreenMetrics_Settings_Manager::get_instance();
+		
+		// Only display if the badge is enabled in global settings
+		if ( ! $settings_manager->is_enabled( 'enable_badge' ) ) {
+			return;
+		}
+		
+		// Only display on frontend pages, not admin
+		if ( is_admin() ) {
+			return;
+		}
+		
+		greenmetrics_log( 'Displaying global badge in footer' );
+		
+		// Create attributes for the global badge with default values from settings
+		$attributes = array(
+			'position' => $settings_manager->get( 'badge_position', 'bottom-right' ),
+			'theme'    => $settings_manager->get( 'badge_theme', 'light' ),
+			'size'     => $settings_manager->get( 'badge_size', 'medium' ),
+			'global'   => true, // Flag to identify this as the global badge
+		);
+		
+		// Render the global badge with special class for additional styling
+		echo '<div class="greenmetrics-global-badge">';
+		echo $this->render_badge( $attributes, false ); // Don't check setting again
+		echo '</div>';
+		
+		// Add CSS for global badge positioning
+		echo '<style>
+			.greenmetrics-global-badge {
+				z-index: 999;
+				position: fixed;
+			}
+			.greenmetrics-global-badge .bottom-right {
+				right: 20px;
+				bottom: 20px;
+			}
+			.greenmetrics-global-badge .bottom-left {
+				left: 20px;
+				bottom: 20px;
+			}
+			.greenmetrics-global-badge .top-right {
+				right: 20px;
+				top: 20px;
+			}
+			.greenmetrics-global-badge .top-left {
+				left: 20px;
+				top: 20px;
+			}
+		</style>';
 	}
 }
