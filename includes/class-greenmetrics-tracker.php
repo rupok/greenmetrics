@@ -263,6 +263,7 @@ class GreenMetrics_Tracker {
 				'total_views'              => 0,
 				'total_data_transfer'      => 0,
 				'avg_load_time'            => 0,
+				'median_load_time'         => 0,
 				'total_requests'           => 0,
 				'avg_performance_score'    => 100, // Default to 100% when no data
 				'total_energy_consumption' => 0,
@@ -275,6 +276,16 @@ class GreenMetrics_Tracker {
 		$total_data_transfer = max( 0, floatval( $stats['total_data_transfer'] ) );
 		$avg_load_time       = max( 0, floatval( $stats['avg_load_time'] ) );
 		$total_requests      = max( 0, intval( $stats['total_requests'] ) );
+
+		// Calculate median load time using our new optimized method
+		$median_load_time = 0;
+		if ( $total_views > 0 ) {
+			$median_load_time = $this->get_median_load_time( $page_id );
+			// If calculation failed, fall back to average
+			if ( null === $median_load_time ) {
+				$median_load_time = $avg_load_time;
+			}
+		}
 
 		// Ensure performance score is a valid percentage
 		$avg_performance_score = isset( $stats['avg_performance_score'] ) && null !== $stats['avg_performance_score']
@@ -299,6 +310,7 @@ class GreenMetrics_Tracker {
 			'total_views'              => $total_views,
 			'total_data_transfer'      => $total_data_transfer,
 			'avg_load_time'            => $avg_load_time,
+			'median_load_time'         => $median_load_time,
 			'total_requests'           => $total_requests,
 			'avg_performance_score'    => $performance_score,
 			'total_energy_consumption' => max( 0, floatval( $stats['total_energy_consumption'] ) ),
@@ -309,6 +321,45 @@ class GreenMetrics_Tracker {
 		set_transient( $cache_key, $result, DAY_IN_SECONDS );
 		
 		return $result;
+	}
+
+	/**
+	 * Calculate median load time efficiently using a single query.
+	 * 
+	 * Uses a compatible approach for MySQL versions that don't support PERCENTILE_CONT.
+	 *
+	 * @param int|null $page_id Optional page ID to filter results.
+	 * @return float|null Median load time or null if no data.
+	 */
+	public function get_median_load_time( $page_id = null ) {
+		global $wpdb;
+		$table_name_escaped = esc_sql( $this->table_name );
+		
+		// Where clause if filtering by page_id
+		$where_clause = $page_id ? $wpdb->prepare( ' WHERE page_id = %d', $page_id ) : '';
+		
+		// Get count of rows
+		$count_sql = "SELECT COUNT(*) FROM $table_name_escaped $where_clause";
+		$total_rows = $wpdb->get_var( $count_sql );
+		
+		if ( !$total_rows ) {
+			return null;
+		}
+		
+		// Calculate middle position(s)
+		$middle_low = floor( $total_rows / 2 );
+		$middle_high = ceil( $total_rows / 2 );
+		
+		// Get the value(s) at the middle position(s)
+		$median_sql = "SELECT AVG(load_time) FROM (
+			SELECT load_time FROM $table_name_escaped $where_clause ORDER BY load_time
+			LIMIT $middle_low, " . ($middle_high - $middle_low + 1) . "
+		) as t";
+		
+		$median = $wpdb->get_var( $median_sql );
+		
+		// Ensure we return a valid number or null
+		return $median !== false ? (float) $median : null;
 	}
 
 	/**
