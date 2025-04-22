@@ -93,9 +93,12 @@ class GreenMetrics_Admin {
 				'default'           => array(
 					'tracking_enabled'       => 1,
 					'enable_badge'           => 1,
+					'display_icon'           => 1,
 					'badge_position'         => 'bottom-right',
 					'badge_size'             => 'medium',
 					'badge_text'             => 'Eco-Friendly Site',
+					'badge_icon_type'        => 'leaf',
+					'badge_custom_icon'      => '',
 					'badge_background_color' => '#4CAF50',
 					'badge_text_color'       => '#ffffff',
 					'badge_icon_color'       => '#ffffff',
@@ -137,6 +140,42 @@ class GreenMetrics_Admin {
 			'greenmetrics_display',
 			'greenmetrics_display',
 			array( 'label_for' => 'enable_badge' )
+		);
+
+		add_settings_field(
+			'display_icon',
+			__( 'Display Icon', 'greenmetrics' ),
+			array( $this, 'render_display_icon_field' ),
+			'greenmetrics_display',
+			'greenmetrics_display',
+			array( 'label_for' => 'display_icon' )
+		);
+
+		add_settings_field(
+			'badge_icon_type',
+			__( 'Choose Icon', 'greenmetrics' ),
+			array( $this, 'render_badge_icon_type_field' ),
+			'greenmetrics_display',
+			'greenmetrics_display',
+			array( 'label_for' => 'badge_icon_type' )
+		);
+
+		add_settings_field(
+			'badge_custom_icon',
+			__( 'Custom Icon', 'greenmetrics' ),
+			array( $this, 'render_badge_custom_icon_field' ),
+			'greenmetrics_display',
+			'greenmetrics_display',
+			array( 'label_for' => 'badge_custom_icon' )
+		);
+
+		add_settings_field(
+			'badge_icon_color',
+			__( 'Icon Color', 'greenmetrics' ),
+			array( $this, 'render_badge_icon_color_field' ),
+			'greenmetrics_display',
+			'greenmetrics_display',
+			array( 'label_for' => 'badge_icon_color' )
 		);
 
 		add_settings_field(
@@ -183,15 +222,6 @@ class GreenMetrics_Admin {
 			'greenmetrics_display',
 			array( 'label_for' => 'badge_text_color' )
 		);
-
-		add_settings_field(
-			'badge_icon_color',
-			__( 'Icon Color', 'greenmetrics' ),
-			array( $this, 'render_badge_icon_color_field' ),
-			'greenmetrics_display',
-			'greenmetrics_display',
-			array( 'label_for' => 'badge_icon_color' )
-		);
 	}
 
 	/**
@@ -228,9 +258,12 @@ class GreenMetrics_Admin {
 			$sanitized = array(
 				'tracking_enabled'       => 0,
 				'enable_badge'           => 0,
+				'display_icon'           => 1,
 				'badge_position'         => 'bottom-right',
 				'badge_size'             => 'medium',
 				'badge_text'             => 'Eco-Friendly Site',
+				'badge_icon_type'        => 'leaf',
+				'badge_custom_icon'      => '',
 				'badge_background_color' => '#4CAF50',
 				'badge_text_color'       => '#ffffff',
 				'badge_icon_color'       => '#ffffff',
@@ -246,6 +279,7 @@ class GreenMetrics_Admin {
 		// Update display settings only if we're on the display settings page
 		if ( $is_display_page ) {
 			$sanitized['enable_badge'] = isset( $input['enable_badge'] ) ? 1 : 0;
+			$sanitized['display_icon'] = isset( $input['display_icon'] ) ? 1 : 0;
 		}
 
 		// Sanitize text and dropdown fields if they are present in the input
@@ -265,6 +299,17 @@ class GreenMetrics_Admin {
 
 		if ( isset( $input['badge_text'] ) ) {
 			$sanitized['badge_text'] = sanitize_text_field( $input['badge_text'] );
+		}
+
+		if ( isset( $input['badge_icon_type'] ) ) {
+			$valid_icons = array( 'leaf', 'tree', 'globe', 'recycle', 'custom' );
+			$sanitized['badge_icon_type'] = in_array( $input['badge_icon_type'], $valid_icons ) 
+				? $input['badge_icon_type'] 
+				: 'leaf';
+		}
+
+		if ( isset( $input['badge_custom_icon'] ) ) {
+			$sanitized['badge_custom_icon'] = esc_url_raw( $input['badge_custom_icon'] );
 		}
 
 		// Sanitize color fields
@@ -325,6 +370,100 @@ class GreenMetrics_Admin {
 		<input type="checkbox" id="enable_badge" name="greenmetrics_settings[enable_badge]" value="1" <?php checked( $value, 1 ); ?>>
 		<label for="enable_badge"><?php esc_html_e( 'Display eco-friendly badge', 'greenmetrics' ); ?></label>
 		<p class="description"><?php esc_html_e( 'Show an eco-friendly badge on your website to highlight your commitment to sustainability.', 'greenmetrics' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Render display icon field.
+	 */
+	public function render_display_icon_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['display_icon'] ) ? $options['display_icon'] : 1;
+		?>
+		<input type="checkbox" id="display_icon" name="greenmetrics_settings[display_icon]" value="1" <?php checked( $value, 1 ); ?>>
+		<label for="display_icon"><?php esc_html_e( 'Display icon', 'greenmetrics' ); ?></label>
+		<p class="description"><?php esc_html_e( 'Show an icon next to the badge', 'greenmetrics' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Render badge icon type field.
+	 */
+	public function render_badge_icon_type_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['badge_icon_type'] ) ? $options['badge_icon_type'] : 'leaf';
+		?>
+		<div class="greenmetrics-icon-selection">
+			<select id="badge_icon_type" name="greenmetrics_settings[badge_icon_type]" style="display:none;">
+				<option value="leaf" <?php selected( $value, 'leaf' ); ?>><?php esc_html_e( 'Leaf', 'greenmetrics' ); ?></option>
+				<option value="tree" <?php selected( $value, 'tree' ); ?>><?php esc_html_e( 'Tree', 'greenmetrics' ); ?></option>
+				<option value="globe" <?php selected( $value, 'globe' ); ?>><?php esc_html_e( 'Globe', 'greenmetrics' ); ?></option>
+				<option value="recycle" <?php selected( $value, 'recycle' ); ?>><?php esc_html_e( 'Recycle', 'greenmetrics' ); ?></option>
+				<option value="custom" <?php selected( $value, 'custom' ); ?>><?php esc_html_e( 'Custom', 'greenmetrics' ); ?></option>
+			</select>
+			
+			<div class="icon-options">
+				<div class="icon-option <?php echo $value === 'leaf' ? 'selected' : ''; ?>" data-value="leaf">
+					<div class="icon-preview">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17 1.02.3 1.58.3C17 20 22 13.46 22 6c0-.55-.06-1.09-.14-1.62C20.18 4.15 18.66 4 17 4V2c1.67 0 3.35.12 5 .34V4c-1.67-.22-3.33-.34-5-.34v2zM2 6c0 7.46 5 14 14.5 14 .56 0 1.1-.13 1.58-.3l.95 2.3 1.89-.66C18.1 16.17 16 10 7 8c0 0-5 0-5 0z" /></svg>
+					</div>
+					<span><?php esc_html_e( 'Leaf', 'greenmetrics' ); ?></span>
+				</div>
+				<div class="icon-option <?php echo $value === 'tree' ? 'selected' : ''; ?>" data-value="tree">
+					<div class="icon-preview">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c4.97 0 9-4.03 9-9-4.97 0-9 4.03-9 9zm2.44-9.43h-.44v2h.44c2.32 0 2.49 3.23 2.49 3.23 1.52-1.84 2.63-4.43 1.73-7C17.56 8.37 15.5 7 15.5 7S14.8 9.1 13 9.42v.36c1.32-.18 2.44.11 2.44.11s-1.22 1.91-1 3.68z"/><path d="M12.28 10h-.56v2h.56c2.33 0 2.51 3.45 2.51 3.45 1.55-1.89 2.67-4.63 1.77-7.24-.51-1.46-2.18-3.02-2.18-3.02s-.99 2.18-2.1 2.48V8c1.34-.2 2.55.07 2.55.07s-1.34 1.66-1.14 3.44z"/><path d="M12.63 5.33c-.28.47-1.04 1.68-2 1.87V8.8c1.35-.19 2.97.31 2.97.31S12.69 10.3 12.22 12h.33v-2h-.16c.06-.32.2-.65.44-.97.19.38.39.75.58 1.09l.66-.42c-.18-.28-.33-.57-.46-.85 0 0 .99.17 2.22.5-.27-.5-2.47-4.02-3.2-4.02z"/><path d="M10.45 12h-.43v8.17c.34-.14.66-.34.95-.55L10.45 12zm1.66 4.62c.1.21.19.42.27.63-.16-.19-.31-.39-.46-.57.07-.02.12-.04.19-.06zm1.14-4.62L12.1 17.1c.45-.11.88-.29 1.29-.51l-.14-4.59z"/><path d="M9.3 14.13l-.24 7.14c.24.11.48.19.73.26l-.42-7.8c-.02.14-.05.27-.07.4zm3.33 1.7c-.04-.04-.08-.09-.12-.14.03.05.06.09.09.13.01 0 .02.01.03.01zm-.83-3.83l-.32 7.46c.29.05.58.08.88.08.12 0 .24-.01.36-.02L12 12l-.2 0z"/></svg>
+					</div>
+					<span><?php esc_html_e( 'Tree', 'greenmetrics' ); ?></span>
+				</div>
+				<div class="icon-option <?php echo $value === 'globe' ? 'selected' : ''; ?>" data-value="globe">
+					<div class="icon-preview">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" /></svg>
+					</div>
+					<span><?php esc_html_e( 'Globe', 'greenmetrics' ); ?></span>
+				</div>
+				<div class="icon-option <?php echo $value === 'recycle' ? 'selected' : ''; ?>" data-value="recycle">
+					<div class="icon-preview">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M5.77 7.15L7.2 4.78l1.03-1.71c.39-.65 1.33-.65 1.72 0l1.48 2.46-1.23 2.06-1 1.34-2.43-4.78zm15.95 5.82l-1.6-2.66-3.46 2L18.87 16H21v2l-3.87-7.03zM16 21h1.5l2.05-3.42-3.46-2-1.09 1.84L16 21zm-3.24-3.71l-1.03-1.71-1.43 2.43-2.43 4.78 1.6 2.66 3.46-2 1.03-1.71-1.43-2.45zM13.42 8.5l-1.48-2.46c-.39-.65-1.33-.65-1.72 0L9.22 7.15l-1 1.34 2.43 4.78 1.6-2.66 1.17-2.11zM10.5 14.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" /></svg>
+					</div>
+					<span><?php esc_html_e( 'Recycle', 'greenmetrics' ); ?></span>
+				</div>
+				<div class="icon-option <?php echo $value === 'custom' ? 'selected' : ''; ?>" data-value="custom">
+					<div class="icon-preview">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" /></svg>
+					</div>
+					<span><?php esc_html_e( 'Custom', 'greenmetrics' ); ?></span>
+				</div>
+			</div>
+		</div>
+		<p class="description"><?php esc_html_e( 'Select an icon to display on the badge.', 'greenmetrics' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Render badge custom icon field.
+	 */
+	public function render_badge_custom_icon_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['badge_custom_icon'] ) ? $options['badge_custom_icon'] : '';
+		$display = isset( $options['badge_icon_type'] ) && $options['badge_icon_type'] === 'custom' ? 'block' : 'none';
+		?>
+		<div id="custom-icon-field-wrapper" style="display: <?php echo esc_attr( $display ); ?>;">
+			<input type="text" id="badge_custom_icon" name="greenmetrics_settings[badge_custom_icon]" value="<?php echo esc_attr( $value ); ?>" class="regular-text">
+			<button type="button" class="button upload-custom-icon"><?php esc_html_e( 'Upload Icon', 'greenmetrics' ); ?></button>
+			<p class="description"><?php esc_html_e( 'Upload a custom SVG icon for the badge. For best results, use a square SVG file.', 'greenmetrics' ); ?></p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render badge icon color field.
+	 */
+	public function render_badge_icon_color_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['badge_icon_color'] ) ? $options['badge_icon_color'] : '#ffffff';
+		?>
+		<input type="color" id="badge_icon_color" name="greenmetrics_settings[badge_icon_color]" value="<?php echo esc_attr( $value ); ?>">
+		<p class="description"><?php esc_html_e( 'Icon color for the badge.', 'greenmetrics' ); ?></p>
 		<?php
 	}
 
@@ -398,18 +537,6 @@ class GreenMetrics_Admin {
 	}
 
 	/**
-	 * Render badge icon color field.
-	 */
-	public function render_badge_icon_color_field() {
-		$options = get_option( 'greenmetrics_settings' );
-		$value   = isset( $options['badge_icon_color'] ) ? $options['badge_icon_color'] : '#ffffff';
-		?>
-		<input type="color" id="badge_icon_color" name="greenmetrics_settings[badge_icon_color]" value="<?php echo esc_attr( $value ); ?>">
-		<p class="description"><?php esc_html_e( 'Icon color for the badge.', 'greenmetrics' ); ?></p>
-		<?php
-	}
-
-	/**
 	 * Register the stylesheets for the admin area.
 	 */
 	public function enqueue_styles() {
@@ -423,31 +550,34 @@ class GreenMetrics_Admin {
 	}
 
 	/**
-	 * Register the JavaScript for the admin area.
+	 * Register and enqueue admin scripts.
 	 */
 	public function enqueue_scripts() {
-		// Get current screen
-		$screen = get_current_screen();
-		
-		// Only load scripts on GreenMetrics admin pages
-		if ($screen && strpos($screen->id, 'greenmetrics') !== false) {
-			wp_enqueue_script(
-				'greenmetrics-admin',
-				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin.js',
-				array( 'jquery', 'wp-util' ),
-				GREENMETRICS_VERSION,
-				true
-			);
+		wp_enqueue_style( 'wp-color-picker' );
+		wp_enqueue_media();
 
-			wp_localize_script(
-				'greenmetrics-admin',
-				'greenmetricsAdmin',
-				array(
-					'rest_url'   => esc_url_raw( rest_url() ),
-					'rest_nonce' => wp_create_nonce( 'wp_rest' ),
-				)
-			);
-		}
+		wp_enqueue_script(
+			'greenmetrics-admin',
+			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin.js',
+			array( 'jquery', 'wp-color-picker', 'wp-util' ),
+			GREENMETRICS_VERSION,
+			true
+		);
+
+		// Add settings for the admin JavaScript
+		wp_localize_script(
+			'greenmetrics-admin',
+			'greenmetricsAdmin',
+			array(
+				'ajaxUrl'           => admin_url( 'admin-ajax.php' ),
+				'nonce'             => wp_create_nonce( 'greenmetrics_admin_nonce' ),
+				'refreshMessage'    => __( 'Statistics refreshed successfully.', 'greenmetrics' ),
+				'refreshError'      => __( 'Error refreshing statistics.', 'greenmetrics' ),
+				'selectIconText'    => __( 'Select or Upload Icon', 'greenmetrics' ),
+				'selectIconBtnText' => __( 'Use this Icon', 'greenmetrics' ),
+				'customIconText'    => __( 'Custom Icon', 'greenmetrics' ),
+			)
+		);
 	}
 
 	/**

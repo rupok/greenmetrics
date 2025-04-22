@@ -37,10 +37,13 @@ class GreenMetrics_Settings_Manager {
 		'energy_per_byte'         => 0.000000000072, // Default energy per byte (kWh/byte)
 		'tracking_enabled'        => 0,             // Tracking disabled by default
 		'enable_badge'            => 0,             // Badge disabled by default
+		'display_icon'            => 1,             // Display icon enabled by default
 		'badge_position'          => 'bottom-right', // Default badge position
 		'badge_theme'             => 'light',       // Default badge theme
 		'badge_size'              => 'medium',      // Default badge size
 		'badge_text'              => 'Eco-Friendly Site', // Default badge text
+		'badge_icon_type'         => 'leaf',        // Default icon type
+		'badge_custom_icon'       => '',            // Custom icon path (empty by default)
 		'badge_background_color'  => '#4CAF50',     // Default badge background color
 		'badge_text_color'        => '#ffffff',     // Default badge text color
 		'badge_icon_color'        => '#ffffff',     // Default badge icon color

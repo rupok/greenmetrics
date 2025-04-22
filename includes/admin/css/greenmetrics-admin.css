@@ -589,4 +589,80 @@
 .greenmetrics-admin-header img {
 	width: 48px;
 	height: 48px;
+}
+
+/* Icon Selection Styles */
+.greenmetrics-icon-selection {
+    margin: 10px 0;
+}
+
+.icon-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.icon-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.icon-option:hover {
+    border-color: #0073aa;
+    background-color: #f8f9fa;
+}
+
+.icon-option.selected {
+    border-color: #0073aa;
+    background-color: #f0f7fc;
+}
+
+.icon-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    margin-bottom: 5px;
+}
+
+.icon-preview svg {
+    width: 100%;
+    height: 100%;
+    color: #0073aa;
+}
+
+.icon-option span {
+    font-size: 12px;
+    text-align: center;
+    color: #555;
+}
+
+#custom-icon-upload-container {
+    margin-top: 10px;
+}
+
+/* Preview styles for the badge */
+.preview-container .icon-container {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+}
+
+.preview-container .icon-container svg,
+.preview-container .icon-container img {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
 } 
