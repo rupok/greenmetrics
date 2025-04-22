@@ -232,7 +232,7 @@ class GreenMetrics_Admin {
 				// Trigger manual cache refresh
 				\GreenMetrics\GreenMetrics_Tracker::manual_cache_refresh();
 				
-				// Redirect back to the same page to avoid form resubmission
+				// Redirect back to the same page with a simple parameter
 				$redirect_url = add_query_arg( 'stats-refreshed', 'true', remove_query_arg( 'settings-updated' ) );
 				wp_redirect( $redirect_url );
 				exit;

@@ -1,6 +1,16 @@
 jQuery(document).ready(function($) {
     // Initialize the dashboard
     initDashboard();
+    
+    // Auto-dismiss admin notices after 5 seconds
+    setTimeout(function() {
+        // Find notices with query parameter stats-refreshed=true
+        if (window.location.search.indexOf('stats-refreshed=true') > -1) {
+            $('.notice').fadeOut(500, function() {
+                $(this).remove();
+            });
+        }
+    }, 5000);
 
     // Function to initialize dashboard
     function initDashboard() {
