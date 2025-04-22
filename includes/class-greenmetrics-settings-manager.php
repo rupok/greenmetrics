@@ -33,13 +33,17 @@ class GreenMetrics_Settings_Manager {
 	 * Default settings values
 	 */
 	private $defaults = array(
-		'carbon_intensity' => 0.475,         // Default carbon intensity factor (kg CO2/kWh)
-		'energy_per_byte'  => 0.000000000072, // Default energy per byte (kWh/byte)
-		'tracking_enabled' => 0,             // Tracking disabled by default
-		'enable_badge'     => 0,                 // Badge disabled by default
-		'badge_position'   => 'bottom-right',  // Default badge position
-		'badge_theme'      => 'light',            // Default badge theme
-		'badge_size'       => 'medium',             // Default badge size
+		'carbon_intensity'        => 0.475,         // Default carbon intensity factor (kg CO2/kWh)
+		'energy_per_byte'         => 0.000000000072, // Default energy per byte (kWh/byte)
+		'tracking_enabled'        => 0,             // Tracking disabled by default
+		'enable_badge'            => 0,             // Badge disabled by default
+		'badge_position'          => 'bottom-right', // Default badge position
+		'badge_theme'             => 'light',       // Default badge theme
+		'badge_size'              => 'medium',      // Default badge size
+		'badge_text'              => 'Eco-Friendly Site', // Default badge text
+		'badge_background_color'  => '#4CAF50',     // Default badge background color
+		'badge_text_color'        => '#ffffff',     // Default badge text color
+		'badge_icon_color'        => '#ffffff',     // Default badge icon color
 	);
 
 	/**
