@@ -28,9 +28,10 @@ class GreenMetrics_Activator {
 		greenmetrics_log( 'Activator - Table exists', $table_exists ? 'Yes' : 'No' );
 
 		if ( $table_exists ) {
-			// Get table columns from DB helper
-			$column_names = GreenMetrics_DB_Helper::get_table_columns( $table_name );
-			greenmetrics_log( 'Activator - Table columns', implode( ', ', $column_names ) );
+			// Force refresh column information and store it in the persistent cache
+			// This will reduce the need for repeated introspection during normal operation
+			$column_names = GreenMetrics_DB_Helper::get_table_columns( $table_name, true );
+			greenmetrics_log( 'Activator - Table columns cached for future use', implode( ', ', $column_names ) );
 		}
 
 		// Set default options

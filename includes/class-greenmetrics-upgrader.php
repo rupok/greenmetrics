@@ -137,7 +137,7 @@ class GreenMetrics_Upgrader {
 			return;
 		}
 
-		// Get table columns from DB helper
+		// Get table columns from DB helper, using cached values to avoid repeated introspection
 		$column_names = GreenMetrics_DB_Helper::get_table_columns( $table_name );
 
 		// Define the required columns
@@ -159,6 +159,9 @@ class GreenMetrics_Upgrader {
 		if ( ! empty( $missing_columns ) ) {
 			greenmetrics_log( 'Missing database columns', $missing_columns );
 			self::add_missing_columns( $table_name, $missing_columns );
+			
+			// Force refresh the column cache after schema changes
+			GreenMetrics_DB_Helper::get_table_columns( $table_name, true );
 		}
 	}
 
@@ -166,29 +169,12 @@ class GreenMetrics_Upgrader {
 	 * Create the database tables.
 	 */
 	private static function create_database_tables() {
-		global $wpdb;
-		$table_name = $wpdb->prefix . 'greenmetrics_stats';
-
-		$charset_collate = $wpdb->get_charset_collate();
-
-		$sql = "CREATE TABLE IF NOT EXISTS $table_name (
-            id bigint(20) NOT NULL AUTO_INCREMENT,
-            page_id bigint(20) NOT NULL,
-            data_transfer bigint(20) NOT NULL,
-            load_time float NOT NULL,
-            requests int(11) NOT NULL,
-            carbon_footprint float NOT NULL,
-            energy_consumption float NOT NULL,
-            performance_score float NOT NULL,
-            created_at datetime DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY  (id),
-            KEY page_id (page_id)
-        ) $charset_collate;";
-
-		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-		$result = dbDelta( $sql );
-
-		greenmetrics_log( 'Database tables created', $result );
+		greenmetrics_log( 'Creating database tables via upgrader' );
+		
+		// Use the centralized table creation method from DB Helper
+		$result = GreenMetrics_DB_Helper::create_stats_table();
+		
+		greenmetrics_log( 'Database tables created via upgrader', $result );
 	}
 
 	/**

@@ -20,6 +20,13 @@ class GreenMetrics_DB_Helper {
 	 * @var array<string,string[]>
 	 */
 	private static $table_columns_cache = array();
+	
+	/**
+	 * Option name for storing column information.
+	 *
+	 * @var string
+	 */
+	private static $columns_option_name = 'greenmetrics_table_columns';
 
 	/**
 	 * Check if a table exists, using a prepared statement and caching.
@@ -42,24 +49,77 @@ class GreenMetrics_DB_Helper {
 	}
 
 	/**
-	 * Get the column names for a table, caching the result.
+	 * Get the column names for a table, using cached values when possible.
 	 *
 	 * @param string $table_name Full table name including prefix.
+	 * @param bool   $force_db_check Whether to force a fresh check from the database.
 	 * @return string[] List of column names.
 	 */
-	public static function get_table_columns( string $table_name ): array {
-		if ( ! isset( self::$table_columns_cache[ $table_name ] ) ) {
-			global $wpdb;
-			$escaped = esc_sql( $table_name );
-			$results = $wpdb->get_results( "DESCRIBE $escaped" );
-			$columns = array();
-			foreach ( $results as $col ) {
-				$columns[] = $col->Field;
-			}
-			self::$table_columns_cache[ $table_name ] = $columns;
+	public static function get_table_columns( string $table_name, bool $force_db_check = false ): array {
+		// First try memory cache
+		if ( ! $force_db_check && isset( self::$table_columns_cache[ $table_name ] ) ) {
+			return self::$table_columns_cache[ $table_name ];
 		}
-
-		return self::$table_columns_cache[ $table_name ];
+		
+		// Then try persistent cache in wp_options
+		if ( ! $force_db_check ) {
+			$cached_columns = self::get_cached_table_columns( $table_name );
+			if ( $cached_columns !== false ) {
+				self::$table_columns_cache[ $table_name ] = $cached_columns;
+				return $cached_columns;
+			}
+		}
+		
+		// If no cache or forced refresh, query the database
+		global $wpdb;
+		$escaped = esc_sql( $table_name );
+		$results = $wpdb->get_results( "DESCRIBE $escaped" );
+		
+		if ( ! $results ) {
+			// Return empty array if no results (e.g., table doesn't exist)
+			return array();
+		}
+		
+		$columns = array();
+		foreach ( $results as $col ) {
+			$columns[] = $col->Field;
+		}
+		
+		// Update both caches
+		self::$table_columns_cache[ $table_name ] = $columns;
+		self::update_cached_table_columns( $table_name, $columns );
+		
+		return $columns;
+	}
+	
+	/**
+	 * Get cached table columns from wp_options.
+	 *
+	 * @param string $table_name Full table name including prefix.
+	 * @return array|false Cached column names or false if not in cache.
+	 */
+	public static function get_cached_table_columns( string $table_name ) {
+		$columns_cache = get_option( self::$columns_option_name, array() );
+		
+		if ( isset( $columns_cache[ $table_name ] ) ) {
+			return $columns_cache[ $table_name ];
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Update cached table columns in wp_options.
+	 *
+	 * @param string $table_name Full table name including prefix.
+	 * @param array  $columns List of column names.
+	 * @return bool True if the option was updated.
+	 */
+	public static function update_cached_table_columns( string $table_name, array $columns ): bool {
+		$columns_cache = get_option( self::$columns_option_name, array() );
+		$columns_cache[ $table_name ] = $columns;
+		
+		return update_option( self::$columns_option_name, $columns_cache );
 	}
 	
 	/**
@@ -96,6 +156,11 @@ class GreenMetrics_DB_Helper {
 		// Clear table existence cache
 		if (isset(self::$table_exists_cache[$table_name])) {
 			unset(self::$table_exists_cache[$table_name]);
+		}
+		
+		// Force refresh column cache after table creation
+		if ( self::table_exists( $table_name ) ) {
+			self::get_table_columns( $table_name, true );
 		}
 
 		return $result;
