@@ -4,8 +4,15 @@ jQuery(document).ready(function($) {
     
     // Auto-dismiss admin notices after 5 seconds
     setTimeout(function() {
-        // Find notices with query parameter stats-refreshed=true
-        if (window.location.search.indexOf('stats-refreshed=true') > -1) {
+        // Auto-dismiss all success notices
+        $('.notice-success.is-dismissible').fadeOut(500, function() {
+            $(this).remove();
+        });
+        
+        // For URL parameter specific notices
+        if (window.location.search.indexOf('stats-refreshed=true') > -1 || 
+            window.location.search.indexOf('settings-updated=true') > -1 ||
+            window.location.search.indexOf('settings-updated=1') > -1) {
             $('.notice').fadeOut(500, function() {
                 $(this).remove();
             });

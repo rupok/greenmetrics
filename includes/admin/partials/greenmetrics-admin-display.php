@@ -279,6 +279,8 @@ $settings = get_option(
 
 			<div class="greenmetrics-admin-settings">
 				<h2><?php esc_html_e( 'Settings', 'greenmetrics' ); ?></h2>
+				
+				<!-- Tracking Settings Section -->
 				<form method="post" action="options.php">
 					<?php
 					settings_fields( 'greenmetrics_settings' );
@@ -287,8 +289,19 @@ $settings = get_option(
 					?>
 				</form>
 				
-				<!-- Refresh Statistics Button -->
-				<div class="greenmetrics-refresh-stats" style="margin-top: 20px;">
+				<!-- Display Settings Link -->
+				<div style="margin: 20px 0;">
+					<p>
+						<a href="<?php echo esc_url( admin_url( 'admin.php?page=greenmetrics_display' ) ); ?>" class="button">
+							<span class="dashicons dashicons-visibility" style="vertical-align: middle; margin-top: -2px; margin-right: 5px;"></span>
+							<?php esc_html_e( 'Configure Display Settings', 'greenmetrics' ); ?>
+						</a>
+					</p>
+					<p class="description"><?php esc_html_e( 'Configure how the eco-friendly badge appears on your website.', 'greenmetrics' ); ?></p>
+				</div>
+				
+				<!-- Statistics Cache Section -->
+				<div class="greenmetrics-refresh-stats" style="margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px;">
 					<h3><?php esc_html_e( 'Statistics Cache', 'greenmetrics' ); ?></h3>
 					<p class="description"><?php esc_html_e( 'Statistics are automatically cached for better performance. Use this button to refresh the statistics from the database if needed.', 'greenmetrics' ); ?></p>
 					<form method="post">
@@ -463,37 +476,6 @@ $settings = get_option(
 						</div>
 					</li>
 				</ul>
-			</div>
-		</div>
-
-		<div class="greenmetrics-admin-sidebar">
-			<div class="greenmetrics-admin-card">
-				<h3><?php esc_html_e( 'Usage', 'greenmetrics' ); ?></h3>
-				
-				<div class="usage-section">
-					<h4><?php esc_html_e( 'Shortcode', 'greenmetrics' ); ?></h4>
-					<p><?php esc_html_e( 'Use the following shortcode to display the GreenMetrics badge:', 'greenmetrics' ); ?></p>
-					<div class="code-block">
-						<code>[greenmetrics_badge]</code>
-					</div>
-					
-					<h5><?php esc_html_e( 'Available Attributes:', 'greenmetrics' ); ?></h5>
-					<ul class="attributes-list">
-						<li><code>position="top-left|top-right|bottom-left|bottom-right"</code> - <?php esc_html_e( 'Badge position', 'greenmetrics' ); ?></li>
-						<li><code>theme="light|dark"</code> - <?php esc_html_e( 'Color theme', 'greenmetrics' ); ?></li>
-						<li><code>size="small|medium|large"</code> - <?php esc_html_e( 'Overall badge size', 'greenmetrics' ); ?></li>
-					</ul>
-				</div>
-
-				<div class="usage-section">
-					<h4><?php esc_html_e( 'Block', 'greenmetrics' ); ?></h4>
-					<p><?php esc_html_e( 'Add the GreenMetrics badge block to your page or post:', 'greenmetrics' ); ?></p>
-					<ol>
-						<li><?php esc_html_e( 'Click the "+" button to add a new block', 'greenmetrics' ); ?></li>
-						<li><?php esc_html_e( 'Search for "GreenMetrics"', 'greenmetrics' ); ?></li>
-						<li><?php esc_html_e( 'Select the "GreenMetrics Badge" block', 'greenmetrics' ); ?></li>
-					</ol>
-				</div>
 			</div>
 		</div>
 	</div>

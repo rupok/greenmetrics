@@ -58,6 +58,26 @@ class GreenMetrics_Admin {
 			'dashicons-chart-area',
 			30
 		);
+		
+		// Add submenu that points to the main page (Dashboard)
+		add_submenu_page(
+			'greenmetrics',
+			__( 'Dashboard', 'greenmetrics' ),
+			__( 'Dashboard', 'greenmetrics' ),
+			'manage_options',
+			'greenmetrics',
+			array( $this, 'render_admin_page' )
+		);
+		
+		// Add submenu for Display Settings
+		add_submenu_page(
+			'greenmetrics',
+			__( 'Display Settings', 'greenmetrics' ),
+			__( 'Display Settings', 'greenmetrics' ),
+			'manage_options',
+			'greenmetrics_display',
+			array( $this, 'render_display_settings_page' )
+		);
 	}
 
 	/**
@@ -99,20 +119,22 @@ class GreenMetrics_Admin {
 			'greenmetrics_tracking',
 			array( 'label_for' => 'tracking_enabled' )
 		);
+		
+		// Add Statistics Cache to Settings section (this doesn't have actual settings fields)
 
-		// Display Settings Section
+		// Display Settings Section - register under a different page
 		add_settings_section(
 			'greenmetrics_display',
 			__( 'Display Settings', 'greenmetrics' ),
 			array( $this, 'render_display_section' ),
-			'greenmetrics'
+			'greenmetrics_display' // Changed to a different page
 		);
 
 		add_settings_field(
 			'enable_badge',
 			__( 'Display Badge', 'greenmetrics' ),
 			array( $this, 'render_badge_field' ),
-			'greenmetrics',
+			'greenmetrics_display',
 			'greenmetrics_display',
 			array( 'label_for' => 'enable_badge' )
 		);
@@ -121,7 +143,7 @@ class GreenMetrics_Admin {
 			'badge_position',
 			__( 'Badge Position', 'greenmetrics' ),
 			array( $this, 'render_badge_position_field' ),
-			'greenmetrics',
+			'greenmetrics_display',
 			'greenmetrics_display',
 			array( 'label_for' => 'badge_position' )
 		);
@@ -130,7 +152,7 @@ class GreenMetrics_Admin {
 			'badge_size',
 			__( 'Badge Size', 'greenmetrics' ),
 			array( $this, 'render_badge_size_field' ),
-			'greenmetrics',
+			'greenmetrics_display',
 			'greenmetrics_display',
 			array( 'label_for' => 'badge_size' )
 		);
@@ -139,7 +161,7 @@ class GreenMetrics_Admin {
 			'badge_text',
 			__( 'Badge Text', 'greenmetrics' ),
 			array( $this, 'render_badge_text_field' ),
-			'greenmetrics',
+			'greenmetrics_display',
 			'greenmetrics_display',
 			array( 'label_for' => 'badge_text' )
 		);
@@ -148,7 +170,7 @@ class GreenMetrics_Admin {
 			'badge_background_color',
 			__( 'Background Color', 'greenmetrics' ),
 			array( $this, 'render_badge_background_color_field' ),
-			'greenmetrics',
+			'greenmetrics_display',
 			'greenmetrics_display',
 			array( 'label_for' => 'badge_background_color' )
 		);
@@ -157,7 +179,7 @@ class GreenMetrics_Admin {
 			'badge_text_color',
 			__( 'Text Color', 'greenmetrics' ),
 			array( $this, 'render_badge_text_color_field' ),
-			'greenmetrics',
+			'greenmetrics_display',
 			'greenmetrics_display',
 			array( 'label_for' => 'badge_text_color' )
 		);
@@ -166,7 +188,7 @@ class GreenMetrics_Admin {
 			'badge_icon_color',
 			__( 'Icon Color', 'greenmetrics' ),
 			array( $this, 'render_badge_icon_color_field' ),
-			'greenmetrics',
+			'greenmetrics_display',
 			'greenmetrics_display',
 			array( 'label_for' => 'badge_icon_color' )
 		);
@@ -184,34 +206,49 @@ class GreenMetrics_Admin {
 			greenmetrics_log( 'Settings sanitize - Raw input', $input );
 		}
 
+		// Get current settings to preserve values not present in current form
 		$current_settings = get_option( 'greenmetrics_settings', array() );
 
 		if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
 			greenmetrics_log( 'Settings sanitize - Current settings', $current_settings );
 		}
 
-		// Create a new settings array with defaults
-		$sanitized = array(
-			'tracking_enabled'       => 0,
-			'enable_badge'           => 0,
-			'badge_position'         => 'bottom-right',
-			'badge_size'             => 'medium',
-			'badge_text'             => 'Eco-Friendly Site',
-			'badge_background_color' => '#4CAF50',
-			'badge_text_color'       => '#ffffff',
-			'badge_icon_color'       => '#ffffff',
-		);
-
-		// Sanitize checkboxes
-		if ( isset( $input['tracking_enabled'] ) && $input['tracking_enabled'] ) {
-			$sanitized['tracking_enabled'] = 1;
+		// Determine which page is being saved by checking the HTTP referer
+		$is_display_page = false;
+		if ( isset( $_SERVER['HTTP_REFERER'] ) ) {
+			$referer = sanitize_text_field( wp_unslash( $_SERVER['HTTP_REFERER'] ) );
+			$is_display_page = ( strpos( $referer, 'page=greenmetrics_display' ) !== false );
 		}
 
-		if ( isset( $input['enable_badge'] ) && $input['enable_badge'] ) {
-			$sanitized['enable_badge'] = 1;
+		// Start with current settings and update only those which are present in the input
+		$sanitized = $current_settings;
+
+		// Set defaults if settings are empty
+		if ( empty( $sanitized ) ) {
+			$sanitized = array(
+				'tracking_enabled'       => 0,
+				'enable_badge'           => 0,
+				'badge_position'         => 'bottom-right',
+				'badge_size'             => 'medium',
+				'badge_text'             => 'Eco-Friendly Site',
+				'badge_background_color' => '#4CAF50',
+				'badge_text_color'       => '#ffffff',
+				'badge_icon_color'       => '#ffffff',
+			);
 		}
 
-		// Sanitize text and dropdown fields
+		// Sanitize checkboxes (checkboxes are not included in $_POST if unchecked)
+		// Update main tracking setting only if we're on the main settings page
+		if ( !$is_display_page ) {
+			$sanitized['tracking_enabled'] = isset( $input['tracking_enabled'] ) ? 1 : 0;
+		}
+
+		// Update display settings only if we're on the display settings page
+		if ( $is_display_page ) {
+			$sanitized['enable_badge'] = isset( $input['enable_badge'] ) ? 1 : 0;
+		}
+
+		// Sanitize text and dropdown fields if they are present in the input
 		if ( isset( $input['badge_position'] ) ) {
 			$valid_positions = array( 'bottom-right', 'bottom-left', 'top-right', 'top-left' );
 			$sanitized['badge_position'] = in_array( $input['badge_position'], $valid_positions ) 
@@ -389,26 +426,32 @@ class GreenMetrics_Admin {
 	 * Register the JavaScript for the admin area.
 	 */
 	public function enqueue_scripts() {
-		wp_enqueue_script(
-			'greenmetrics-admin',
-			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin.js',
-			array( 'jquery', 'wp-util' ),
-			GREENMETRICS_VERSION,
-			true
-		);
+		// Get current screen
+		$screen = get_current_screen();
+		
+		// Only load scripts on GreenMetrics admin pages
+		if ($screen && strpos($screen->id, 'greenmetrics') !== false) {
+			wp_enqueue_script(
+				'greenmetrics-admin',
+				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin.js',
+				array( 'jquery', 'wp-util' ),
+				GREENMETRICS_VERSION,
+				true
+			);
 
-		wp_localize_script(
-			'greenmetrics-admin',
-			'greenmetricsAdmin',
-			array(
-				'rest_url'   => esc_url_raw( rest_url() ),
-				'rest_nonce' => wp_create_nonce( 'wp_rest' ),
-			)
-		);
+			wp_localize_script(
+				'greenmetrics-admin',
+				'greenmetricsAdmin',
+				array(
+					'rest_url'   => esc_url_raw( rest_url() ),
+					'rest_nonce' => wp_create_nonce( 'wp_rest' ),
+				)
+			);
+		}
 	}
 
 	/**
-	 * Render admin page.
+	 * Render main admin page.
 	 */
 	public function render_admin_page() {
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -416,6 +459,17 @@ class GreenMetrics_Admin {
 		}
 
 		include GREENMETRICS_PLUGIN_DIR . 'includes/admin/partials/greenmetrics-admin-display.php';
+	}
+
+	/**
+	 * Render display settings page.
+	 */
+	public function render_display_settings_page() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		include GREENMETRICS_PLUGIN_DIR . 'includes/admin/partials/greenmetrics-display-settings.php';
 	}
 
 	/**
