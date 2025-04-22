@@ -31,6 +31,13 @@ class GreenMetrics_Tracker {
 	private $table_name;
 
 	/**
+	 * Cached table existence check.
+	 *
+	 * @var bool|null
+	 */
+	private static $table_exists_cache = null;
+
+	/**
 	 * Initialize the class and set its properties.
 	 */
 	private function __construct() {
@@ -438,26 +445,16 @@ class GreenMetrics_Tracker {
 				global $wpdb;
 				greenmetrics_log( 'Tracker: Database table name', $this->table_name );
 
-				$table_name_escaped = esc_sql( $this->table_name );
-				$table_exists       = $wpdb->get_var( "SHOW TABLES LIKE '$table_name_escaped'" );
+				$table_exists = $this->table_exists();
 				greenmetrics_log(
 					'Tracker: Table exists check',
 					array(
-						'exists' => ! empty( $table_exists ),
+						'exists' => $table_exists,
 						'result' => $table_exists,
 					)
 				);
 
-				if ( $table_exists ) {
-					$columns      = $wpdb->get_results( "DESCRIBE $table_name_escaped" );
-					$column_names = array_map(
-						function ( $col ) {
-							return $col->Field;
-						},
-						$columns
-					);
-					greenmetrics_log( 'Tracker: Table columns', $column_names );
-				} else {
+				if ( ! $table_exists ) {
 					greenmetrics_log( 'Tracker: Table does not exist! Creating table...' );
 					// Attempt to create the table
 					require_once plugin_dir_path( __DIR__ ) . 'includes/class-greenmetrics-activator.php';
@@ -647,14 +644,13 @@ class GreenMetrics_Tracker {
 			);
 
 			// Check if the table exists before attempting to insert
-			$table_name_escaped = esc_sql( $this->table_name );
-			if ( $wpdb->get_var( "SHOW TABLES LIKE '$table_name_escaped'" ) === null ) {
+			if ( ! $this->table_exists() ) {
 				greenmetrics_log( 'process_and_save_metrics: Table does not exist', $this->table_name, 'error' );
 				return GreenMetrics_Error_Handler::create_error( 'table_not_found', 'Database table does not exist' );
 			}
 
 			// Log the SQL query that would be executed
-			$placeholder_sql = "INSERT INTO $table_name_escaped (" .
+			$placeholder_sql = "INSERT INTO $this->table_name (" .
 				implode( ', ', array_keys( $data ) ) .
 				") VALUES ('" .
 				implode( "', '", array_values( $data ) ) .
@@ -696,5 +692,23 @@ class GreenMetrics_Tracker {
 			);
 			return GreenMetrics_Error_Handler::handle_exception( $e, 'tracking_exception' );
 		}
+	}
+
+	/**
+	 * Check if metrics table exists, using a prepared statement and cached result.
+	 *
+	 * @return bool True if table exists, false otherwise.
+	 */
+	private function table_exists(): bool {
+		if ( null === self::$table_exists_cache ) {
+			global $wpdb;
+			self::$table_exists_cache = (bool) $wpdb->get_var(
+				$wpdb->prepare(
+					'SHOW TABLES LIKE %s',
+					$this->table_name
+				)
+			);
+		}
+		return self::$table_exists_cache;
 	}
 }
