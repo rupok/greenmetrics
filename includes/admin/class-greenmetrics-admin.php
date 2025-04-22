@@ -21,12 +21,14 @@ class GreenMetrics_Admin {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_styles' ) );
 		add_action( 'admin_notices', array( $this, 'show_settings_update_notice' ) );
+		add_action( 'admin_init', array( $this, 'handle_refresh_stats' ) );
 	}
 
 	/**
 	 * Display notices for settings updates
 	 */
 	public function show_settings_update_notice() {
+		// Display notice for settings update
 		if ( isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] ) {
 			// Log the current settings after update
 			if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
@@ -35,6 +37,11 @@ class GreenMetrics_Admin {
 			}
 
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved successfully!', 'greenmetrics' ) . '</p></div>';
+		}
+		
+		// Display notice for stats refresh
+		if ( isset( $_GET['stats-refreshed'] ) && $_GET['stats-refreshed'] === 'true' ) {
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Statistics refreshed successfully!', 'greenmetrics' ) . '</p></div>';
 		}
 	}
 
@@ -212,5 +219,24 @@ class GreenMetrics_Admin {
 		}
 
 		include GREENMETRICS_PLUGIN_DIR . 'includes/admin/partials/greenmetrics-admin-display.php';
+	}
+
+	/**
+	 * Handle refresh statistics form submission.
+	 */
+	public function handle_refresh_stats() {
+		// Check if the form was submitted and the refresh_stats action was set
+		if ( isset( $_POST['action'] ) && 'refresh_stats' === $_POST['action'] ) {
+			// Verify nonce
+			if ( isset( $_POST['greenmetrics_refresh_nonce'] ) && wp_verify_nonce( $_POST['greenmetrics_refresh_nonce'], 'greenmetrics_refresh_stats' ) ) {
+				// Trigger manual cache refresh
+				\GreenMetrics\GreenMetrics_Tracker::manual_cache_refresh();
+				
+				// Redirect back to the same page to avoid form resubmission
+				$redirect_url = add_query_arg( 'stats-refreshed', 'true', remove_query_arg( 'settings-updated' ) );
+				wp_redirect( $redirect_url );
+				exit;
+			}
+		}
 	}
 }

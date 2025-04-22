@@ -197,19 +197,28 @@ class GreenMetrics_Tracker {
 	 * Get stats for a page or all pages.
 	 *
 	 * @param int|null $page_id The page ID or null for all pages.
+	 * @param bool     $force_refresh Whether to force refresh the cache.
 	 * @return array The statistics.
 	 */
-	public function get_stats( $page_id = null ) {
+	public function get_stats( $page_id = null, $force_refresh = false ) {
 		global $wpdb;
-
-		// Set flag for detailed debugging
-		$do_detailed_debug = true; // Enable detailed logging for diagnostics
 
 		if ( $page_id ) {
 			greenmetrics_log( 'Getting stats for page ID', $page_id );
-		} else {
-			greenmetrics_log( 'Getting stats for all pages' );
 		}
+
+		// Attempt to get cached stats
+		$cache_key = 'greenmetrics_stats_' . ( $page_id ? $page_id : 'all' );
+		$cached_stats = false;
+		
+		if ( !$force_refresh ) {
+			$cached_stats = get_transient( $cache_key );
+			if ( false !== $cached_stats ) {
+				return $cached_stats;
+			}
+		}
+
+		greenmetrics_log( 'Querying database for stats' );
 
 		// Get settings to use in SQL calculations
 		$settings         = $this->get_settings();
@@ -236,10 +245,10 @@ class GreenMetrics_Tracker {
                 WHEN performance_score BETWEEN 0 AND 100 THEN performance_score 
                 ELSE NULL 
             END) as max_performance_score,
-            /* Get average energy consumption and multiply by view count for correct totals */
-            AVG(energy_consumption) as avg_energy_consumption,
-            /* Get average carbon footprint and multiply by view count for correct totals */
-            AVG(carbon_footprint) as avg_carbon_footprint
+            /* Calculate total energy consumption directly in SQL */
+            SUM(energy_consumption) as total_energy_consumption,
+            /* Calculate total carbon footprint directly in SQL */
+            SUM(carbon_footprint) as total_carbon_footprint
         FROM $table_name_escaped";
 
 		if ( $page_id ) {
@@ -247,86 +256,6 @@ class GreenMetrics_Tracker {
 		}
 
 		$stats = $wpdb->get_row( $sql, ARRAY_A );
-
-		greenmetrics_log( 'Raw stats from query', $stats );
-
-		// Calculate totals from average values * number of views
-		if ( isset( $stats['total_views'] ) && $stats['total_views'] > 0 ) {
-			// Get the actual averages from the database
-			$avg_energy_per_view = isset( $stats['avg_energy_consumption'] ) ? floatval( $stats['avg_energy_consumption'] ) : 0;
-			$avg_carbon_per_view = isset( $stats['avg_carbon_footprint'] ) ? floatval( $stats['avg_carbon_footprint'] ) : 0;
-
-			// Simply multiply by the total number of views - no capping or scaling
-			$stats['total_energy_consumption'] = $avg_energy_per_view * $stats['total_views'];
-			$stats['total_carbon_footprint']   = $avg_carbon_per_view * $stats['total_views'];
-
-			greenmetrics_log(
-				'Calculated total energy and carbon values from real database averages',
-				array(
-					'avg_energy_per_view' => $avg_energy_per_view,
-					'avg_carbon_per_view' => $avg_carbon_per_view,
-					'total_views'         => $stats['total_views'],
-					'total_energy'        => $stats['total_energy_consumption'],
-					'total_carbon'        => $stats['total_carbon_footprint'],
-				)
-			);
-		} else {
-			// No views yet, so set totals to 0
-			$stats['total_energy_consumption'] = 0;
-			$stats['total_carbon_footprint']   = 0;
-		}
-
-		// Get a percentile-based score to avoid extreme outliers affecting the average
-		if ( $do_detailed_debug ) {
-			// Log the raw stats for diagnostics but don't modify the returned value
-			greenmetrics_log(
-				'Performance score diagnostics',
-				array(
-					'average' => isset( $stats['avg_performance_score'] ) ? $stats['avg_performance_score'] : 'N/A',
-					'min'     => isset( $stats['min_performance_score'] ) ? $stats['min_performance_score'] : 'N/A',
-					'max'     => isset( $stats['max_performance_score'] ) ? $stats['max_performance_score'] : 'N/A',
-				)
-			);
-
-			// Optimize median calculation using a single query if possible
-			// Initialize median calculation variables
-			$total_rows      = 0;
-			$median_position = 0;
-			$median_score    = null;
-
-			// Use a more efficient single query to find the count
-			$count_query = "SELECT COUNT(*) FROM $table_name_escaped WHERE performance_score BETWEEN 0 AND 100";
-			if ( $page_id ) {
-				$count_query .= $wpdb->prepare( ' AND page_id = %d', $page_id );
-			}
-			$total_rows = $wpdb->get_var( $count_query );
-
-			if ( $total_rows > 0 ) {
-				$median_position = floor( $total_rows / 2 );
-
-				// Single efficient query to get the median
-				$median_query = $wpdb->prepare(
-					"SELECT performance_score 
-                    FROM $table_name_escaped
-                    WHERE performance_score BETWEEN 0 AND 100
-                    " . ( $page_id ? $wpdb->prepare( 'AND page_id = %d', $page_id ) : '' ) . '
-                    ORDER BY performance_score
-                    LIMIT %d, 1',
-					$median_position
-				);
-
-				$median_score = $wpdb->get_var( $median_query );
-
-				greenmetrics_log(
-					'Median calculation',
-					array(
-						'total_rows'      => $total_rows,
-						'median_position' => $median_position,
-						'median_score'    => $median_score,
-					)
-				);
-			}
-		}
 
 		if ( ! $stats ) {
 			greenmetrics_log( 'No stats found in database', null, 'warning' );
@@ -347,44 +276,20 @@ class GreenMetrics_Tracker {
 		$avg_load_time       = max( 0, floatval( $stats['avg_load_time'] ) );
 		$total_requests      = max( 0, intval( $stats['total_requests'] ) );
 
-		// Get pre-calculated values from SQL
-		$total_energy_consumption = max( 0, floatval( $stats['avg_energy_consumption'] ) * $total_views );
-		$total_carbon_footprint   = max( 0, floatval( $stats['avg_carbon_footprint'] ) * $total_views );
-
 		// Ensure performance score is a valid percentage
 		$avg_performance_score = isset( $stats['avg_performance_score'] ) && null !== $stats['avg_performance_score']
 			? floatval( $stats['avg_performance_score'] )
 			: 100; // Default to 100 if NULL (which can happen if all records were filtered out)
 
 		if ( $avg_performance_score < 0 || $avg_performance_score > 100 ) {
-			greenmetrics_log( 'Invalid performance score from database', $avg_performance_score, 'warning' );
 			// Calculate performance score using load time
 			if ( $avg_load_time > 0 ) {
 				$performance_score = $this->calculate_performance_score( $avg_load_time );
-				greenmetrics_log( 'Recalculated performance score', $performance_score );
 			} else {
 				$performance_score = 100; // Default to 100% when no data
-				greenmetrics_log( 'Using default performance score', $performance_score );
 			}
 		} else {
 			$performance_score = $avg_performance_score;
-			greenmetrics_log( 'Using valid performance score from database', $performance_score );
-		}
-
-		// Check if we should use the median score instead - FOR DIAGNOSTIC ONLY
-		if ( $do_detailed_debug && isset( $median_score ) && null !== $median_score ) {
-			// Only log the difference, don't actually change the reported score
-			if ( abs( $median_score - $performance_score ) > 5 ) {
-				greenmetrics_log(
-					'Note: Large difference between median and average',
-					array(
-						'average'    => $performance_score,
-						'median'     => $median_score,
-						'difference' => abs( $median_score - $performance_score ),
-						'using'      => 'average (original)',  // We're sticking with the average
-					)
-				);
-			}
 		}
 
 		// Ensure the score is within the valid range with proper decimal precision
@@ -396,11 +301,13 @@ class GreenMetrics_Tracker {
 			'avg_load_time'            => $avg_load_time,
 			'total_requests'           => $total_requests,
 			'avg_performance_score'    => $performance_score,
-			'total_energy_consumption' => $total_energy_consumption,
-			'total_carbon_footprint'   => $total_carbon_footprint,
+			'total_energy_consumption' => max( 0, floatval( $stats['total_energy_consumption'] ) ),
+			'total_carbon_footprint'   => max( 0, floatval( $stats['total_carbon_footprint'] ) ),
 		);
 
-		greenmetrics_log( 'Final calculation results', $result );
+		// Cache the results for 24 hours
+		set_transient( $cache_key, $result, DAY_IN_SECONDS );
+		
 		return $result;
 	}
 
@@ -569,15 +476,9 @@ class GreenMetrics_Tracker {
 	private function process_and_save_metrics( $page_id, $metrics ) {
 		global $wpdb;
 
-		try {
-			greenmetrics_log(
-				'process_and_save_metrics: Called with parameters',
-				array(
-					'page_id' => $page_id,
-					'metrics' => $metrics,
-				)
-			);
+		greenmetrics_log( 'Processing metrics for page ID: ' . $page_id );
 
+		try {
 			if ( ! $page_id || ! is_array( $metrics ) ) {
 				greenmetrics_log(
 					'Invalid page ID or metrics data',
@@ -592,24 +493,15 @@ class GreenMetrics_Tracker {
 
 			// Get settings for calculations
 			$settings = GreenMetrics_Settings_Manager::get_instance()->get();
-			greenmetrics_log( 'process_and_save_metrics: Got settings', $settings );
 
 			// Calculate metrics using the Calculator class
 			$data_transfer = isset( $metrics['data_transfer'] ) ? floatval( $metrics['data_transfer'] ) : 0;
-			greenmetrics_log( 'process_and_save_metrics: Using data_transfer', $data_transfer );
-
 			$carbon_footprint = GreenMetrics_Calculator::calculate_carbon_emissions( $data_transfer );
-			greenmetrics_log( 'process_and_save_metrics: Calculated carbon_footprint', $carbon_footprint );
-
 			$energy_consumption = GreenMetrics_Calculator::calculate_energy_consumption( $data_transfer );
-			greenmetrics_log( 'process_and_save_metrics: Calculated energy_consumption', $energy_consumption );
 
 			// Calculate performance score
 			$load_time = isset( $metrics['load_time'] ) ? floatval( $metrics['load_time'] ) : 0;
-			greenmetrics_log( 'process_and_save_metrics: Using load_time', $load_time );
-
 			$performance_score = $this->calculate_performance_score( $load_time );
-			greenmetrics_log( 'process_and_save_metrics: Calculated performance_score', $performance_score );
 
 			// Prepare data for insertion
 			$data = array(
@@ -623,46 +515,21 @@ class GreenMetrics_Tracker {
 				'created_at'         => current_time( 'mysql' ),
 			);
 
-			greenmetrics_log( 'process_and_save_metrics: Data prepared for insertion', $data );
-
-			// Log the calculated metrics
-			greenmetrics_log(
-				'Calculated metrics',
-				array(
-					'data_transfer'      => GreenMetrics_Calculator::format_data_transfer( $data_transfer ),
-					'carbon_footprint'   => GreenMetrics_Calculator::format_carbon_emissions( $carbon_footprint ),
-					'energy_consumption' => GreenMetrics_Calculator::format_energy_consumption( $energy_consumption ),
-					'load_time'          => GreenMetrics_Calculator::format_load_time( $load_time ),
-					'performance_score'  => $performance_score,
-				)
-			);
-
 			// Check if the table exists before attempting to insert
 			if ( ! $this->table_exists() ) {
-				greenmetrics_log( 'process_and_save_metrics: Table does not exist, attempting to create it', $this->table_name );
+				greenmetrics_log( 'Table does not exist, attempting to create it', $this->table_name );
 				// Try to create the table
 				GreenMetrics_DB_Helper::create_stats_table();
 				
 				// Check if table creation was successful
 				if ( ! $this->table_exists() ) {
-					greenmetrics_log( 'process_and_save_metrics: Failed to create table', $this->table_name, 'error' );
+					greenmetrics_log( 'Failed to create table', $this->table_name, 'error' );
 					return GreenMetrics_Error_Handler::create_error( 'table_not_found', 'Database table does not exist and could not be created' );
 				}
-				
-				greenmetrics_log( 'process_and_save_metrics: Table created successfully', $this->table_name );
 			}
-
-			// Log the SQL query that would be executed
-			$placeholder_sql = "INSERT INTO $this->table_name (" .
-				implode( ', ', array_keys( $data ) ) .
-				") VALUES ('" .
-				implode( "', '", array_values( $data ) ) .
-				"')";
-			greenmetrics_log( 'process_and_save_metrics: SQL that would be executed (placeholder)', $placeholder_sql );
 
 			// Insert a new record for each page view instead of replacing/updating existing ones
 			$result = $wpdb->insert( $this->table_name, $data );
-			greenmetrics_log( 'process_and_save_metrics: Insert result', $result );
 
 			if ( false === $result ) {
 				greenmetrics_log(
@@ -676,25 +543,26 @@ class GreenMetrics_Tracker {
 				return GreenMetrics_Error_Handler::create_error( 'database_error', 'Failed to save metrics' );
 			}
 
-			greenmetrics_log(
-				'Metrics saved successfully',
-				array(
-					'page_id'    => $page_id,
-					'metrics_id' => $wpdb->insert_id,
-				)
-			);
+			// Delete the cache for this page and for all pages to ensure fresh data
+			$this->delete_stats_cache($page_id);
+			$this->delete_stats_cache(null);  // Delete the 'all' cache
+			
+			greenmetrics_log( 'Metrics saved successfully for page ID: ' . $page_id );
 			return true;
 		} catch ( \Exception $e ) {
-			greenmetrics_log(
-				'Exception in process_and_save_metrics',
-				array(
-					'message' => $e->getMessage(),
-					'trace'   => $e->getTraceAsString(),
-				),
-				'error'
-			);
+			greenmetrics_log( 'Exception in process_and_save_metrics', array( 'message' => $e->getMessage(), 'trace' => $e->getTraceAsString() ), 'error' );
 			return GreenMetrics_Error_Handler::handle_exception( $e, 'tracking_exception' );
 		}
+	}
+
+	/**
+	 * Delete the stats cache for a page or all pages.
+	 *
+	 * @param int|null $page_id The page ID or null for all pages.
+	 */
+	private function delete_stats_cache( $page_id = null ) {
+		$cache_key = 'greenmetrics_stats_' . ( $page_id ? $page_id : 'all' );
+		delete_transient( $cache_key );
 	}
 
 	/**
@@ -704,5 +572,46 @@ class GreenMetrics_Tracker {
 	 */
 	private function table_exists(): bool {
 		return GreenMetrics_DB_Helper::table_exists( $this->table_name );
+	}
+
+	/**
+	 * Schedule a daily cron job to refresh stats cache.
+	 */
+	public static function schedule_daily_cache_refresh() {
+		if ( ! wp_next_scheduled( 'greenmetrics_daily_cache_refresh' ) ) {
+			wp_schedule_event( time(), 'daily', 'greenmetrics_daily_cache_refresh' );
+			greenmetrics_log( 'Daily cache refresh scheduled' );
+		}
+	}
+
+	/**
+	 * Refresh the stats cache for all pages.
+	 */
+	public static function refresh_stats_cache() {
+		$instance = self::get_instance();
+		
+		// First, delete all caches to ensure they're refreshed
+		$instance->delete_stats_cache(null);
+		
+		// Now force a new database query to refresh the cache
+		$instance->get_stats(null, true);
+		
+		greenmetrics_log( 'Stats cache refreshed' );
+	}
+
+	/**
+	 * Register the cron job callback.
+	 */
+	public static function register_cron_job() {
+		add_action( 'greenmetrics_daily_cache_refresh', array( __CLASS__, 'refresh_stats_cache' ) );
+	}
+
+	/**
+	 * Manually trigger the cache refresh.
+	 */
+	public static function manual_cache_refresh() {
+		greenmetrics_log( 'Manual cache refresh started' );
+		self::refresh_stats_cache();
+		greenmetrics_log( 'Manual cache refresh completed' );
 	}
 }

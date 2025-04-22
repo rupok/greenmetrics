@@ -274,6 +274,20 @@ $settings = get_option(
 					submit_button();
 					?>
 				</form>
+				
+				<!-- Refresh Statistics Button -->
+				<div class="greenmetrics-refresh-stats" style="margin-top: 20px;">
+					<h3><?php esc_html_e( 'Statistics Cache', 'greenmetrics' ); ?></h3>
+					<p class="description"><?php esc_html_e( 'Statistics are automatically cached for better performance. Use this button to refresh the statistics from the database if needed.', 'greenmetrics' ); ?></p>
+					<form method="post">
+						<?php wp_nonce_field( 'greenmetrics_refresh_stats', 'greenmetrics_refresh_nonce' ); ?>
+						<input type="hidden" name="action" value="refresh_stats">
+						<button type="submit" class="button button-secondary">
+							<span class="dashicons dashicons-update" style="vertical-align: middle; margin-top: -3px;"></span>
+							<?php esc_html_e( 'Refresh Statistics', 'greenmetrics' ); ?>
+						</button>
+					</form>
+				</div>
 			</div>
 			
 			<!-- Optimization Suggestions -->
