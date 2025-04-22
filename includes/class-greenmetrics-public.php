@@ -675,43 +675,104 @@ class GreenMetrics_Public {
 			return;
 		}
 		
-		greenmetrics_log( 'Displaying global badge in footer' );
+		greenmetrics_log( 'Displaying global badge in footer with settings' );
 		
-		// Create attributes for the global badge with default values from settings
-		$attributes = array(
-			'position' => $settings_manager->get( 'badge_position', 'bottom-right' ),
-			'theme'    => $settings_manager->get( 'badge_theme', 'light' ),
-			'size'     => $settings_manager->get( 'badge_size', 'medium' ),
-			'global'   => true, // Flag to identify this as the global badge
+		// Get all display settings
+		$settings = $settings_manager->get();
+		$position = $settings_manager->get( 'badge_position', 'bottom-right' );
+		$size = $settings_manager->get( 'badge_size', 'medium' );
+		$badge_text = $settings_manager->get( 'badge_text', 'Eco-Friendly Site' );
+		$background_color = $settings_manager->get( 'badge_background_color', '#4CAF50' );
+		$text_color = $settings_manager->get( 'badge_text_color', '#ffffff' );
+		$icon_color = $settings_manager->get( 'badge_icon_color', '#ffffff' );
+		
+		// Get metrics data for the popover
+		$metrics = $this->get_metrics_data();
+		
+		// Format metrics data
+		$carbon_formatted = GreenMetrics_Calculator::format_carbon_emissions( $metrics['carbon_footprint'] );
+		$energy_formatted = GreenMetrics_Calculator::format_energy_consumption( $metrics['energy_consumption'] );
+		$data_formatted = GreenMetrics_Calculator::format_data_transfer( $metrics['data_transfer'] );
+		$views_formatted = number_format( $metrics['total_views'] );
+		$requests_formatted = number_format( $metrics['requests'] );
+		$score_formatted = number_format( $metrics['performance_score'], 2 ) . '%';
+		
+		// Build classes for the global badge
+		$global_classes = array( 'greenmetrics-global-badge' );
+		if ( $position ) {
+			$global_classes[] = esc_attr( $position );
+		}
+		
+		$badge_classes = array( 'greenmetrics-global-badge-button' );
+		if ( $size ) {
+			$badge_classes[] = esc_attr( $size );
+		}
+		
+		$global_class = implode( ' ', $global_classes );
+		$badge_class = implode( ' ', $badge_classes );
+		
+		// Prepare inline styles for colors
+		$button_style = sprintf(
+			'background-color: %s; color: %s;',
+			esc_attr($background_color),
+			esc_attr($text_color)
 		);
 		
-		// Render the global badge with special class for additional styling
-		echo '<div class="greenmetrics-global-badge">';
-		echo $this->render_badge( $attributes, false ); // Don't check setting again
-		echo '</div>';
+		$icon_style = sprintf('color: %s;', esc_attr($icon_color));
 		
-		// Add CSS for global badge positioning
-		echo '<style>
-			.greenmetrics-global-badge {
-				z-index: 999;
-				position: fixed;
-			}
-			.greenmetrics-global-badge .bottom-right {
-				right: 20px;
-				bottom: 20px;
-			}
-			.greenmetrics-global-badge .bottom-left {
-				left: 20px;
-				bottom: 20px;
-			}
-			.greenmetrics-global-badge .top-right {
-				right: 20px;
-				top: 20px;
-			}
-			.greenmetrics-global-badge .top-left {
-				left: 20px;
-				top: 20px;
-			}
-		</style>';
+		// Output HTML with all dashboard settings applied
+		?>
+		<div class="<?php echo esc_attr( $global_class ); ?>">
+			<div class="greenmetrics-global-badge-wrapper">
+				<div class="<?php echo esc_attr( $badge_class ); ?>" style="<?php echo $button_style; ?>">
+					<svg class="leaf-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="<?php echo $icon_style; ?>">
+						<path d="M17,8C8,10,5.9,16.17,3.82,21.34L5.71,22l1-2.3A4.49,4.49,0,0,0,8,20C19,20,22,3,22,3,21,5,14,5.25,9,6.25S2,11.5,2,13.5a6.23,6.23,0,0,0,1.4,3.3L3,19l1.76,1.37A10.23,10.23,0,0,1,4,17C4,16,7,8,17,8Z"/>
+					</svg>
+					<span><?php echo esc_html($badge_text); ?></span>
+				</div>
+				<div class="greenmetrics-global-badge-content">
+					<h3>Environmental Impact</h3>
+					<div class="greenmetrics-global-badge-metrics">
+						<div class="greenmetrics-global-badge-metric">
+							<div class="greenmetrics-global-badge-metric-label">
+								<span>Carbon Footprint</span>
+							</div>
+							<div class="greenmetrics-global-badge-metric-value"><?php echo esc_html($carbon_formatted); ?></div>
+						</div>
+						<div class="greenmetrics-global-badge-metric">
+							<div class="greenmetrics-global-badge-metric-label">
+								<span>Energy Consumption</span>
+							</div>
+							<div class="greenmetrics-global-badge-metric-value"><?php echo esc_html($energy_formatted); ?></div>
+						</div>
+						<div class="greenmetrics-global-badge-metric">
+							<div class="greenmetrics-global-badge-metric-label">
+								<span>Data Transfer</span>
+							</div>
+							<div class="greenmetrics-global-badge-metric-value"><?php echo esc_html($data_formatted); ?></div>
+						</div>
+						<div class="greenmetrics-global-badge-metric">
+							<div class="greenmetrics-global-badge-metric-label">
+								<span>Page Views</span>
+							</div>
+							<div class="greenmetrics-global-badge-metric-value"><?php echo esc_html($views_formatted); ?></div>
+						</div>
+						<div class="greenmetrics-global-badge-metric">
+							<div class="greenmetrics-global-badge-metric-label">
+								<span>HTTP Requests</span>
+							</div>
+							<div class="greenmetrics-global-badge-metric-value"><?php echo esc_html($requests_formatted); ?></div>
+						</div>
+						<div class="greenmetrics-global-badge-metric">
+							<div class="greenmetrics-global-badge-metric-label">
+								<span>Performance Score</span>
+							</div>
+							<div class="greenmetrics-global-badge-metric-value"><?php echo esc_html($score_formatted); ?></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<?php
 	}
 }

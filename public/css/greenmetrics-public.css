@@ -158,4 +158,190 @@
         grid-template-columns: 1fr;
         gap: 12px;
     }
+}
+
+/* Global Badge Styles */
+.greenmetrics-global-badge {
+    position: fixed;
+    z-index: 1000;
+}
+
+/* Position variations for global badge */
+.greenmetrics-global-badge.bottom-right {
+    bottom: 20px;
+    right: 20px;
+}
+
+.greenmetrics-global-badge.bottom-left {
+    bottom: 20px;
+    left: 20px;
+}
+
+.greenmetrics-global-badge.top-right {
+    top: 20px;
+    right: 20px;
+}
+
+.greenmetrics-global-badge.top-left {
+    top: 20px;
+    left: 20px;
+}
+
+/* Global badge wrapper - copy of shortcode styles with prefixed class names */
+.greenmetrics-global-badge-wrapper {
+    position: relative;
+    display: inline-block;
+    z-index: 1000;
+}
+
+.greenmetrics-global-badge-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+.greenmetrics-global-badge-button .leaf-icon {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+    flex-shrink: 0;
+}
+
+.greenmetrics-global-badge-button span {
+    white-space: nowrap;
+}
+
+.greenmetrics-global-badge-content {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    min-width: 300px;
+    padding: 24px;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background-color: #ffffff;
+    color: #333333;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+    z-index: 1000;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+.greenmetrics-global-badge-wrapper:hover .greenmetrics-global-badge-content {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.greenmetrics-global-badge-content h3 {
+    margin: 0 0 16px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333333;
+}
+
+.greenmetrics-global-badge-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.greenmetrics-global-badge-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.greenmetrics-global-badge-metric-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.greenmetrics-global-badge-metric-value {
+    font-size: 14px;
+    font-weight: 500;
+    padding: 4px 8px;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+/* Size variations for global badge */
+.greenmetrics-global-badge-button.small {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+.greenmetrics-global-badge-button.small .leaf-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.greenmetrics-global-badge-button.large {
+    padding: 12px 24px;
+    font-size: 16px;
+}
+
+.greenmetrics-global-badge-button.large .leaf-icon {
+    width: 24px;
+    height: 24px;
+}
+
+/* Global badge popover positioning */
+.greenmetrics-global-badge.bottom-right .greenmetrics-global-badge-content,
+.greenmetrics-global-badge.bottom-left .greenmetrics-global-badge-content {
+    bottom: calc(100% + 8px);
+    top: auto;
+}
+
+.greenmetrics-global-badge.top-right .greenmetrics-global-badge-content,
+.greenmetrics-global-badge.top-left .greenmetrics-global-badge-content {
+    top: calc(100% + 8px);
+    bottom: auto;
+}
+
+.greenmetrics-global-badge.bottom-right .greenmetrics-global-badge-content,
+.greenmetrics-global-badge.top-right .greenmetrics-global-badge-content {
+    right: 0;
+    left: auto;
+}
+
+.greenmetrics-global-badge.bottom-left .greenmetrics-global-badge-content,
+.greenmetrics-global-badge.top-left .greenmetrics-global-badge-content {
+    left: 0;
+    right: auto;
+}
+
+/* Responsive design for global badge */
+@media screen and (max-width: 600px) {
+    .greenmetrics-global-badge-button {
+        font-size: 10px;
+        padding: 6px 10px;
+    }
+    
+    .greenmetrics-global-badge-button .leaf-icon {
+        width: 12px;
+        height: 12px;
+    }
+
+    .greenmetrics-global-badge-content {
+        min-width: 200px;
+        padding: 16px;
+    }
+
+    .greenmetrics-global-badge-metrics {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
 } 
