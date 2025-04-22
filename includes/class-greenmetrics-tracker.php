@@ -351,7 +351,7 @@ class GreenMetrics_Tracker {
 		$total_carbon_footprint   = max( 0, floatval( $stats['avg_carbon_footprint'] ) * $total_views );
 
 		// Ensure performance score is a valid percentage
-		$avg_performance_score = isset( $stats['avg_performance_score'] ) && $stats['avg_performance_score'] !== null
+		$avg_performance_score = isset( $stats['avg_performance_score'] ) && null !== $stats['avg_performance_score']
 			? floatval( $stats['avg_performance_score'] )
 			: 100; // Default to 100 if NULL (which can happen if all records were filtered out)
 
@@ -371,7 +371,7 @@ class GreenMetrics_Tracker {
 		}
 
 		// Check if we should use the median score instead - FOR DIAGNOSTIC ONLY
-		if ( $do_detailed_debug && isset( $median_score ) && $median_score !== null ) {
+		if ( $do_detailed_debug && isset( $median_score ) && null !== $median_score ) {
 			// Only log the difference, don't actually change the reported score
 			if ( abs( $median_score - $performance_score ) > 5 ) {
 				greenmetrics_log(
@@ -665,7 +665,7 @@ class GreenMetrics_Tracker {
 			$result = $wpdb->insert( $this->table_name, $data );
 			greenmetrics_log( 'process_and_save_metrics: Insert result', $result );
 
-			if ( $result === false ) {
+			if ( false === $result ) {
 				greenmetrics_log(
 					'Failed to save metrics',
 					array(

@@ -71,7 +71,7 @@ class GreenMetrics_Settings_Manager {
 	 */
 	public function get( $key = null, $default = null ) {
 		// Get settings from cache or database
-		if ( $this->settings_cache === null ) {
+		if ( null === $this->settings_cache ) {
 			$this->settings_cache = get_option( $this->option_name, array() );
 		}
 
@@ -79,8 +79,8 @@ class GreenMetrics_Settings_Manager {
 		$settings = array_merge( $this->defaults, $this->settings_cache );
 
 		// Return single setting if key is provided
-		if ( $key !== null ) {
-			return isset( $settings[ $key ] ) ? $settings[ $key ] : ( $default !== null ? $default : null );
+		if ( null !== $key ) {
+			return isset( $settings[ $key ] ) ? $settings[ $key ] : ( null !== $default ? $default : null );
 		}
 
 		// Return all settings

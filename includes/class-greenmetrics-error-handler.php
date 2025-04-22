@@ -51,7 +51,7 @@ class GreenMetrics_Error_Handler {
 			return true;
 		}
 
-		if ( is_array( $value ) && isset( $value['success'] ) && $value['success'] === false ) {
+		if ( is_array( $value ) && isset( $value['success'] ) && false === $value['success'] ) {
 			return true;
 		}
 
