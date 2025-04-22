@@ -26,9 +26,12 @@ $settings = get_option(
 ?>
 
 <div class="wrap">
-	<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
-
 	<div class="greenmetrics-admin-container">
+		<div class="greenmetrics-admin-header">
+			<img src="<?php echo esc_url( GREENMETRICS_PLUGIN_URL . 'includes/admin/img/greenmetrics-icon.png' ); ?>" alt="<?php esc_attr_e( 'GreenMetrics Icon', 'greenmetrics' ); ?>" />
+			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
+		</div>
+
 		<div class="greenmetrics-admin-content">
 			<div class="greenmetrics-admin-stats">
 				<h2><?php esc_html_e( 'Website Environmental Metrics', 'greenmetrics' ); ?></h2>

@@ -62,7 +62,7 @@ class GreenMetrics_Admin {
 		// Add submenu that points to the main page (Dashboard)
 		add_submenu_page(
 			'greenmetrics',
-			__( 'Dashboard', 'greenmetrics' ),
+			__( 'GreenMetrics Dashboard', 'greenmetrics' ),
 			__( 'Dashboard', 'greenmetrics' ),
 			'manage_options',
 			'greenmetrics',

@@ -27,9 +27,12 @@ $settings = get_option(
 ?>
 
 <div class="wrap">
-	<h1><?php esc_html_e( 'GreenMetrics - Display Settings', 'greenmetrics' ); ?></h1>
-
 	<div class="greenmetrics-admin-container">
+		<div class="greenmetrics-admin-header">
+			<img src="<?php echo esc_url( GREENMETRICS_PLUGIN_URL . 'includes/admin/img/greenmetrics-icon.png' ); ?>" alt="<?php esc_attr_e( 'GreenMetrics Icon', 'greenmetrics' ); ?>" />
+			<h1><?php esc_html_e( 'GreenMetrics - Display Settings', 'greenmetrics' ); ?></h1>
+		</div>
+
 		<div class="greenmetrics-admin-content">
 			<div class="greenmetrics-admin-settings">
 				<form method="post" action="options.php">
