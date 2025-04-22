@@ -20,26 +20,8 @@ class GreenMetrics_Activator {
 
 		greenmetrics_log( 'Activator - Creating tables' );
 
-		$charset_collate = $wpdb->get_charset_collate();
-
-		$sql = "CREATE TABLE IF NOT EXISTS $table_name (
-            id bigint(20) NOT NULL AUTO_INCREMENT,
-            page_id bigint(20) NOT NULL,
-            data_transfer bigint(20) NOT NULL,
-            load_time float NOT NULL,
-            requests int(11) NOT NULL,
-            carbon_footprint float NOT NULL,
-            energy_consumption float NOT NULL,
-            performance_score float NOT NULL,
-            created_at datetime DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY  (id),
-            KEY page_id (page_id)
-        ) $charset_collate;";
-
-		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-		$result = dbDelta( $sql );
-
-		greenmetrics_log( 'Activator - Table creation result', $result );
+		// Create the stats table using the DB Helper
+		$result = GreenMetrics_DB_Helper::create_stats_table();
 
 		// Check if table exists using DB helper
 		$table_exists = GreenMetrics_DB_Helper::table_exists( $table_name );

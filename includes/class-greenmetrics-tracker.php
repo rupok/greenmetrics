@@ -11,6 +11,7 @@ namespace GreenMetrics;
 // Include required classes
 require_once __DIR__ . '/class-greenmetrics-calculator.php';
 require_once __DIR__ . '/class-greenmetrics-settings-manager.php';
+require_once __DIR__ . '/class-greenmetrics-db-helper.php';
 
 /**
  * The tracker functionality of the plugin.
@@ -29,13 +30,6 @@ class GreenMetrics_Tracker {
 	 * @var string
 	 */
 	private $table_name;
-
-	/**
-	 * Cached table existence check.
-	 *
-	 * @var bool|null
-	 */
-	private static $table_exists_cache = null;
 
 	/**
 	 * Initialize the class and set its properties.
@@ -645,8 +639,17 @@ class GreenMetrics_Tracker {
 
 			// Check if the table exists before attempting to insert
 			if ( ! $this->table_exists() ) {
-				greenmetrics_log( 'process_and_save_metrics: Table does not exist', $this->table_name, 'error' );
-				return GreenMetrics_Error_Handler::create_error( 'table_not_found', 'Database table does not exist' );
+				greenmetrics_log( 'process_and_save_metrics: Table does not exist, attempting to create it', $this->table_name );
+				// Try to create the table
+				GreenMetrics_DB_Helper::create_stats_table();
+				
+				// Check if table creation was successful
+				if ( ! $this->table_exists() ) {
+					greenmetrics_log( 'process_and_save_metrics: Failed to create table', $this->table_name, 'error' );
+					return GreenMetrics_Error_Handler::create_error( 'table_not_found', 'Database table does not exist and could not be created' );
+				}
+				
+				greenmetrics_log( 'process_and_save_metrics: Table created successfully', $this->table_name );
 			}
 
 			// Log the SQL query that would be executed
@@ -700,15 +703,6 @@ class GreenMetrics_Tracker {
 	 * @return bool True if table exists, false otherwise.
 	 */
 	private function table_exists(): bool {
-		if ( null === self::$table_exists_cache ) {
-			global $wpdb;
-			self::$table_exists_cache = (bool) $wpdb->get_var(
-				$wpdb->prepare(
-					'SHOW TABLES LIKE %s',
-					$this->table_name
-				)
-			);
-		}
-		return self::$table_exists_cache;
+		return GreenMetrics_DB_Helper::table_exists( $this->table_name );
 	}
 }
