@@ -31,7 +31,7 @@ class GreenMetrics_Rest_API {
 			array(
 				'methods'             => 'GET',
 				'callback'            => array( $this, 'get_stats' ),
-				'permission_callback' => '__return_true',
+				'permission_callback' => array( $this, 'check_admin_permission' ),
 				'args'                => array(
 					'page_id' => array(
 						'required'          => false,
@@ -49,7 +49,7 @@ class GreenMetrics_Rest_API {
 			array(
 				'methods'             => 'POST',
 				'callback'            => array( $this, 'track_page' ),
-				'permission_callback' => '__return_true',
+				'permission_callback' => array( $this, 'check_tracking_permission' ),
 				'args'                => array(
 					'page_id'       => array(
 						'required'          => true,
@@ -80,6 +80,35 @@ class GreenMetrics_Rest_API {
 		);
 
 		greenmetrics_log( 'REST routes registered' );
+	}
+
+	/**
+	 * Permission callback to check if the user can manage options.
+	 *
+	 * @return bool True if the user has 'manage_options' capability.
+	 */
+	public function check_admin_permission(): bool {
+		return current_user_can( 'manage_options' );
+	}
+
+	/**
+	 * Permission callback to verify the nonce for tracking requests.
+	 *
+	 * @param \WP_REST_Request $request The request object.
+	 * @return bool|\WP_Error True if the nonce is valid, WP_Error otherwise.
+	 */
+	public function check_tracking_permission( $request ) {
+		$nonce = $request->get_header( 'x_wp_nonce' );
+		if ( ! $nonce ) {
+			return new \WP_Error( 'rest_forbidden', esc_html__( 'Nonce is required.', 'greenmetrics' ), array( 'status' => 401 ) );
+		}
+
+		$result = wp_verify_nonce( $nonce, 'wp_rest' );
+		if ( ! $result ) {
+			return new \WP_Error( 'rest_forbidden', esc_html__( 'Nonce is invalid.', 'greenmetrics' ), array( 'status' => 403 ) );
+		}
+
+		return true;
 	}
 
 	/**
