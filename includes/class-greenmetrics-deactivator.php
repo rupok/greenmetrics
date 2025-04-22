@@ -51,27 +51,13 @@ class GreenMetrics_Deactivator {
 	 * Clear all scheduled events created by this plugin.
 	 */
 	private static function clear_scheduled_events() {
-		// Get timestamp of next scheduled event if it exists
-		$timestamp = wp_next_scheduled( 'greenmetrics_daily_cleanup' );
+		// Only clear the events that are actually scheduled by the plugin
+		$event_hook = 'greenmetrics_daily_cache_refresh';
+		$timestamp = wp_next_scheduled( $event_hook );
 
-		// If a timestamp was found, unschedule the event
 		if ( $timestamp ) {
-			wp_unschedule_event( $timestamp, 'greenmetrics_daily_cleanup' );
-			greenmetrics_log( 'Unscheduled daily cleanup event', null, 'info' );
-		}
-
-		// Do the same for any other scheduled events
-		$scheduled_events = array(
-			'greenmetrics_weekly_report',
-			'greenmetrics_monthly_aggregate',
-		);
-
-		foreach ( $scheduled_events as $event ) {
-			$timestamp = wp_next_scheduled( $event );
-			if ( $timestamp ) {
-				wp_unschedule_event( $timestamp, $event );
-				greenmetrics_log( "Unscheduled event: $event", null, 'info' );
-			}
+			wp_unschedule_event( $timestamp, $event_hook );
+			greenmetrics_log( "Unscheduled event: $event_hook", null, 'info' );
 		}
 	}
 

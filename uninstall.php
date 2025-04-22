@@ -41,9 +41,6 @@ $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}greenmetrics_stats" );
 
 // Clear any scheduled events
 $events = array(
-	'greenmetrics_daily_cleanup',
-	'greenmetrics_weekly_report',
-	'greenmetrics_monthly_aggregate',
 	'greenmetrics_daily_cache_refresh',
 );
 
