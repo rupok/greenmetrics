@@ -8,6 +8,8 @@
 
 namespace GreenMetrics;
 
+use GreenMetrics\GreenMetrics_DB_Helper;
+
 /**
  * Handles version upgrades for the plugin.
  *
@@ -127,7 +129,7 @@ class GreenMetrics_Upgrader {
 		greenmetrics_log( 'Checking database schema' );
 
 		// Check if table exists
-		$table_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) );
+		$table_exists = GreenMetrics_DB_Helper::table_exists( $table_name );
 
 		if ( ! $table_exists ) {
 			greenmetrics_log( 'Database table missing, creating it', $table_name );
@@ -135,15 +137,8 @@ class GreenMetrics_Upgrader {
 			return;
 		}
 
-		// Check for missing columns - can't use placeholder for table name in DESCRIBE
-		$table_name_escaped = esc_sql( $table_name );
-		$columns            = $wpdb->get_results( "DESCRIBE $table_name_escaped" );
-		$column_names       = array_map(
-			function ( $col ) {
-				return $col->Field;
-			},
-			$columns
-		);
+		// Get table columns from DB helper
+		$column_names = GreenMetrics_DB_Helper::get_table_columns( $table_name );
 
 		// Define the required columns
 		$required_columns = array(

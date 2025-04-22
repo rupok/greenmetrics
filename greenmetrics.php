@@ -93,6 +93,9 @@ spl_autoload_register(
 	}
 );
 
+// Require DB helper.
+require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-db-helper.php';
+
 // Initialize the plugin
 function greenmetrics_init() {
 	// Load text domain
