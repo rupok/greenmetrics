@@ -22,6 +22,8 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 
 // Delete plugin options
 delete_option( 'greenmetrics_settings' );
+delete_option( 'greenmetrics_table_columns' );
+delete_option( 'greenmetrics_version' );
 
 // Delete any transients
 global $wpdb;
@@ -35,15 +37,14 @@ $wpdb->query(
 
 // Drop the stats table
 $table_name = $wpdb->prefix . 'greenmetrics_stats';
-$wpdb->query(
-	$wpdb->prepare( 'DROP TABLE IF EXISTS %s', $table_name )
-);
+$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}greenmetrics_stats" );
 
 // Clear any scheduled events
 $events = array(
 	'greenmetrics_daily_cleanup',
 	'greenmetrics_weekly_report',
 	'greenmetrics_monthly_aggregate',
+	'greenmetrics_daily_cache_refresh',
 );
 
 foreach ( $events as $event ) {
