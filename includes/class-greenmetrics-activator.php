@@ -9,18 +9,18 @@
 namespace GreenMetrics;
 
 class GreenMetrics_Activator {
-    /**
-     * Create necessary database tables and set default options.
-     */
-    public static function activate() {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'greenmetrics_stats';
-        
-        greenmetrics_log('Activator - Creating tables');
-        
-        $charset_collate = $wpdb->get_charset_collate();
+	/**
+	 * Create necessary database tables and set default options.
+	 */
+	public static function activate() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'greenmetrics_stats';
 
-        $sql = "CREATE TABLE IF NOT EXISTS $table_name (
+		greenmetrics_log( 'Activator - Creating tables' );
+
+		$charset_collate = $wpdb->get_charset_collate();
+
+		$sql = "CREATE TABLE IF NOT EXISTS $table_name (
             id bigint(20) NOT NULL AUTO_INCREMENT,
             page_id bigint(20) NOT NULL,
             data_transfer bigint(20) NOT NULL,
@@ -34,47 +34,52 @@ class GreenMetrics_Activator {
             KEY page_id (page_id)
         ) $charset_collate;";
 
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        $result = dbDelta($sql);
-        
-        greenmetrics_log('Activator - Table creation result', $result);
-        
-        // Check if table exists
-        $table_exists = $wpdb->get_var(
-            $wpdb->prepare("SHOW TABLES LIKE %s", $table_name)
-        );
-        greenmetrics_log('Activator - Table exists', $table_exists ? 'Yes' : 'No');
-        
-        if ($table_exists) {
-            // Get table columns - can't use %s placeholder for table name in DESCRIBE
-            $table_name_escaped = esc_sql($table_name);
-            $columns = $wpdb->get_results("DESCRIBE $table_name_escaped");
-            $column_names = array_map(function($col) { return $col->Field; }, $columns);
-            greenmetrics_log('Activator - Table columns', implode(', ', $column_names));
-        }
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		$result = dbDelta( $sql );
 
-        // Set default options
-        $default_options = array(
-            'carbon_intensity' => 0.475,         // Default carbon intensity factor (kg CO2/kWh)
-            'energy_per_byte' => 0.000000000072, // Default energy per byte (kWh/byte)
-            'tracking_enabled' => 1,             // Tracking enabled by default
-            'enable_badge' => 0,                 // Badge disabled by default
-            'badge_position' => 'bottom-right',  // Default badge position
-            'badge_theme' => 'light',            // Default badge theme
-            'badge_size' => 'medium'             // Default badge size
-        );
-        
-        $existing_options = get_option('greenmetrics_settings', array());
-        
-        if (empty($existing_options)) {
-            greenmetrics_log('Activator - Setting default options');
-            add_option('greenmetrics_settings', $default_options);
-        } else {
-            greenmetrics_log('Activator - Options already exist, not overwriting');
-        }
-        
-        // Store the current version in the database
-        update_option('greenmetrics_version', GREENMETRICS_VERSION);
-        greenmetrics_log('Activator - Version recorded', GREENMETRICS_VERSION);
-    }
-} 
+		greenmetrics_log( 'Activator - Table creation result', $result );
+
+		// Check if table exists
+		$table_exists = $wpdb->get_var(
+			$wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name )
+		);
+		greenmetrics_log( 'Activator - Table exists', $table_exists ? 'Yes' : 'No' );
+
+		if ( $table_exists ) {
+			// Get table columns - can't use %s placeholder for table name in DESCRIBE
+			$table_name_escaped = esc_sql( $table_name );
+			$columns            = $wpdb->get_results( "DESCRIBE $table_name_escaped" );
+			$column_names       = array_map(
+				function ( $col ) {
+					return $col->Field;
+				},
+				$columns
+			);
+			greenmetrics_log( 'Activator - Table columns', implode( ', ', $column_names ) );
+		}
+
+		// Set default options
+		$default_options = array(
+			'carbon_intensity' => 0.475,         // Default carbon intensity factor (kg CO2/kWh)
+			'energy_per_byte'  => 0.000000000072, // Default energy per byte (kWh/byte)
+			'tracking_enabled' => 1,             // Tracking enabled by default
+			'enable_badge'     => 0,                 // Badge disabled by default
+			'badge_position'   => 'bottom-right',  // Default badge position
+			'badge_theme'      => 'light',            // Default badge theme
+			'badge_size'       => 'medium',             // Default badge size
+		);
+
+		$existing_options = get_option( 'greenmetrics_settings', array() );
+
+		if ( empty( $existing_options ) ) {
+			greenmetrics_log( 'Activator - Setting default options' );
+			add_option( 'greenmetrics_settings', $default_options );
+		} else {
+			greenmetrics_log( 'Activator - Options already exist, not overwriting' );
+		}
+
+		// Store the current version in the database
+		update_option( 'greenmetrics_version', GREENMETRICS_VERSION );
+		greenmetrics_log( 'Activator - Version recorded', GREENMETRICS_VERSION );
+	}
+}

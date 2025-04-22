@@ -64,3 +64,10 @@ debug.log
 todo.md
 prd.md 
 Issue Tracker.md
+
+# 
+.editorconfig
+composer.phar
+format-code.sh
+lint-fix.sh
+phpcs.xml

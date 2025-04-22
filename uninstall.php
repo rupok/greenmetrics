@@ -16,42 +16,42 @@
  */
 
 // If uninstall not called from WordPress, then exit.
-if (!defined('WP_UNINSTALL_PLUGIN')) {
-    exit;
+if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
+	exit;
 }
 
 // Delete plugin options
-delete_option('greenmetrics_settings');
+delete_option( 'greenmetrics_settings' );
 
 // Delete any transients
 global $wpdb;
 $wpdb->query(
-    $wpdb->prepare(
-        "DELETE FROM $wpdb->options WHERE option_name LIKE %s OR option_name LIKE %s",
-        '%_transient_greenmetrics_%',
-        '%_transient_timeout_greenmetrics_%'
-    )
+	$wpdb->prepare(
+		"DELETE FROM $wpdb->options WHERE option_name LIKE %s OR option_name LIKE %s",
+		'%_transient_greenmetrics_%',
+		'%_transient_timeout_greenmetrics_%'
+	)
 );
 
 // Drop the stats table
 $table_name = $wpdb->prefix . 'greenmetrics_stats';
 $wpdb->query(
-    $wpdb->prepare("DROP TABLE IF EXISTS %s", $table_name)
+	$wpdb->prepare( 'DROP TABLE IF EXISTS %s', $table_name )
 );
 
 // Clear any scheduled events
-$events = [
-    'greenmetrics_daily_cleanup',
-    'greenmetrics_weekly_report',
-    'greenmetrics_monthly_aggregate'
-];
+$events = array(
+	'greenmetrics_daily_cleanup',
+	'greenmetrics_weekly_report',
+	'greenmetrics_monthly_aggregate',
+);
 
-foreach ($events as $event) {
-    wp_clear_scheduled_hook($event);
+foreach ( $events as $event ) {
+	wp_clear_scheduled_hook( $event );
 }
 
 // Remove cache
 wp_cache_flush();
 
 // Flush rewrite rules
-flush_rewrite_rules(); 
+flush_rewrite_rules();
