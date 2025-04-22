@@ -136,20 +136,8 @@ class GreenMetrics_Public {
 		$settings_manager = GreenMetrics_Settings_Manager::get_instance();
 		greenmetrics_log( 'Badge shortcode - Settings retrieved', $settings_manager->get() );
 
-		// Check if badge is enabled
-		if ( ! $settings_manager->is_enabled( 'enable_badge' ) ) {
-			greenmetrics_log(
-				'Badge display disabled by settings',
-				array(
-					'enable_badge' => $settings_manager->get( 'enable_badge' ),
-					'value_type'   => gettype( $settings_manager->get( 'enable_badge' ) ),
-				)
-			);
-			return '';
-		}
-
-		// Parse attributes
-		$atts = shortcode_atts(
+		// Parse shortcode attributes
+		$parsed_atts = shortcode_atts(
 			array(
 				'position' => $settings_manager->get( 'badge_position', 'bottom-right' ),
 				'theme'    => $settings_manager->get( 'badge_theme', 'light' ),
@@ -158,107 +146,9 @@ class GreenMetrics_Public {
 			$atts
 		);
 
-		// Get metrics data
-		$metrics = $this->get_metrics_data();
-
-		greenmetrics_log( 'Shortcode metrics', $metrics );
-
-		// Build classes
-		$wrapper_classes = array( 'greenmetrics-badge-wrapper' );
-		$badge_classes   = array( 'greenmetrics-badge' );
-
-		if ( $atts['position'] ) {
-			$wrapper_classes[] = esc_attr( $atts['position'] );
-		}
-		if ( $atts['theme'] ) {
-			$badge_classes[] = esc_attr( $atts['theme'] );
-		}
-		if ( $atts['size'] ) {
-			$badge_classes[] = esc_attr( $atts['size'] );
-		}
-
-		$wrapper_class = implode( ' ', $wrapper_classes );
-		$badge_class   = implode( ' ', $badge_classes );
-
-		// Format values with proper precision using formatting methods from the Calculator class
-		$carbon_formatted   = GreenMetrics_Calculator::format_carbon_emissions( $metrics['carbon_footprint'] );
-		$energy_formatted   = GreenMetrics_Calculator::format_energy_consumption( $metrics['energy_consumption'] );
-		$data_formatted     = GreenMetrics_Calculator::format_data_transfer( $metrics['data_transfer'] );
-		$views_formatted    = number_format( $metrics['total_views'] );
-		$requests_formatted = number_format( $metrics['requests'] );
-		$score_formatted    = number_format( $metrics['performance_score'], 2 ) . '%';
-
-		greenmetrics_log(
-			'Formatted metrics values',
-			array(
-				'carbon' => $carbon_formatted,
-				'energy' => $energy_formatted,
-				'data'   => $data_formatted,
-			)
-		);
-
-		// Build HTML
-		$html = sprintf(
-			'<div class="%1$s">
-                <div class="%2$s">
-                    <svg class="leaf-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path d="M17,8C8,10,5.9,16.17,3.82,21.34L5.71,22l1-2.3A4.49,4.49,0,0,0,8,20C19,20,22,3,22,3,21,5,14,5.25,9,6.25S2,11.5,2,13.5a6.23,6.23,0,0,0,1.4,3.3L3,19l1.76,1.37A10.23,10.23,0,0,1,4,17C4,16,7,8,17,8Z"/>
-                    </svg>
-                    <span>Eco-Friendly Site</span>
-                </div>
-                <div class="greenmetrics-content">
-                    <h3>Environmental Impact</h3>
-                    <div class="greenmetrics-metrics">
-                        <div class="greenmetrics-metric">
-                            <div class="greenmetrics-metric-label">
-                                <span>Carbon Footprint</span>
-                            </div>
-                            <div class="greenmetrics-metric-value">%3$s</div>
-                        </div>
-                        <div class="greenmetrics-metric">
-                            <div class="greenmetrics-metric-label">
-                                <span>Energy Consumption</span>
-                            </div>
-                            <div class="greenmetrics-metric-value">%4$s</div>
-                        </div>
-                        <div class="greenmetrics-metric">
-                            <div class="greenmetrics-metric-label">
-                                <span>Data Transfer</span>
-                            </div>
-                            <div class="greenmetrics-metric-value">%5$s</div>
-                        </div>
-                        <div class="greenmetrics-metric">
-                            <div class="greenmetrics-metric-label">
-                                <span>Page Views</span>
-                            </div>
-                            <div class="greenmetrics-metric-value">%6$s</div>
-                        </div>
-                        <div class="greenmetrics-metric">
-                            <div class="greenmetrics-metric-label">
-                                <span>HTTP Requests</span>
-                            </div>
-                            <div class="greenmetrics-metric-value">%7$s</div>
-                        </div>
-                        <div class="greenmetrics-metric">
-                            <div class="greenmetrics-metric-label">
-                                <span>Performance Score</span>
-                            </div>
-                            <div class="greenmetrics-metric-value">%8$s</div>
-                        </div>
-                    </div>
-                </div>
-            </div>',
-			esc_attr( $wrapper_class ),
-			esc_attr( $badge_class ),
-			esc_html( $carbon_formatted ),
-			esc_html( $energy_formatted ),
-			esc_html( $data_formatted ),
-			esc_html( $views_formatted ),
-			esc_html( $requests_formatted ),
-			esc_html( $score_formatted )
-		);
-
-		return $html;
+		// Render badge without respect to global setting (always show for shortcodes)
+		// This matches the block behavior - if someone manually adds the shortcode, they want to see it
+		return $this->render_badge( $parsed_atts, false );
 	}
 
 	/**
@@ -358,105 +248,230 @@ class GreenMetrics_Public {
 			}
 		}
 		$iconSvg = $selectedIcon ? $selectedIcon['svg'] : $icons[0]['svg'];
+		$attributes['icon_svg'] = $iconSvg;
+
+		// Render badge without respect to global setting (always show for blocks)
+		return $this->render_badge( $attributes, false );
+	}
+
+	/**
+	 * Core badge rendering function used by both shortcode and block
+	 *
+	 * @param array   $attributes Badge attributes
+	 * @param boolean $respect_global_setting Whether to respect the global enable_badge setting
+	 * @return string HTML output
+	 */
+	private function render_badge( $attributes, $respect_global_setting = true ) {
+		$settings_manager = GreenMetrics_Settings_Manager::get_instance();
+		
+		// Check if badge is enabled if we need to respect global setting
+		if ( $respect_global_setting && ! $settings_manager->is_enabled( 'enable_badge' ) ) {
+			greenmetrics_log(
+				'Badge display disabled by settings',
+				array(
+					'enable_badge' => $settings_manager->get( 'enable_badge' ),
+					'value_type'   => gettype( $settings_manager->get( 'enable_badge' ) ),
+				)
+			);
+			return '';
+		}
 
 		// Get metrics data
 		$metrics = $this->get_metrics_data();
+		
+		// For the shortcode rendering
+		if ( isset( $attributes['position'] ) && isset( $attributes['theme'] ) && isset( $attributes['size'] ) && !isset( $attributes['text'] ) ) {
+			// Build classes
+			$wrapper_classes = array( 'greenmetrics-badge-wrapper' );
+			$badge_classes   = array( 'greenmetrics-badge' );
 
-		// Build HTML
-		$html = sprintf(
-			'<div class="wp-block-greenmetrics-badge">
-                <div class="wp-block-greenmetrics-badge-wrapper %1$s">
-                    <div class="wp-block-greenmetrics-badge %2$s %3$s" style="background-color:%4$s;color:%5$s;padding:%6$spx;border-radius:%7$spx;font-size:%8$spx;text-align:%9$s;cursor:%10$s">
-                        %11$s
-                        %12$s
-                    </div>
-                    %13$s
-                </div>
-            </div>',
-			esc_attr( $attributes['position'] ),
-			esc_attr( $attributes['theme'] ),
-			esc_attr( $attributes['size'] ),
-			esc_attr( $attributes['backgroundColor'] ),
-			esc_attr( $attributes['textColor'] ),
-			esc_attr( $attributes['padding'] ),
-			esc_attr( $attributes['borderRadius'] ),
-			esc_attr( $attributes['textFontSize'] ),
-			esc_attr( $attributes['alignment'] ),
-			$attributes['showContent'] ? 'pointer' : 'default',
-			$attributes['showIcon'] ? sprintf(
-				'<div class="wp-block-greenmetrics-badge__icon" style="width:%1$spx;height:%1$spx;color:%2$s">%3$s</div>',
-				esc_attr( $attributes['iconSize'] ),
-				esc_attr( $attributes['iconColor'] ),
-				$iconSvg
-			) : '',
-			$attributes['showText'] ? sprintf(
-				'<span style="color:%1$s;font-size:%2$spx">%3$s</span>',
+			if ( $attributes['position'] ) {
+				$wrapper_classes[] = esc_attr( $attributes['position'] );
+			}
+			if ( $attributes['theme'] ) {
+				$badge_classes[] = esc_attr( $attributes['theme'] );
+			}
+			if ( $attributes['size'] ) {
+				$badge_classes[] = esc_attr( $attributes['size'] );
+			}
+
+			$wrapper_class = implode( ' ', $wrapper_classes );
+			$badge_class   = implode( ' ', $badge_classes );
+
+			// Format values with proper precision using formatting methods from the Calculator class
+			$carbon_formatted   = GreenMetrics_Calculator::format_carbon_emissions( $metrics['carbon_footprint'] );
+			$energy_formatted   = GreenMetrics_Calculator::format_energy_consumption( $metrics['energy_consumption'] );
+			$data_formatted     = GreenMetrics_Calculator::format_data_transfer( $metrics['data_transfer'] );
+			$views_formatted    = number_format( $metrics['total_views'] );
+			$requests_formatted = number_format( $metrics['requests'] );
+			$score_formatted    = number_format( $metrics['performance_score'], 2 ) . '%';
+
+			greenmetrics_log(
+				'Formatted metrics values',
+				array(
+					'carbon' => $carbon_formatted,
+					'energy' => $energy_formatted,
+					'data'   => $data_formatted,
+				)
+			);
+
+			// Build HTML for shortcode rendering
+			$html = sprintf(
+				'<div class="%1$s">
+					<div class="%2$s">
+						<svg class="leaf-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+							<path d="M17,8C8,10,5.9,16.17,3.82,21.34L5.71,22l1-2.3A4.49,4.49,0,0,0,8,20C19,20,22,3,22,3,21,5,14,5.25,9,6.25S2,11.5,2,13.5a6.23,6.23,0,0,0,1.4,3.3L3,19l1.76,1.37A10.23,10.23,0,0,1,4,17C4,16,7,8,17,8Z"/>
+						</svg>
+						<span>Eco-Friendly Site</span>
+					</div>
+					<div class="greenmetrics-content">
+						<h3>Environmental Impact</h3>
+						<div class="greenmetrics-metrics">
+							<div class="greenmetrics-metric">
+								<div class="greenmetrics-metric-label">
+									<span>Carbon Footprint</span>
+								</div>
+								<div class="greenmetrics-metric-value">%3$s</div>
+							</div>
+							<div class="greenmetrics-metric">
+								<div class="greenmetrics-metric-label">
+									<span>Energy Consumption</span>
+								</div>
+								<div class="greenmetrics-metric-value">%4$s</div>
+							</div>
+							<div class="greenmetrics-metric">
+								<div class="greenmetrics-metric-label">
+									<span>Data Transfer</span>
+								</div>
+								<div class="greenmetrics-metric-value">%5$s</div>
+							</div>
+							<div class="greenmetrics-metric">
+								<div class="greenmetrics-metric-label">
+									<span>Page Views</span>
+								</div>
+								<div class="greenmetrics-metric-value">%6$s</div>
+							</div>
+							<div class="greenmetrics-metric">
+								<div class="greenmetrics-metric-label">
+									<span>HTTP Requests</span>
+								</div>
+								<div class="greenmetrics-metric-value">%7$s</div>
+							</div>
+							<div class="greenmetrics-metric">
+								<div class="greenmetrics-metric-label">
+									<span>Performance Score</span>
+								</div>
+								<div class="greenmetrics-metric-value">%8$s</div>
+							</div>
+						</div>
+					</div>
+				</div>',
+				esc_attr( $wrapper_class ),
+				esc_attr( $badge_class ),
+				esc_html( $carbon_formatted ),
+				esc_html( $energy_formatted ),
+				esc_html( $data_formatted ),
+				esc_html( $views_formatted ),
+				esc_html( $requests_formatted ),
+				esc_html( $score_formatted )
+			);
+		} else {
+			// This is for block rendering
+			$html = sprintf(
+				'<div class="wp-block-greenmetrics-badge">
+					<div class="wp-block-greenmetrics-badge-wrapper %1$s">
+						<div class="wp-block-greenmetrics-badge %2$s %3$s" style="background-color:%4$s;color:%5$s;padding:%6$spx;border-radius:%7$spx;font-size:%8$spx;text-align:%9$s;cursor:%10$s">
+							%11$s
+							%12$s
+						</div>
+						%13$s
+					</div>
+				</div>',
+				esc_attr( $attributes['position'] ),
+				esc_attr( $attributes['theme'] ),
+				esc_attr( $attributes['size'] ),
+				esc_attr( $attributes['backgroundColor'] ),
 				esc_attr( $attributes['textColor'] ),
+				esc_attr( $attributes['padding'] ),
+				esc_attr( $attributes['borderRadius'] ),
 				esc_attr( $attributes['textFontSize'] ),
-				esc_html( $attributes['text'] )
-			) : '',
-			$attributes['showContent'] ? sprintf(
-				'<div class="wp-block-greenmetrics-content" style="background-color:%1$s;color:%2$s;transition:all %3$sms ease-in-out">
-                    <h3>%4$s</h3>
-                    <div class="wp-block-greenmetrics-metrics">%5$s</div>
-                    %6$s
-                </div>',
-				esc_attr( $attributes['contentBackgroundColor'] ),
-				esc_attr( $attributes['contentTextColor'] ),
-				esc_attr( $attributes['animationDuration'] ),
-				esc_html( $attributes['contentTitle'] ),
-				implode(
-					'',
-					array_map(
-						function ( $metric ) use ( $metrics ) {
-							$label = '';
-							$value = '';
-							switch ( $metric ) {
-								case 'carbon_footprint':
-									$label = 'Carbon Footprint';
-									$value = GreenMetrics_Calculator::format_carbon_emissions( $metrics['carbon_footprint'] );
-									break;
-								case 'energy_consumption':
-									$label = 'Energy Consumption';
-									$value = GreenMetrics_Calculator::format_energy_consumption( $metrics['energy_consumption'] );
-									break;
-								case 'data_transfer':
-									$label = 'Data Transfer';
-									$value = GreenMetrics_Calculator::format_data_transfer( $metrics['data_transfer'] );
-									break;
-								case 'views':
-									$label = 'Page Views';
-									$value = number_format( $metrics['total_views'] );
-									break;
-								case 'http_requests':
-									$label = 'HTTP Requests';
-									$value = number_format( $metrics['requests'] );
-									break;
-								case 'performance_score':
-									$label = 'Performance Score';
-									$value = number_format( $metrics['performance_score'], 2 ) . '%';
-									break;
-							}
-							return sprintf(
-								'<div class="wp-block-greenmetrics-metric">
-                            <div class="metric-label">
-                                <span>%1$s</span>
-                                <span class="metric-value">%2$s</span>
-                            </div>
-                            </div>',
-								esc_html( $label ),
-								esc_html( $value )
-							);
-						},
-						$attributes['selectedMetrics']
-					)
-				),
-				$attributes['customContent'] ? sprintf(
-					'<div class="wp-block-greenmetrics-custom-content">%s</div>',
-					wp_kses_post( $attributes['customContent'] )
+				esc_attr( $attributes['alignment'] ),
+				$attributes['showContent'] ? 'pointer' : 'default',
+				$attributes['showIcon'] ? sprintf(
+					'<div class="wp-block-greenmetrics-badge__icon" style="width:%1$spx;height:%1$spx;color:%2$s">%3$s</div>',
+					esc_attr( $attributes['iconSize'] ),
+					esc_attr( $attributes['iconColor'] ),
+					$attributes['icon_svg']
+				) : '',
+				$attributes['showText'] ? sprintf(
+					'<span style="color:%1$s;font-size:%2$spx">%3$s</span>',
+					esc_attr( $attributes['textColor'] ),
+					esc_attr( $attributes['textFontSize'] ),
+					esc_html( $attributes['text'] )
+				) : '',
+				$attributes['showContent'] ? sprintf(
+					'<div class="wp-block-greenmetrics-content" style="background-color:%1$s;color:%2$s;transition:all %3$sms ease-in-out">
+						<h3>%4$s</h3>
+						<div class="wp-block-greenmetrics-metrics">%5$s</div>
+						%6$s
+					</div>',
+					esc_attr( $attributes['contentBackgroundColor'] ),
+					esc_attr( $attributes['contentTextColor'] ),
+					esc_attr( $attributes['animationDuration'] ),
+					esc_html( $attributes['contentTitle'] ),
+					implode(
+						'',
+						array_map(
+							function ( $metric ) use ( $metrics ) {
+								$label = '';
+								$value = '';
+								switch ( $metric ) {
+									case 'carbon_footprint':
+										$label = 'Carbon Footprint';
+										$value = GreenMetrics_Calculator::format_carbon_emissions( $metrics['carbon_footprint'] );
+										break;
+									case 'energy_consumption':
+										$label = 'Energy Consumption';
+										$value = GreenMetrics_Calculator::format_energy_consumption( $metrics['energy_consumption'] );
+										break;
+									case 'data_transfer':
+										$label = 'Data Transfer';
+										$value = GreenMetrics_Calculator::format_data_transfer( $metrics['data_transfer'] );
+										break;
+									case 'views':
+										$label = 'Page Views';
+										$value = number_format( $metrics['total_views'] );
+										break;
+									case 'http_requests':
+										$label = 'HTTP Requests';
+										$value = number_format( $metrics['requests'] );
+										break;
+									case 'performance_score':
+										$label = 'Performance Score';
+										$value = number_format( $metrics['performance_score'], 2 ) . '%';
+										break;
+								}
+								return sprintf(
+									'<div class="wp-block-greenmetrics-metric">
+								<div class="metric-label">
+									<span>%1$s</span>
+									<span class="metric-value">%2$s</span>
+								</div>
+								</div>',
+									esc_html( $label ),
+									esc_html( $value )
+								);
+							},
+							$attributes['selectedMetrics']
+						)
+					),
+					$attributes['customContent'] ? sprintf(
+						'<div class="wp-block-greenmetrics-custom-content">%s</div>',
+						wp_kses_post( $attributes['customContent'] )
+					) : ''
 				) : ''
-			) : ''
-		);
+			);
+		}
 
 		return $html;
 	}
