@@ -54,7 +54,7 @@ $settings = get_option(
 				
 				<div class="preview-container" style="display: flex; position: relative; width: 100%; border: 1px solid #ddd; background-color: #f9f9f9; overflow: hidden; margin-top: 15px;">
 					<!-- Badge Preview -->
-					<div class="badge-preview-panel" style="flex: 1; position: relative; height: 300px; border-right: 1px dashed #ddd;">
+					<div class="badge-preview-panel" style="flex: 1; position: relative; min-height: 300px; border-right: 1px dashed #ddd;">
 						<h3 style="padding: 10px; text-align: center;"><?php esc_html_e( 'Badge', 'greenmetrics' ); ?></h3>
 						<div id="badge-preview-container" style="position: absolute;" class="<?php echo esc_attr( $settings['badge_position'] ); ?>">
 							<div class="greenmetrics-badge <?php echo esc_attr( $settings['badge_size'] ); ?>" style="
@@ -99,24 +99,26 @@ $settings = get_option(
 					</div>
 					
 					<!-- Popover Content Preview -->
-					<div class="content-preview-panel" style="flex: 1; padding: 15px;">
-						<h3 style="text-align: center;"><?php esc_html_e( 'Popover Content', 'greenmetrics' ); ?></h3>
-						
+					<div class="popover-preview-panel" style="flex: 1; position: relative; min-height: 300px; border-left: 1px dashed #ddd;">
+						<h3 style="padding: 10px; text-align: center;"><?php esc_html_e( 'Popover', 'greenmetrics' ); ?></h3>
 						<div id="popover-preview-container" style="
-							margin: 20px;
-							border-radius: 6px;
-							box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-							overflow: hidden;
+							position: relative;
+							margin: 20px auto;
+							min-width: 300px;
+							max-width: 300px;
+							padding: 24px;
+							border-radius: 4px;
+							box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 							background-color: <?php echo isset($settings['popover_bg_color']) ? esc_attr($settings['popover_bg_color']) : '#ffffff'; ?>;
 							color: <?php echo isset($settings['popover_text_color']) ? esc_attr($settings['popover_text_color']) : '#333333'; ?>;
-							font-family: <?php echo isset($settings['popover_content_font']) ? esc_attr($settings['popover_content_font']) : 'inherit'; ?>;
+							font-family: <?php echo isset($settings['popover_content_font']) ? esc_attr($settings['popover_content_font']) : '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif'; ?>;
 							font-size: <?php echo isset($settings['popover_content_font_size']) ? esc_attr($settings['popover_content_font_size']) : '16px'; ?>;
 						">
-							<h3 style="padding: 15px 15px 5px 15px; margin-top: 0; margin-bottom: 10px;">
+							<h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: <?php echo isset($settings['popover_text_color']) ? esc_attr($settings['popover_text_color']) : '#333333'; ?>;">
 								<?php echo isset($settings['popover_title']) ? esc_html($settings['popover_title']) : 'Environmental Impact'; ?>
 							</h3>
 							
-							<div style="padding: 0 15px 15px;">
+							<div class="greenmetrics-global-badge-metrics" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
 								<?php
 								// Sample metrics data for preview
 								$metrics_data = array(
@@ -145,31 +147,28 @@ $settings = get_option(
 								);
 								
 								// Show selected metrics
-								echo '<div class="greenmetrics-global-badge-metrics">';
 								foreach ($popover_metrics as $metric_key) {
 									if (isset($metrics_data[$metric_key])) {
 										?>
-										<div class="greenmetrics-global-badge-metric" style="display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 8px;">
-											<div class="greenmetrics-global-badge-metric-label">
+										<div class="greenmetrics-global-badge-metric" style="display: flex; flex-direction: column; gap: 4px;">
+											<div class="greenmetrics-global-badge-metric-label" style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; opacity: 0.8;">
 												<span><?php echo esc_html($metrics_data[$metric_key]['label']); ?></span>
 											</div>
-											<div class="greenmetrics-global-badge-metric-value" style="<?php echo $popover_metrics_style; ?>">
+											<div class="greenmetrics-global-badge-metric-value" style="<?php echo $popover_metrics_style; ?> padding: 4px 8px; background-color: rgba(0, 0, 0, 0.05); border-radius: 4px; font-weight: 500;">
 												<?php echo esc_html($metrics_data[$metric_key]['value']); ?>
 											</div>
 										</div>
 										<?php
 									}
 								}
-								echo '</div>';
-								
-								// Show custom content at the bottom
-								if (isset($settings['popover_custom_content']) && !empty($settings['popover_custom_content'])) : 
 								?>
-									<div class="greenmetrics-global-badge-custom-content" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1);">
-										<?php echo wp_kses_post($settings['popover_custom_content']); ?>
-									</div>
-								<?php endif; ?>
 							</div>
+							
+							<?php if (isset($settings['popover_custom_content']) && !empty($settings['popover_custom_content'])) : ?>
+								<div class="greenmetrics-global-badge-custom-content" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1);">
+									<?php echo wp_kses_post($settings['popover_custom_content']); ?>
+								</div>
+							<?php endif; ?>
 						</div>
 					</div>
 				</div>
