@@ -34,11 +34,12 @@
     position: absolute;
     top: calc(100% + 8px);
     left: 0;
-    min-width: 300px;
+    min-width: 320px;
     padding: 24px;
-    border-radius: 4px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     background-color: #ffffff;
+    backdrop-filter: blur(10px);
     color: #333333;
     opacity: 0;
     visibility: hidden;
@@ -55,10 +56,12 @@
 }
 
 .greenmetrics-content h3 {
-    margin: 0 0 16px;
-    font-size: 16px;
+    margin: 0 0 20px;
+    font-size: 18px;
     font-weight: 600;
-    color: #333333;
+    color: #333;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding-bottom: 12px;
 }
 
 .greenmetrics-metrics {
@@ -68,25 +71,37 @@
     margin-bottom: 24px;
 }
 
-.greenmetrics-metric {
+.greenmetrics-metric,
+.greenmetrics-global-badge-metric {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.greenmetrics-metric-label {
-    display: flex;
+    flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    font-size: 12px;
-    opacity: 0.8;
+    gap: 16px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    transition: all 0.2s ease;
 }
 
-.greenmetrics-metric-value {
-    font-size: 14px;
+.greenmetrics-metric:hover,
+.greenmetrics-global-badge-metric:hover {
+    background-color: #f3f4f6;
+}
+
+.greenmetrics-metric-label,
+.greenmetrics-global-badge-metric-label {
+    color: #666;
+    font-size: 15px;
+}
+
+.greenmetrics-metric-value,
+.greenmetrics-global-badge-metric-value {
     font-weight: 500;
+    color: #4CAF50;
+    font-size: 15px;
+    background: rgba(0, 0, 0, 0.04);
     padding: 4px 8px;
-    background-color: rgba(0, 0, 0, 0.05);
     border-radius: 4px;
 }
 
@@ -227,11 +242,12 @@
     position: absolute;
     top: calc(100% + 8px);
     left: 0;
-    min-width: 300px;
+    min-width: 320px;
     padding: 24px;
-    border-radius: 4px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     background-color: #ffffff;
+    backdrop-filter: blur(10px);
     color: #333333;
     opacity: 0;
     visibility: hidden;
@@ -248,10 +264,12 @@
 }
 
 .greenmetrics-global-badge-content h3 {
-    margin: 0 0 16px;
-    font-size: 16px;
+    margin: 0 0 20px;
+    font-size: 18px;
     font-weight: 600;
-    color: #333333;
+    color: #333;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding-bottom: 12px;
 }
 
 .greenmetrics-global-badge-metrics {
@@ -263,23 +281,31 @@
 
 .greenmetrics-global-badge-metric {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.greenmetrics-global-badge-metric:hover {
+    background-color: #f3f4f6;
 }
 
 .greenmetrics-global-badge-metric-label {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 12px;
-    opacity: 0.8;
+    color: #666;
+    font-size: 15px;
 }
 
 .greenmetrics-global-badge-metric-value {
-    font-size: 14px;
     font-weight: 500;
+    color: #4CAF50;
+    font-size: 15px;
+    background: rgba(0, 0, 0, 0.04);
     padding: 4px 8px;
-    background-color: rgba(0, 0, 0, 0.05);
     border-radius: 4px;
 }
 
@@ -349,5 +375,32 @@
     .greenmetrics-global-badge-metrics {
         grid-template-columns: 1fr;
         gap: 12px;
+    }
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 480px) {
+    .greenmetrics-metrics,
+    .greenmetrics-global-badge-metrics {
+        grid-template-columns: 1fr;
+    }
+
+    .greenmetrics-content,
+    .greenmetrics-global-badge-content {
+        min-width: 280px;
+        padding: 16px;
+    }
+
+    .greenmetrics-metric,
+    .greenmetrics-global-badge-metric {
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .greenmetrics-metric-label,
+    .greenmetrics-global-badge-metric-label,
+    .greenmetrics-metric-value,
+    .greenmetrics-global-badge-metric-value {
+        font-size: 14px;
     }
 } 

@@ -139,32 +139,15 @@ $settings = get_option(
 									'performance_score'
 								);
 								
-								$popover_metrics_style = sprintf(
-									'color: %s; font-family: %s; font-size: %s;',
-									isset($settings['popover_metrics_color']) ? esc_attr($settings['popover_metrics_color']) : '#4CAF50',
-									isset($settings['popover_metrics_font']) ? esc_attr($settings['popover_metrics_font']) : 'inherit',
-									isset($settings['popover_metrics_font_size']) ? esc_attr($settings['popover_metrics_font_size']) : '14px'
-								);
-								
-								$popover_metrics_bg_style = sprintf(
-									'background-color: %s;',
-									isset($settings['popover_metrics_bg_color']) ? esc_attr($settings['popover_metrics_bg_color']) : 'rgba(0, 0, 0, 0.05)'
-								);
-								
-								$popover_metrics_label_style = sprintf(
-									'font-size: %s; opacity: 0.8;',
-									isset($settings['popover_metrics_label_font_size']) ? esc_attr($settings['popover_metrics_label_font_size']) : '12px'
-								);
-								
 								// Show selected metrics
 								foreach ($popover_metrics as $metric_key) {
 									if (isset($metrics_data[$metric_key])) {
 										?>
-										<div class="greenmetrics-global-badge-metric" data-metric="<?php echo esc_attr($metric_key); ?>" style="display: flex; flex-direction: column; gap: 4px;">
-											<div class="greenmetrics-global-badge-metric-label" style="display: flex; justify-content: space-between; align-items: center; <?php echo $popover_metrics_label_style; ?>">
+										<div class="greenmetrics-global-badge-metric" data-metric="<?php echo esc_attr($metric_key); ?>" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 16px; padding: 10px; background-color: #f8f9fa; border-radius: 12px; transition: all 0.2s ease;">
+											<div class="greenmetrics-global-badge-metric-label" style="color: #666; font-size: 15px;">
 												<span><?php echo esc_html($metrics_data[$metric_key]['label']); ?></span>
 											</div>
-											<div class="greenmetrics-global-badge-metric-value" style="<?php echo $popover_metrics_style . ' ' . $popover_metrics_bg_style; ?> padding: 4px 8px; border-radius: 4px; font-weight: 500;">
+											<div class="greenmetrics-global-badge-metric-value" style="font-weight: 500; color: #4CAF50; font-size: 15px; background: rgba(0, 0, 0, 0.04); padding: 4px 8px; border-radius: 4px;">
 												<?php echo esc_html($metrics_data[$metric_key]['value']); ?>
 											</div>
 										</div>
