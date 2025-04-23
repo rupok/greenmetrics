@@ -114,6 +114,8 @@ class GreenMetrics_Admin {
 					'popover_metrics_font'   => 'inherit',
 					'popover_metrics_font_size' => '14px',
 					'popover_metrics_label_font_size' => '12px',
+					'popover_metrics_list_bg_color' => 'transparent',
+					'popover_metrics_list_hover_bg_color' => '#f3f4f6',
 				),
 			)
 		);
@@ -295,6 +297,24 @@ class GreenMetrics_Admin {
 			'greenmetrics_display',
 			'greenmetrics_popover_content',
 			array( 'label_for' => 'popover_metrics_color' )
+		);
+
+		add_settings_field(
+			'popover_metrics_list_bg_color',
+			__( 'Metrics List Background Color', 'greenmetrics' ),
+			array( $this, 'render_popover_metrics_list_bg_color_field' ),
+			'greenmetrics_display',
+			'greenmetrics_popover_content',
+			array( 'label_for' => 'popover_metrics_list_bg_color' )
+		);
+
+		add_settings_field(
+			'popover_metrics_list_hover_bg_color',
+			__( 'Metrics List Hover Background Color', 'greenmetrics' ),
+			array( $this, 'render_popover_metrics_list_hover_bg_color_field' ),
+			'greenmetrics_display',
+			'greenmetrics_popover_content',
+			array( 'label_for' => 'popover_metrics_list_hover_bg_color' )
 		);
 
 		add_settings_field(
@@ -504,6 +524,14 @@ class GreenMetrics_Admin {
 
 		if ( isset( $input['popover_metrics_color'] ) ) {
 			$sanitized['popover_metrics_color'] = sanitize_hex_color( $input['popover_metrics_color'] );
+		}
+
+		if ( isset( $input['popover_metrics_list_bg_color'] ) ) {
+			$sanitized['popover_metrics_list_bg_color'] = sanitize_hex_color( $input['popover_metrics_list_bg_color'] );
+		}
+
+		if ( isset( $input['popover_metrics_list_hover_bg_color'] ) ) {
+			$sanitized['popover_metrics_list_hover_bg_color'] = sanitize_hex_color( $input['popover_metrics_list_hover_bg_color'] );
 		}
 
 		if ( isset( $input['popover_metrics_bg_color'] ) ) {
@@ -900,6 +928,30 @@ class GreenMetrics_Admin {
 		?>
 		<input type="text" id="popover_metrics_color" name="greenmetrics_settings[popover_metrics_color]" value="<?php echo esc_attr( $value ); ?>" class="greenmetrics-color-picker" data-alpha="true">
 		<p class="description"><?php esc_html_e( 'Text color of the metrics in the popover.', 'greenmetrics' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Render popover metrics list background color field.
+	 */
+	public function render_popover_metrics_list_bg_color_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['popover_metrics_list_bg_color'] ) ? $options['popover_metrics_list_bg_color'] : 'transparent';
+		?>
+		<input type="text" id="popover_metrics_list_bg_color" name="greenmetrics_settings[popover_metrics_list_bg_color]" value="<?php echo esc_attr( $value ); ?>" class="greenmetrics-color-picker" data-alpha="true">
+		<p class="description"><?php esc_html_e( 'Background color of the metric list items in the popover.', 'greenmetrics' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Render popover metrics list hover background color field.
+	 */
+	public function render_popover_metrics_list_hover_bg_color_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['popover_metrics_list_hover_bg_color'] ) ? $options['popover_metrics_list_hover_bg_color'] : '#f3f4f6';
+		?>
+		<input type="text" id="popover_metrics_list_hover_bg_color" name="greenmetrics_settings[popover_metrics_list_hover_bg_color]" value="<?php echo esc_attr( $value ); ?>" class="greenmetrics-color-picker" data-alpha="true">
+		<p class="description"><?php esc_html_e( 'Background color of the metric list items when hovered in the popover.', 'greenmetrics' ); ?></p>
 		<?php
 	}
 

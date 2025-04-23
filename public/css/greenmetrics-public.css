@@ -291,9 +291,7 @@
     transition: all 0.2s ease;
 }
 
-.greenmetrics-global-badge-metric:hover {
-    background-color: #f3f4f6;
-}
+/* Hover styles now added dynamically in PHP */
 
 .greenmetrics-global-badge-metric-label {
     color: #666;

@@ -35,7 +35,9 @@
       'popover_bg_color': '#ffffff',
       'popover_text_color': '#333333',
       'popover_metrics_color': '#4CAF50',
-      'popover_metrics_bg_color': 'rgba(0, 0, 0, 0.05)'
+      'popover_metrics_bg_color': 'rgba(0, 0, 0, 0.05)',
+      'popover_metrics_list_bg_color': '#f8f9fa',
+      'popover_metrics_list_hover_bg_color': '#f3f4f6'
     };
     
     // Initialize color pickers with alpha support
@@ -61,6 +63,21 @@
       });
     });
     
+    // Special handler for the hover background color to ensure immediate preview updates
+    $('#popover_metrics_list_hover_bg_color').wpColorPicker({
+      change: function(event, ui) {
+        // Get the color from the UI
+        const color = ui.color.toString();
+        
+        // Directly update the hover style
+        const styleId = 'greenmetrics-preview-hover-style';
+        if ($('#' + styleId).length === 0) {
+          $('head').append('<style id="' + styleId + '"></style>');
+        }
+        $('#' + styleId).html('#popover-preview-container .greenmetrics-global-badge-metric:hover { background-color: ' + color + ' !important; }');
+      }
+    });
+    
     // Replace all "Clear" buttons with "Set to Default" buttons
     setTimeout(function() {
       $('.wp-picker-clear').each(function() {
@@ -71,7 +88,8 @@
     // Update badge and popover preview when settings change
     $('#enable_badge, #badge_position, #badge_size, #badge_text, #badge_background_color, #badge_text_color, #badge_icon_color, ' +
       '#popover_title, #popover_custom_content, #popover_bg_color, #popover_text_color, #popover_metrics_color, #popover_metrics_bg_color, ' +
-      '#popover_content_font, #popover_content_font_size, #popover_metrics_font, #popover_metrics_font_size')
+      '#popover_content_font, #popover_content_font_size, #popover_metrics_font, #popover_metrics_font_size, #popover_metrics_list_bg_color, ' +
+      '#popover_metrics_list_hover_bg_color')
     .on('change input', function() {
       updateBadgePreview();
     });
@@ -113,10 +131,13 @@
       const popoverTextColor = $('#popover_text_color').val();
       const popoverMetricsColor = $('#popover_metrics_color').val();
       const popoverMetricsBgColor = $('#popover_metrics_bg_color').val();
+      const popoverMetricsListBgColor = $('#popover_metrics_list_bg_color').val();
+      const popoverMetricsListHoverBgColor = $('#popover_metrics_list_hover_bg_color').val();
       const popoverContentFont = $('#popover_content_font').val();
       const popoverContentFontSize = $('#popover_content_font_size').val();
       const popoverMetricsFont = $('#popover_metrics_font').val();
       const popoverMetricsFontSize = $('#popover_metrics_font_size').val();
+      const popoverMetricsLabelFontSize = $('#popover_metrics_label_font_size').val();
       const popoverCustomContent = $('#popover_custom_content').val();
       
       // Get selected metrics
@@ -150,6 +171,23 @@
         'font-size': popoverMetricsFontSize,
         'background-color': popoverMetricsBgColor
       });
+      
+      // Update metric labels styling
+      $('#popover-preview-container .greenmetrics-global-badge-metric-label').css({
+        'font-size': popoverMetricsLabelFontSize
+      });
+      
+      // Update metric list item styling
+      $('#popover-preview-container .greenmetrics-global-badge-metric').css({
+        'background-color': popoverMetricsListBgColor
+      });
+      
+      // Add style for hover effect in preview
+      const styleId = 'greenmetrics-preview-hover-style';
+      if ($('#' + styleId).length === 0) {
+        $('head').append('<style id="' + styleId + '"></style>');
+      }
+      $('#' + styleId).html('#popover-preview-container .greenmetrics-global-badge-metric:hover { background-color: ' + popoverMetricsListHoverBgColor + ' !important; }');
       
       // Show/hide metrics based on selection
       $('#popover-preview-container .greenmetrics-global-badge-metric').each(function() {
@@ -465,10 +503,13 @@
       const popoverTextColor = $('#popover_text_color').val();
       const popoverMetricsColor = $('#popover_metrics_color').val();
       const popoverMetricsBgColor = $('#popover_metrics_bg_color').val();
+      const popoverMetricsListBgColor = $('#popover_metrics_list_bg_color').val();
+      const popoverMetricsListHoverBgColor = $('#popover_metrics_list_hover_bg_color').val();
       const popoverContentFont = $('#popover_content_font').val();
       const popoverContentFontSize = $('#popover_content_font_size').val();
       const popoverMetricsFont = $('#popover_metrics_font').val();
       const popoverMetricsFontSize = $('#popover_metrics_font_size').val();
+      const popoverMetricsLabelFontSize = $('#popover_metrics_label_font_size').val();
       const popoverCustomContent = $('#popover_custom_content').val();
       
       // Get selected metrics
@@ -502,6 +543,23 @@
         'font-size': popoverMetricsFontSize,
         'background-color': popoverMetricsBgColor
       });
+      
+      // Update metric labels styling
+      $('#popover-preview-container .greenmetrics-global-badge-metric-label').css({
+        'font-size': popoverMetricsLabelFontSize
+      });
+      
+      // Update metric list item styling
+      $('#popover-preview-container .greenmetrics-global-badge-metric').css({
+        'background-color': popoverMetricsListBgColor
+      });
+      
+      // Add style for hover effect in preview
+      const styleId = 'greenmetrics-preview-hover-style';
+      if ($('#' + styleId).length === 0) {
+        $('head').append('<style id="' + styleId + '"></style>');
+      }
+      $('#' + styleId).html('#popover-preview-container .greenmetrics-global-badge-metric:hover { background-color: ' + popoverMetricsListHoverBgColor + ' !important; }');
       
       // Show/hide metrics based on selection
       $('#popover-preview-container .greenmetrics-global-badge-metric').each(function() {
