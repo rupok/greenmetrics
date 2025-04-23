@@ -49,49 +49,127 @@ $settings = get_option(
 			
 			<!-- Live Preview Section -->
 			<div class="greenmetrics-admin-card badge-preview" style="margin-top: 30px;">
-				<h2><?php esc_html_e( 'Badge Preview', 'greenmetrics' ); ?></h2>
-				<p class="description"><?php esc_html_e( 'This is how your badge will appear on your website:', 'greenmetrics' ); ?></p>
+				<h2><?php esc_html_e( 'Preview', 'greenmetrics' ); ?></h2>
+				<p class="description"><?php esc_html_e( 'Preview how your badge and popover content will appear on your website:', 'greenmetrics' ); ?></p>
 				
-				<div class="preview-container" style="position: relative; width: 100%; height: 300px; border: 1px solid #ddd; background-color: #f9f9f9; overflow: hidden; margin-top: 15px;">
-					<!-- Badge preview will be displayed here via JavaScript -->
-					<div id="badge-preview-container" style="position: absolute;" class="<?php echo esc_attr( $settings['badge_position'] ); ?>">
-						<div class="greenmetrics-badge <?php echo esc_attr( $settings['badge_size'] ); ?>" style="
-							background-color: <?php echo esc_attr( $settings['badge_background_color'] ); ?>;
-							color: <?php echo esc_attr( $settings['badge_text_color'] ); ?>;
+				<div class="preview-container" style="display: flex; position: relative; width: 100%; border: 1px solid #ddd; background-color: #f9f9f9; overflow: hidden; margin-top: 15px;">
+					<!-- Badge Preview -->
+					<div class="badge-preview-panel" style="flex: 1; position: relative; height: 300px; border-right: 1px dashed #ddd;">
+						<h3 style="padding: 10px; text-align: center;"><?php esc_html_e( 'Badge', 'greenmetrics' ); ?></h3>
+						<div id="badge-preview-container" style="position: absolute;" class="<?php echo esc_attr( $settings['badge_position'] ); ?>">
+							<div class="greenmetrics-badge <?php echo esc_attr( $settings['badge_size'] ); ?>" style="
+								background-color: <?php echo esc_attr( $settings['badge_background_color'] ); ?>;
+								color: <?php echo esc_attr( $settings['badge_text_color'] ); ?>;
+							">
+								<?php if ( isset( $settings['display_icon'] ) && $settings['display_icon'] ) : ?>
+									<div class="icon-container" style="color: <?php echo esc_attr( $settings['badge_icon_color'] ); ?>;">
+										<?php
+										$icon_type = isset( $settings['badge_icon_type'] ) ? $settings['badge_icon_type'] : 'leaf';
+										$custom_icon = isset( $settings['badge_custom_icon'] ) ? $settings['badge_custom_icon'] : '';
+										
+										switch ( $icon_type ) {
+											case 'leaf':
+												echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17 1.02.3 1.58.3C17 20 22 13.46 22 6c0-.55-.06-1.09-.14-1.62C20.18 4.15 18.66 4 17 4V2c1.67 0 3.35.12 5 .34V4c-1.67-.22-3.33-.34-5-.34v2zM2 6c0 7.46 5 14 14.5 14 .56 0 1.1-.13 1.58-.3l.95 2.3 1.89-.66C18.1 16.17 16 10 7 8c0 0-5 0-5 0z"/></svg>';
+												break;
+											case 'tree':
+												echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c4.97 0 9-4.03 9-9-4.97 0-9 4.03-9 9zm2.44-9.43h-.44v2h.44c2.32 0 2.49 3.23 2.49 3.23 1.52-1.84 2.63-4.43 1.73-7C17.56 8.37 15.5 7 15.5 7S14.8 9.1 13 9.42v.36c1.32-.18 2.44.11 2.44.11s-1.22 1.91-1 3.68z"/><path d="M12.28 10h-.56v2h.56c2.33 0 2.51 3.45 2.51 3.45 1.55-1.89 2.67-4.63 1.77-7.24-.51-1.46-2.18-3.02-2.18-3.02s-.99 2.18-2.1 2.48V8c1.34-.2 2.55.07 2.55.07s-1.34 1.66-1.14 3.44z"/><path d="M12.63 5.33c-.28.47-1.04 1.68-2 1.87V8.8c1.35-.19 2.97.31 2.97.31S12.69 10.3 12.22 12h.33v-2h-.16c.06-.32.2-.65.44-.97.19.38.39.75.58 1.09l.66-.42c-.18-.28-.33-.57-.46-.85 0 0 .99.17 2.22.5-.27-.5-2.47-4.02-3.2-4.02z"/><path d="M10.45 12h-.43v8.17c.34-.14.66-.34.95-.55L10.45 12zm1.66 4.62c.1.21.19.42.27.63-.16-.19-.31-.39-.46-.57.07-.02.12-.04.19-.06zm1.14-4.62L12.1 17.1c.45-.11.88-.29 1.29-.51l-.14-4.59z"/><path d="M9.3 14.13l-.24 7.14c.24.11.48.19.73.26l-.42-7.8c-.02.14-.05.27-.07.4zm3.33 1.7c-.04-.04-.08-.09-.12-.14.03.05.06.09.09.13.01 0 .02.01.03.01zm-.83-3.83l-.32 7.46c.29.05.58.08.88.08.12 0 .24-.01.36-.02L12 12l-.2 0z"/></svg>';
+												break;
+											case 'globe':
+												echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>';
+												break;
+											case 'recycle':
+												echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M5.77 7.15L7.2 4.78l1.03-1.71c.39-.65 1.33-.65 1.72 0l1.48 2.46-1.23 2.06-1 1.34-2.43-4.78zm15.95 5.82l-1.6-2.66-3.46 2L18.87 16H21v2l-3.87-7.03zM16 21h1.5l2.05-3.42-3.46-2-1.09 1.84L16 21zm-3.24-3.71l-1.03-1.71-1.43 2.43-2.43 4.78 1.6 2.66 3.46-2 1.03-1.71-1.43-2.45zM13.42 8.5l-1.48-2.46c-.39-.65-1.33-.65-1.72 0L9.22 7.15l-1 1.34 2.43 4.78 1.6-2.66 1.17-2.11zM10.5 14.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>';
+												break;
+											case 'custom':
+												if ( $custom_icon ) {
+													echo '<img src="' . esc_url( $custom_icon ) . '" alt="Custom Icon" style="width: 20px; height: 20px;">';
+												} else {
+													echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';
+												}
+												break;
+											default:
+												echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17 1.02.3 1.58.3C17 20 22 13.46 22 6c0-.55-.06-1.09-.14-1.62C20.18 4.15 18.66 4 17 4V2c1.67 0 3.35.12 5 .34V4c-1.67-.22-3.33-.34-5-.34v2zM2 6c0 7.46 5 14 14.5 14 .56 0 1.1-.13 1.58-.3l.95 2.3 1.89-.66C18.1 16.17 16 10 7 8c0 0-5 0-5 0z"/></svg>';
+										}
+										?>
+									</div>
+								<?php endif; ?>
+								<span><?php echo esc_html( $settings['badge_text'] ); ?></span>
+							</div>
+						</div>
+					</div>
+					
+					<!-- Popover Content Preview -->
+					<div class="content-preview-panel" style="flex: 1; padding: 15px;">
+						<h3 style="text-align: center;"><?php esc_html_e( 'Popover Content', 'greenmetrics' ); ?></h3>
+						
+						<div id="popover-preview-container" style="
+							margin: 20px;
+							border-radius: 6px;
+							box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+							overflow: hidden;
+							background-color: <?php echo isset($settings['popover_bg_color']) ? esc_attr($settings['popover_bg_color']) : '#ffffff'; ?>;
+							color: <?php echo isset($settings['popover_text_color']) ? esc_attr($settings['popover_text_color']) : '#333333'; ?>;
+							font-family: <?php echo isset($settings['popover_content_font']) ? esc_attr($settings['popover_content_font']) : 'inherit'; ?>;
+							font-size: <?php echo isset($settings['popover_content_font_size']) ? esc_attr($settings['popover_content_font_size']) : '16px'; ?>;
 						">
-							<?php if ( isset( $settings['display_icon'] ) && $settings['display_icon'] ) : ?>
-								<div class="icon-container" style="color: <?php echo esc_attr( $settings['badge_icon_color'] ); ?>;">
-									<?php
-									$icon_type = isset( $settings['badge_icon_type'] ) ? $settings['badge_icon_type'] : 'leaf';
-									$custom_icon = isset( $settings['badge_custom_icon'] ) ? $settings['badge_custom_icon'] : '';
-									
-									switch ( $icon_type ) {
-										case 'leaf':
-											echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17 1.02.3 1.58.3C17 20 22 13.46 22 6c0-.55-.06-1.09-.14-1.62C20.18 4.15 18.66 4 17 4V2c1.67 0 3.35.12 5 .34V4c-1.67-.22-3.33-.34-5-.34v2zM2 6c0 7.46 5 14 14.5 14 .56 0 1.1-.13 1.58-.3l.95 2.3 1.89-.66C18.1 16.17 16 10 7 8c0 0-5 0-5 0z"/></svg>';
-											break;
-										case 'tree':
-											echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c4.97 0 9-4.03 9-9-4.97 0-9 4.03-9 9zm2.44-9.43h-.44v2h.44c2.32 0 2.49 3.23 2.49 3.23 1.52-1.84 2.63-4.43 1.73-7C17.56 8.37 15.5 7 15.5 7S14.8 9.1 13 9.42v.36c1.32-.18 2.44.11 2.44.11s-1.22 1.91-1 3.68z"/><path d="M12.28 10h-.56v2h.56c2.33 0 2.51 3.45 2.51 3.45 1.55-1.89 2.67-4.63 1.77-7.24-.51-1.46-2.18-3.02-2.18-3.02s-.99 2.18-2.1 2.48V8c1.34-.2 2.55.07 2.55.07s-1.34 1.66-1.14 3.44z"/><path d="M12.63 5.33c-.28.47-1.04 1.68-2 1.87V8.8c1.35-.19 2.97.31 2.97.31S12.69 10.3 12.22 12h.33v-2h-.16c.06-.32.2-.65.44-.97.19.38.39.75.58 1.09l.66-.42c-.18-.28-.33-.57-.46-.85 0 0 .99.17 2.22.5-.27-.5-2.47-4.02-3.2-4.02z"/><path d="M10.45 12h-.43v8.17c.34-.14.66-.34.95-.55L10.45 12zm1.66 4.62c.1.21.19.42.27.63-.16-.19-.31-.39-.46-.57.07-.02.12-.04.19-.06zm1.14-4.62L12.1 17.1c.45-.11.88-.29 1.29-.51l-.14-4.59z"/><path d="M9.3 14.13l-.24 7.14c.24.11.48.19.73.26l-.42-7.8c-.02.14-.05.27-.07.4zm3.33 1.7c-.04-.04-.08-.09-.12-.14.03.05.06.09.09.13.01 0 .02.01.03.01zm-.83-3.83l-.32 7.46c.29.05.58.08.88.08.12 0 .24-.01.36-.02L12 12l-.2 0z"/></svg>';
-											break;
-										case 'globe':
-											echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>';
-											break;
-										case 'recycle':
-											echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M5.77 7.15L7.2 4.78l1.03-1.71c.39-.65 1.33-.65 1.72 0l1.48 2.46-1.23 2.06-1 1.34-2.43-4.78zm15.95 5.82l-1.6-2.66-3.46 2L18.87 16H21v2l-3.87-7.03zM16 21h1.5l2.05-3.42-3.46-2-1.09 1.84L16 21zm-3.24-3.71l-1.03-1.71-1.43 2.43-2.43 4.78 1.6 2.66 3.46-2 1.03-1.71-1.43-2.45zM13.42 8.5l-1.48-2.46c-.39-.65-1.33-.65-1.72 0L9.22 7.15l-1 1.34 2.43 4.78 1.6-2.66 1.17-2.11zM10.5 14.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>';
-											break;
-										case 'custom':
-											if ( $custom_icon ) {
-												echo '<img src="' . esc_url( $custom_icon ) . '" alt="Custom Icon" style="width: 20px; height: 20px;">';
-											} else {
-												echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';
-											}
-											break;
-										default:
-											echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17 1.02.3 1.58.3C17 20 22 13.46 22 6c0-.55-.06-1.09-.14-1.62C20.18 4.15 18.66 4 17 4V2c1.67 0 3.35.12 5 .34V4c-1.67-.22-3.33-.34-5-.34v2zM2 6c0 7.46 5 14 14.5 14 .56 0 1.1-.13 1.58-.3l.95 2.3 1.89-.66C18.1 16.17 16 10 7 8c0 0-5 0-5 0z"/></svg>';
+							<h3 style="padding: 15px 15px 5px 15px; margin-top: 0; margin-bottom: 10px;">
+								<?php echo isset($settings['popover_title']) ? esc_html($settings['popover_title']) : 'Environmental Impact'; ?>
+							</h3>
+							
+							<div style="padding: 0 15px 15px;">
+								<?php
+								// Sample metrics data for preview
+								$metrics_data = array(
+									'carbon_footprint' => array('label' => 'Carbon Footprint', 'value' => '0.024g CO2'),
+									'energy_consumption' => array('label' => 'Energy Consumption', 'value' => '0.32 Wh'),
+									'data_transfer' => array('label' => 'Data Transfer', 'value' => '1.24 MB'),
+									'total_views' => array('label' => 'Page Views', 'value' => '1,542'),
+									'requests' => array('label' => 'HTTP Requests', 'value' => '24'),
+									'performance_score' => array('label' => 'Performance Score', 'value' => '92.5%'),
+								);
+								
+								$popover_metrics = isset($settings['popover_metrics']) ? $settings['popover_metrics'] : array(
+									'carbon_footprint',
+									'energy_consumption',
+									'data_transfer',
+									'total_views',
+									'requests',
+									'performance_score'
+								);
+								
+								$popover_metrics_style = sprintf(
+									'color: %s; font-family: %s; font-size: %s;',
+									isset($settings['popover_metrics_color']) ? esc_attr($settings['popover_metrics_color']) : '#4CAF50',
+									isset($settings['popover_metrics_font']) ? esc_attr($settings['popover_metrics_font']) : 'inherit',
+									isset($settings['popover_metrics_font_size']) ? esc_attr($settings['popover_metrics_font_size']) : '14px'
+								);
+								
+								// Show selected metrics
+								echo '<div class="greenmetrics-global-badge-metrics">';
+								foreach ($popover_metrics as $metric_key) {
+									if (isset($metrics_data[$metric_key])) {
+										?>
+										<div class="greenmetrics-global-badge-metric" style="display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 8px;">
+											<div class="greenmetrics-global-badge-metric-label">
+												<span><?php echo esc_html($metrics_data[$metric_key]['label']); ?></span>
+											</div>
+											<div class="greenmetrics-global-badge-metric-value" style="<?php echo $popover_metrics_style; ?>">
+												<?php echo esc_html($metrics_data[$metric_key]['value']); ?>
+											</div>
+										</div>
+										<?php
 									}
-									?>
-								</div>
-							<?php endif; ?>
-							<span><?php echo esc_html( $settings['badge_text'] ); ?></span>
+								}
+								echo '</div>';
+								
+								// Show custom content at the bottom
+								if (isset($settings['popover_custom_content']) && !empty($settings['popover_custom_content'])) : 
+								?>
+									<div class="greenmetrics-global-badge-custom-content" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1);">
+										<?php echo wp_kses_post($settings['popover_custom_content']); ?>
+									</div>
+								<?php endif; ?>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -145,13 +223,21 @@ $settings = get_option(
 
 <script>
 jQuery(document).ready(function($) {
-	// Update badge preview when settings change
-	$('#enable_badge, #badge_position, #badge_size, #badge_text, #badge_background_color, #badge_text_color, #badge_icon_color').on('change input', function() {
-		updateBadgePreview();
+	// Update badge and popover preview when settings change
+	$('#enable_badge, #badge_position, #badge_size, #badge_text, #badge_background_color, #badge_text_color, #badge_icon_color, ' +
+	  '#popover_title, #popover_custom_content, #popover_bg_color, #popover_text_color, #popover_metrics_color, ' +
+	  '#popover_content_font, #popover_content_font_size, #popover_metrics_font, #popover_metrics_font_size')
+	.on('change input', function() {
+		updatePreview();
 	});
 	
-	function updateBadgePreview() {
-		// Get current settings
+	// Listen for checkbox changes in metrics
+	$('input[name="greenmetrics_settings[popover_metrics][]"]').on('change', function() {
+		updatePreview();
+	});
+	
+	function updatePreview() {
+		// Get current badge settings
 		const position = $('#badge_position').val();
 		const size = $('#badge_size').val();
 		const text = $('#badge_text').val();
@@ -159,7 +245,7 @@ jQuery(document).ready(function($) {
 		const textColor = $('#badge_text_color').val();
 		const iconColor = $('#badge_icon_color').val();
 		
-		// Update position
+		// Update badge position
 		$('#badge-preview-container').attr('class', position);
 		
 		// Update badge appearance
@@ -170,15 +256,62 @@ jQuery(document).ready(function($) {
 			'color': textColor
 		});
 		
-		// Update text
+		// Update badge text
 		$badge.find('span').text(text);
 		
-		// Update icon color
+		// Update badge icon color
 		$badge.find('svg').css('fill', iconColor);
+		
+		// Get current popover settings
+		const popoverTitle = $('#popover_title').val();
+		const popoverBgColor = $('#popover_bg_color').val();
+		const popoverTextColor = $('#popover_text_color').val();
+		const popoverMetricsColor = $('#popover_metrics_color').val();
+		const popoverContentFont = $('#popover_content_font').val();
+		const popoverContentFontSize = $('#popover_content_font_size').val();
+		const popoverMetricsFont = $('#popover_metrics_font').val();
+		const popoverMetricsFontSize = $('#popover_metrics_font_size').val();
+		const popoverCustomContent = $('#popover_custom_content').val();
+		
+		// Get selected metrics
+		const selectedMetrics = [];
+		$('input[name="greenmetrics_settings[popover_metrics][]"]:checked').each(function() {
+			selectedMetrics.push($(this).val());
+		});
+		
+		// Update popover title
+		$('#popover-preview-container h3').text(popoverTitle);
+		
+		// Update popover container styling
+		$('#popover-preview-container').css({
+			'background-color': popoverBgColor,
+			'color': popoverTextColor,
+			'font-family': popoverContentFont,
+			'font-size': popoverContentFontSize
+		});
+		
+		// Update popover custom content
+		let customContent = '';
+		if (popoverCustomContent) {
+			customContent = '<div class="greenmetrics-global-badge-custom-content" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1);">' + popoverCustomContent + '</div>';
+		}
+		$('#popover-preview-container .greenmetrics-global-badge-custom-content').html(customContent);
+		
+		// Update metric values styling
+		$('#popover-preview-container .greenmetrics-global-badge-metric-value').css({
+			'color': popoverMetricsColor,
+			'font-family': popoverMetricsFont,
+			'font-size': popoverMetricsFontSize
+		});
+		
+		// Show/hide metrics based on selection
+		$('#popover-preview-container .greenmetrics-global-badge-metric').each(function(index) {
+			$(this).toggle(selectedMetrics.length === 0 || index < selectedMetrics.length);
+		});
 	}
 	
 	// Set initial preview
-	updateBadgePreview();
+	updatePreview();
 	
 	// Auto-dismiss notice after 5 seconds if present
 	setTimeout(function() {
@@ -251,7 +384,50 @@ jQuery(document).ready(function($) {
 	padding: 10px 14px;
 }
 
+.greenmetrics-badge .icon-container {
+	display: inline-flex;
+	margin-right: 6px;
+}
+
 .greenmetrics-badge svg {
+	width: 16px;
+	height: 16px;
+}
+
+.icon-option svg {
+	width: 36px;
+	height: 36px;
+}
+
+.greenmetrics-admin-card {
+	background: #fff;
+	border-radius: 4px;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+	padding: 20px;
+	margin-bottom: 20px;
+}
+
+.greenmetrics-global-badge-metrics {
+	margin-top: 10px;
+}
+
+/* Improved styling for the metrics selection checkboxes */
+.metrics-checkboxes {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 10px;
+	padding: 15px;
+	background: #f9f9f9;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+}
+
+.metrics-checkbox-label {
+	display: flex;
+	align-items: center;
+}
+
+.metrics-checkbox-label input {
 	margin-right: 8px;
 }
 </style> 

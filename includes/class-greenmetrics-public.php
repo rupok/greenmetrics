@@ -689,6 +689,25 @@ class GreenMetrics_Public {
 		$icon_type = $settings_manager->get( 'badge_icon_type', 'leaf' );
 		$custom_icon = $settings_manager->get( 'badge_custom_icon', '' );
 		
+		// Get popover content settings
+		$popover_title = $settings_manager->get( 'popover_title', 'Environmental Impact' );
+		$popover_metrics = $settings_manager->get( 'popover_metrics', array(
+			'carbon_footprint',
+			'energy_consumption',
+			'data_transfer',
+			'total_views',
+			'requests',
+			'performance_score'
+		));
+		$popover_custom_content = $settings_manager->get( 'popover_custom_content', '' );
+		$popover_bg_color = $settings_manager->get( 'popover_bg_color', '#ffffff' );
+		$popover_text_color = $settings_manager->get( 'popover_text_color', '#333333' );
+		$popover_metrics_color = $settings_manager->get( 'popover_metrics_color', '#4CAF50' );
+		$popover_content_font = $settings_manager->get( 'popover_content_font', 'inherit' );
+		$popover_content_font_size = $settings_manager->get( 'popover_content_font_size', '16px' );
+		$popover_metrics_font = $settings_manager->get( 'popover_metrics_font', 'inherit' );
+		$popover_metrics_font_size = $settings_manager->get( 'popover_metrics_font_size', '14px' );
+		
 		// Get metrics data for the popover
 		$metrics = $this->get_metrics_data();
 		
@@ -722,6 +741,22 @@ class GreenMetrics_Public {
 		);
 		
 		$icon_style = sprintf('color: %s;', esc_attr($icon_color));
+		
+		// Prepare popover content styles
+		$popover_content_style = sprintf(
+			'background-color: %s; color: %s; font-family: %s; font-size: %s;',
+			esc_attr($popover_bg_color),
+			esc_attr($popover_text_color),
+			esc_attr($popover_content_font),
+			esc_attr($popover_content_font_size)
+		);
+		
+		$popover_metrics_style = sprintf(
+			'color: %s; font-family: %s; font-size: %s;',
+			esc_attr($popover_metrics_color),
+			esc_attr($popover_metrics_font),
+			esc_attr($popover_metrics_font_size)
+		);
 		
 		// Output HTML with all dashboard settings applied
 		?>
@@ -759,46 +794,68 @@ class GreenMetrics_Public {
 					<?php endif; ?>
 					<span><?php echo esc_html($badge_text); ?></span>
 				</div>
-				<div class="greenmetrics-global-badge-content">
-					<h3>Environmental Impact</h3>
+				<div class="greenmetrics-global-badge-content" style="<?php echo $popover_content_style; ?>">
+					<div class="greenmetrics-global-badge-title"><h3><?php echo esc_html($popover_title); ?></h3></div>
+					
 					<div class="greenmetrics-global-badge-metrics">
+						<?php if (in_array('carbon_footprint', $popover_metrics)) : ?>
 						<div class="greenmetrics-global-badge-metric">
 							<div class="greenmetrics-global-badge-metric-label">
-								<span>Carbon Footprint</span>
+								<span><?php esc_html_e('Carbon Footprint', 'greenmetrics'); ?></span>
 							</div>
-							<div class="greenmetrics-global-badge-metric-value"><?php echo esc_html($carbon_formatted); ?></div>
+							<div class="greenmetrics-global-badge-metric-value" style="<?php echo $popover_metrics_style; ?>"><?php echo esc_html($carbon_formatted); ?></div>
 						</div>
+						<?php endif; ?>
+						
+						<?php if (in_array('energy_consumption', $popover_metrics)) : ?>
 						<div class="greenmetrics-global-badge-metric">
 							<div class="greenmetrics-global-badge-metric-label">
-								<span>Energy Consumption</span>
+								<span><?php esc_html_e('Energy Consumption', 'greenmetrics'); ?></span>
 							</div>
-							<div class="greenmetrics-global-badge-metric-value"><?php echo esc_html($energy_formatted); ?></div>
+							<div class="greenmetrics-global-badge-metric-value" style="<?php echo $popover_metrics_style; ?>"><?php echo esc_html($energy_formatted); ?></div>
 						</div>
+						<?php endif; ?>
+						
+						<?php if (in_array('data_transfer', $popover_metrics)) : ?>
 						<div class="greenmetrics-global-badge-metric">
 							<div class="greenmetrics-global-badge-metric-label">
-								<span>Data Transfer</span>
+								<span><?php esc_html_e('Data Transfer', 'greenmetrics'); ?></span>
 							</div>
-							<div class="greenmetrics-global-badge-metric-value"><?php echo esc_html($data_formatted); ?></div>
+							<div class="greenmetrics-global-badge-metric-value" style="<?php echo $popover_metrics_style; ?>"><?php echo esc_html($data_formatted); ?></div>
 						</div>
+						<?php endif; ?>
+						
+						<?php if (in_array('total_views', $popover_metrics)) : ?>
 						<div class="greenmetrics-global-badge-metric">
 							<div class="greenmetrics-global-badge-metric-label">
-								<span>Page Views</span>
+								<span><?php esc_html_e('Page Views', 'greenmetrics'); ?></span>
 							</div>
-							<div class="greenmetrics-global-badge-metric-value"><?php echo esc_html($views_formatted); ?></div>
+							<div class="greenmetrics-global-badge-metric-value" style="<?php echo $popover_metrics_style; ?>"><?php echo esc_html($views_formatted); ?></div>
 						</div>
+						<?php endif; ?>
+						
+						<?php if (in_array('requests', $popover_metrics)) : ?>
 						<div class="greenmetrics-global-badge-metric">
 							<div class="greenmetrics-global-badge-metric-label">
-								<span>HTTP Requests</span>
+								<span><?php esc_html_e('HTTP Requests', 'greenmetrics'); ?></span>
 							</div>
-							<div class="greenmetrics-global-badge-metric-value"><?php echo esc_html($requests_formatted); ?></div>
+							<div class="greenmetrics-global-badge-metric-value" style="<?php echo $popover_metrics_style; ?>"><?php echo esc_html($requests_formatted); ?></div>
 						</div>
+						<?php endif; ?>
+						
+						<?php if (in_array('performance_score', $popover_metrics)) : ?>
 						<div class="greenmetrics-global-badge-metric">
 							<div class="greenmetrics-global-badge-metric-label">
-								<span>Performance Score</span>
+								<span><?php esc_html_e('Performance Score', 'greenmetrics'); ?></span>
 							</div>
-							<div class="greenmetrics-global-badge-metric-value"><?php echo esc_html($score_formatted); ?></div>
+							<div class="greenmetrics-global-badge-metric-value" style="<?php echo $popover_metrics_style; ?>"><?php echo esc_html($score_formatted); ?></div>
 						</div>
+						<?php endif; ?>
 					</div>
+					
+					<?php if (!empty($popover_custom_content)) : ?>
+						<div class="greenmetrics-global-badge-custom-content" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1);"><?php echo wp_kses_post($popover_custom_content); ?></div>
+					<?php endif; ?>
 				</div>
 			</div>
 		</div>

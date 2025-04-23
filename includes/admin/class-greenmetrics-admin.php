@@ -102,6 +102,16 @@ class GreenMetrics_Admin {
 					'badge_background_color' => '#4CAF50',
 					'badge_text_color'       => '#ffffff',
 					'badge_icon_color'       => '#ffffff',
+					'popover_title'          => 'Environmental Impact',
+					'popover_metrics'        => array('carbon_footprint', 'energy_consumption', 'data_transfer', 'total_views', 'requests', 'performance_score'),
+					'popover_custom_content' => '',
+					'popover_bg_color'       => '#ffffff',
+					'popover_text_color'     => '#333333',
+					'popover_metrics_color'  => '#4CAF50',
+					'popover_content_font'   => 'inherit',
+					'popover_content_font_size' => '16px',
+					'popover_metrics_font'   => 'inherit',
+					'popover_metrics_font_size' => '14px',
 				),
 			)
 		);
@@ -222,6 +232,104 @@ class GreenMetrics_Admin {
 			'greenmetrics_display',
 			array( 'label_for' => 'badge_text_color' )
 		);
+
+		// Adding popover content customization fields
+		add_settings_section(
+			'greenmetrics_popover_content',
+			__( 'Popover Content Settings', 'greenmetrics' ),
+			array( $this, 'render_popover_content_section' ),
+			'greenmetrics_display'
+		);
+
+		add_settings_field(
+			'popover_title',
+			__( 'Content Title', 'greenmetrics' ),
+			array( $this, 'render_popover_title_field' ),
+			'greenmetrics_display',
+			'greenmetrics_popover_content',
+			array( 'label_for' => 'popover_title' )
+		);
+
+		add_settings_field(
+			'popover_metrics',
+			__( 'Metrics to Display', 'greenmetrics' ),
+			array( $this, 'render_popover_metrics_field' ),
+			'greenmetrics_display',
+			'greenmetrics_popover_content',
+			array( 'label_for' => 'popover_metrics' )
+		);
+
+		add_settings_field(
+			'popover_custom_content',
+			__( 'Custom Content', 'greenmetrics' ),
+			array( $this, 'render_popover_custom_content_field' ),
+			'greenmetrics_display',
+			'greenmetrics_popover_content',
+			array( 'label_for' => 'popover_custom_content' )
+		);
+
+		add_settings_field(
+			'popover_bg_color',
+			__( 'Content Background Color', 'greenmetrics' ),
+			array( $this, 'render_popover_bg_color_field' ),
+			'greenmetrics_display',
+			'greenmetrics_popover_content',
+			array( 'label_for' => 'popover_bg_color' )
+		);
+
+		add_settings_field(
+			'popover_text_color',
+			__( 'Content Text Color', 'greenmetrics' ),
+			array( $this, 'render_popover_text_color_field' ),
+			'greenmetrics_display',
+			'greenmetrics_popover_content',
+			array( 'label_for' => 'popover_text_color' )
+		);
+
+		add_settings_field(
+			'popover_metrics_color',
+			__( 'Metrics Text Color', 'greenmetrics' ),
+			array( $this, 'render_popover_metrics_color_field' ),
+			'greenmetrics_display',
+			'greenmetrics_popover_content',
+			array( 'label_for' => 'popover_metrics_color' )
+		);
+
+		add_settings_field(
+			'popover_content_font',
+			__( 'Content Font Family', 'greenmetrics' ),
+			array( $this, 'render_popover_content_font_field' ),
+			'greenmetrics_display',
+			'greenmetrics_popover_content',
+			array( 'label_for' => 'popover_content_font' )
+		);
+
+		add_settings_field(
+			'popover_content_font_size',
+			__( 'Content Font Size', 'greenmetrics' ),
+			array( $this, 'render_popover_content_font_size_field' ),
+			'greenmetrics_display',
+			'greenmetrics_popover_content',
+			array( 'label_for' => 'popover_content_font_size' )
+		);
+
+		add_settings_field(
+			'popover_metrics_font',
+			__( 'Metrics Font Family', 'greenmetrics' ),
+			array( $this, 'render_popover_metrics_font_field' ),
+			'greenmetrics_display',
+			'greenmetrics_popover_content',
+			array( 'label_for' => 'popover_metrics_font' )
+		);
+
+		add_settings_field(
+			'popover_metrics_font_size',
+			__( 'Metrics Font Size', 'greenmetrics' ),
+			array( $this, 'render_popover_metrics_font_size_field' ),
+			'greenmetrics_display',
+			'greenmetrics_popover_content',
+			array( 'label_for' => 'popover_metrics_font_size' )
+		);
 	}
 
 	/**
@@ -323,6 +431,75 @@ class GreenMetrics_Admin {
 
 		if ( isset( $input['badge_icon_color'] ) ) {
 			$sanitized['badge_icon_color'] = sanitize_hex_color( $input['badge_icon_color'] );
+		}
+
+		// Sanitize popover content settings
+		if ( isset( $input['popover_title'] ) ) {
+			$sanitized['popover_title'] = sanitize_text_field( $input['popover_title'] );
+		}
+
+		// Sanitize metrics array
+		if ( isset( $input['popover_metrics'] ) && is_array( $input['popover_metrics'] ) ) {
+			$valid_metrics = array(
+				'carbon_footprint',
+				'energy_consumption',
+				'data_transfer',
+				'total_views',
+				'requests',
+				'performance_score'
+			);
+			
+			$sanitized_metrics = array();
+			foreach ( $input['popover_metrics'] as $metric ) {
+				$metric = sanitize_text_field( $metric );
+				if ( in_array( $metric, $valid_metrics, true ) ) {
+					$sanitized_metrics[] = $metric;
+				}
+			}
+			
+			$sanitized['popover_metrics'] = $sanitized_metrics;
+		} else {
+			// Default to all metrics if none are selected
+			$sanitized['popover_metrics'] = array(
+				'carbon_footprint',
+				'energy_consumption',
+				'data_transfer',
+				'total_views',
+				'requests',
+				'performance_score'
+			);
+		}
+
+		if ( isset( $input['popover_custom_content'] ) ) {
+			$sanitized['popover_custom_content'] = wp_kses_post( $input['popover_custom_content'] );
+		}
+
+		if ( isset( $input['popover_bg_color'] ) ) {
+			$sanitized['popover_bg_color'] = sanitize_hex_color( $input['popover_bg_color'] );
+		}
+
+		if ( isset( $input['popover_text_color'] ) ) {
+			$sanitized['popover_text_color'] = sanitize_hex_color( $input['popover_text_color'] );
+		}
+
+		if ( isset( $input['popover_metrics_color'] ) ) {
+			$sanitized['popover_metrics_color'] = sanitize_hex_color( $input['popover_metrics_color'] );
+		}
+
+		if ( isset( $input['popover_content_font'] ) ) {
+			$sanitized['popover_content_font'] = sanitize_text_field( $input['popover_content_font'] );
+		}
+
+		if ( isset( $input['popover_content_font_size'] ) ) {
+			$sanitized['popover_content_font_size'] = sanitize_text_field( $input['popover_content_font_size'] );
+		}
+
+		if ( isset( $input['popover_metrics_font'] ) ) {
+			$sanitized['popover_metrics_font'] = sanitize_text_field( $input['popover_metrics_font'] );
+		}
+
+		if ( isset( $input['popover_metrics_font_size'] ) ) {
+			$sanitized['popover_metrics_font_size'] = sanitize_text_field( $input['popover_metrics_font_size'] );
 		}
 
 		// Log the result
@@ -533,6 +710,174 @@ class GreenMetrics_Admin {
 		?>
 		<input type="color" id="badge_text_color" name="greenmetrics_settings[badge_text_color]" value="<?php echo esc_attr( $value ); ?>">
 		<p class="description"><?php esc_html_e( 'Text color for the badge.', 'greenmetrics' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Render popover content section.
+	 */
+	public function render_popover_content_section() {
+		echo '<p>' . esc_html__( 'Configure the content of the popover.', 'greenmetrics' ) . '</p>';
+	}
+
+	/**
+	 * Render popover title field.
+	 */
+	public function render_popover_title_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['popover_title'] ) ? $options['popover_title'] : 'Environmental Impact';
+		?>
+		<input type="text" id="popover_title" name="greenmetrics_settings[popover_title]" value="<?php echo esc_attr( $value ); ?>" class="regular-text">
+		<p class="description"><?php esc_html_e( 'Title of the popover content.', 'greenmetrics' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Render popover metrics field.
+	 */
+	public function render_popover_metrics_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$metrics = isset( $options['popover_metrics'] ) ? $options['popover_metrics'] : array(
+			'carbon_footprint',
+			'energy_consumption',
+			'data_transfer',
+			'total_views',
+			'requests',
+			'performance_score'
+		);
+
+		// Available metrics with display names
+		$available_metrics = array(
+			'carbon_footprint'    => __( 'Carbon Footprint', 'greenmetrics' ),
+			'energy_consumption'  => __( 'Energy Consumption', 'greenmetrics' ),
+			'data_transfer'       => __( 'Data Transfer', 'greenmetrics' ),
+			'total_views'         => __( 'Page Views', 'greenmetrics' ),
+			'requests'            => __( 'HTTP Requests', 'greenmetrics' ),
+			'performance_score'   => __( 'Performance Score', 'greenmetrics' ),
+		);
+		?>
+		<div class="metrics-checkboxes">
+			<?php foreach ( $available_metrics as $metric_key => $metric_label ) : ?>
+				<label class="metrics-checkbox-label">
+					<input type="checkbox" 
+						name="greenmetrics_settings[popover_metrics][]" 
+						value="<?php echo esc_attr( $metric_key ); ?>" 
+						<?php checked( in_array( $metric_key, $metrics, true ) ); ?>>
+					<?php echo esc_html( $metric_label ); ?>
+				</label><br>
+			<?php endforeach; ?>
+		</div>
+		<p class="description"><?php esc_html_e( 'Select which metrics to display in the popover.', 'greenmetrics' ); ?></p>
+		<style>
+			.metrics-checkboxes {
+				max-height: 200px;
+				overflow-y: auto;
+				border: 1px solid #ddd;
+				padding: 10px;
+				margin-bottom: 10px;
+				background: #f9f9f9;
+			}
+			.metrics-checkbox-label {
+				display: block;
+				margin-bottom: 5px;
+			}
+		</style>
+		<?php
+	}
+
+	/**
+	 * Render popover custom content field.
+	 */
+	public function render_popover_custom_content_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['popover_custom_content'] ) ? $options['popover_custom_content'] : '';
+		?>
+		<textarea id="popover_custom_content" name="greenmetrics_settings[popover_custom_content]" rows="4" class="large-text"><?php echo esc_textarea( $value ); ?></textarea>
+		<p class="description"><?php esc_html_e( 'Custom content to display in the popover.', 'greenmetrics' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Render popover background color field.
+	 */
+	public function render_popover_bg_color_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['popover_bg_color'] ) ? $options['popover_bg_color'] : '#ffffff';
+		?>
+		<input type="color" id="popover_bg_color" name="greenmetrics_settings[popover_bg_color]" value="<?php echo esc_attr( $value ); ?>">
+		<p class="description"><?php esc_html_e( 'Background color of the popover content.', 'greenmetrics' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Render popover text color field.
+	 */
+	public function render_popover_text_color_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['popover_text_color'] ) ? $options['popover_text_color'] : '#000000';
+		?>
+		<input type="color" id="popover_text_color" name="greenmetrics_settings[popover_text_color]" value="<?php echo esc_attr( $value ); ?>">
+		<p class="description"><?php esc_html_e( 'Text color of the popover content.', 'greenmetrics' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Render popover metrics color field.
+	 */
+	public function render_popover_metrics_color_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['popover_metrics_color'] ) ? $options['popover_metrics_color'] : '#000000';
+		?>
+		<input type="color" id="popover_metrics_color" name="greenmetrics_settings[popover_metrics_color]" value="<?php echo esc_attr( $value ); ?>">
+		<p class="description"><?php esc_html_e( 'Text color of the metrics in the popover.', 'greenmetrics' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Render popover content font field.
+	 */
+	public function render_popover_content_font_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['popover_content_font'] ) ? $options['popover_content_font'] : 'Arial';
+		?>
+		<input type="text" id="popover_content_font" name="greenmetrics_settings[popover_content_font]" value="<?php echo esc_attr( $value ); ?>" class="regular-text">
+		<p class="description"><?php esc_html_e( 'Font family for the popover content.', 'greenmetrics' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Render popover content font size field.
+	 */
+	public function render_popover_content_font_size_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['popover_content_font_size'] ) ? $options['popover_content_font_size'] : '16px';
+		?>
+		<input type="text" id="popover_content_font_size" name="greenmetrics_settings[popover_content_font_size]" value="<?php echo esc_attr( $value ); ?>" class="regular-text">
+		<p class="description"><?php esc_html_e( 'Font size for the popover content.', 'greenmetrics' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Render popover metrics font field.
+	 */
+	public function render_popover_metrics_font_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['popover_metrics_font'] ) ? $options['popover_metrics_font'] : 'Arial';
+		?>
+		<input type="text" id="popover_metrics_font" name="greenmetrics_settings[popover_metrics_font]" value="<?php echo esc_attr( $value ); ?>" class="regular-text">
+		<p class="description"><?php esc_html_e( 'Font family for the metrics in the popover.', 'greenmetrics' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Render popover metrics font size field.
+	 */
+	public function render_popover_metrics_font_size_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['popover_metrics_font_size'] ) ? $options['popover_metrics_font_size'] : '16px';
+		?>
+		<input type="text" id="popover_metrics_font_size" name="greenmetrics_settings[popover_metrics_font_size]" value="<?php echo esc_attr( $value ); ?>" class="regular-text">
+		<p class="description"><?php esc_html_e( 'Font size for the metrics in the popover.', 'greenmetrics' ); ?></p>
 		<?php
 	}
 
