@@ -703,6 +703,7 @@ class GreenMetrics_Public {
 		$popover_bg_color = $settings_manager->get( 'popover_bg_color', '#ffffff' );
 		$popover_text_color = $settings_manager->get( 'popover_text_color', '#333333' );
 		$popover_metrics_color = $settings_manager->get( 'popover_metrics_color', '#4CAF50' );
+		$popover_metrics_bg_color = $settings_manager->get( 'popover_metrics_bg_color', 'rgba(0, 0, 0, 0.05)' );
 		$popover_content_font = $settings_manager->get( 'popover_content_font', 'inherit' );
 		$popover_content_font_size = $settings_manager->get( 'popover_content_font_size', '16px' );
 		$popover_metrics_font = $settings_manager->get( 'popover_metrics_font', 'inherit' );
@@ -752,10 +753,11 @@ class GreenMetrics_Public {
 		);
 		
 		$popover_metrics_style = sprintf(
-			'color: %s; font-family: %s; font-size: %s;',
+			'color: %s; font-family: %s; font-size: %s; background-color: %s;',
 			esc_attr($popover_metrics_color),
 			esc_attr($popover_metrics_font),
-			esc_attr($popover_metrics_font_size)
+			esc_attr($popover_metrics_font_size),
+			esc_attr($popover_metrics_bg_color)
 		);
 		
 		// Output HTML with all dashboard settings applied

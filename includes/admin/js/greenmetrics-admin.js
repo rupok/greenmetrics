@@ -27,28 +27,149 @@
       updateBadgePreview();
     }
 
-    // Initialize the dashboard
-    initDashboard();
-
-    // Initialize color pickers
-    if ($('.color-picker').length) {
-      $('.color-picker').wpColorPicker({
-        change: function() {
+    // Define default colors
+    const defaultColors = {
+      'badge_background_color': '#4CAF50',
+      'badge_text_color': '#ffffff',
+      'badge_icon_color': '#ffffff',
+      'popover_bg_color': '#ffffff',
+      'popover_text_color': '#333333',
+      'popover_metrics_color': '#4CAF50',
+      'popover_metrics_bg_color': 'rgba(0, 0, 0, 0.05)'
+    };
+    
+    // Initialize color pickers with alpha support
+    $('.greenmetrics-color-picker').each(function() {
+      const $this = $(this);
+      const fieldId = $this.attr('id');
+      
+      $this.wpColorPicker({
+        defaultColor: defaultColors[fieldId] || '#ffffff',
+        change: function(event, ui) {
+          // Update preview when color changes
           updateBadgePreview();
+        },
+        clear: function() {
+          // Set to default color when clear is clicked
+          const defaultColor = defaultColors[fieldId] || '#ffffff';
+          setTimeout(function() {
+            $this.val(defaultColor).trigger('change');
+            $this.wpColorPicker('color', defaultColor);
+            updateBadgePreview();
+          }, 50);
         }
       });
-    }
+    });
+    
+    // Replace all "Clear" buttons with "Set to Default" buttons
+    setTimeout(function() {
+      $('.wp-picker-clear').each(function() {
+        $(this).text('Set to Default');
+      });
+    }, 100);
 
-    // Auto-dismiss admin notices after 5 seconds
+    // Update badge and popover preview when settings change
+    $('#enable_badge, #badge_position, #badge_size, #badge_text, #badge_background_color, #badge_text_color, #badge_icon_color, ' +
+      '#popover_title, #popover_custom_content, #popover_bg_color, #popover_text_color, #popover_metrics_color, #popover_metrics_bg_color, ' +
+      '#popover_content_font, #popover_content_font_size, #popover_metrics_font, #popover_metrics_font_size')
+    .on('change input', function() {
+      updateBadgePreview();
+    });
+    
+    // Listen for checkbox changes in metrics
+    $('input[name="greenmetrics_settings[popover_metrics][]"]').on('change', function() {
+      updateBadgePreview();
+    });
+    
+    function updatePreview() {
+      // Get current badge settings
+      const position = $('#badge_position').val();
+      const size = $('#badge_size').val();
+      const text = $('#badge_text').val();
+      const bgColor = $('#badge_background_color').val();
+      const textColor = $('#badge_text_color').val();
+      const iconColor = $('#badge_icon_color').val();
+      
+      // Update badge position
+      $('#badge-preview-container').attr('class', position);
+      
+      // Update badge appearance
+      const $badge = $('#badge-preview-container .greenmetrics-badge');
+      $badge.attr('class', 'greenmetrics-badge ' + size);
+      $badge.css({
+        'background-color': bgColor,
+        'color': textColor
+      });
+      
+      // Update badge text
+      $badge.find('span').text(text);
+      
+      // Update badge icon color
+      $badge.find('svg').css('fill', iconColor);
+      
+      // Get current popover settings
+      const popoverTitle = $('#popover_title').val();
+      const popoverBgColor = $('#popover_bg_color').val();
+      const popoverTextColor = $('#popover_text_color').val();
+      const popoverMetricsColor = $('#popover_metrics_color').val();
+      const popoverMetricsBgColor = $('#popover_metrics_bg_color').val();
+      const popoverContentFont = $('#popover_content_font').val();
+      const popoverContentFontSize = $('#popover_content_font_size').val();
+      const popoverMetricsFont = $('#popover_metrics_font').val();
+      const popoverMetricsFontSize = $('#popover_metrics_font_size').val();
+      const popoverCustomContent = $('#popover_custom_content').val();
+      
+      // Get selected metrics
+      const selectedMetrics = [];
+      $('input[name="greenmetrics_settings[popover_metrics][]"]:checked').each(function() {
+        selectedMetrics.push($(this).val());
+      });
+      
+      // Update popover title
+      $('#popover-preview-container h3').text(popoverTitle);
+      
+      // Update popover container styling
+      $('#popover-preview-container').css({
+        'background-color': popoverBgColor,
+        'color': popoverTextColor,
+        'font-family': popoverContentFont,
+        'font-size': popoverContentFontSize
+      });
+      
+      // Update popover custom content
+      let customContent = '';
+      if (popoverCustomContent) {
+        customContent = '<div class="greenmetrics-global-badge-custom-content" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1);">' + popoverCustomContent + '</div>';
+      }
+      $('#popover-preview-container .greenmetrics-global-badge-custom-content').html(customContent);
+      
+      // Update metric values styling
+      $('#popover-preview-container .greenmetrics-global-badge-metric-value').css({
+        'color': popoverMetricsColor,
+        'font-family': popoverMetricsFont,
+        'font-size': popoverMetricsFontSize,
+        'background-color': popoverMetricsBgColor
+      });
+      
+      // Show/hide metrics based on selection
+      $('#popover-preview-container .greenmetrics-global-badge-metric').each(function() {
+        const metricKey = $(this).data('metric');
+        $(this).toggle(selectedMetrics.length === 0 || selectedMetrics.includes(metricKey));
+      });
+    }
+    
+    // Set initial preview
+    updatePreview();
+    
+    // Auto-dismiss notice after 5 seconds if present
     setTimeout(function() {
       // Auto-dismiss all success notices
       $('.notice-success.is-dismissible').fadeOut(500, function() {
         $(this).remove();
       });
-
+      
       // For URL parameter specific notices
-      if (window.location.search.indexOf('stats-refreshed=true') > -1 || 
-          window.location.search.indexOf('settings-updated=true') > -1 ||
+      if (window.location.search.indexOf('settings-updated=true') > -1 || 
           window.location.search.indexOf('settings-updated=1') > -1) {
         $('.notice').fadeOut(500, function() {
           $(this).remove();
@@ -56,68 +177,74 @@
       }
     }, 5000);
 
-    // Function to initialize dashboard
-    function initDashboard() {
-      // Load initial stats
-      getStats();
+    // Only initialize dashboard if we're on the dashboard page
+    if ($('#greenmetrics-stats').length) {
+      // Function to initialize dashboard
+      function initDashboard() {
+        // Load initial stats
+        getStats();
 
-      // Set up event listeners
-      setupEventListeners();
-    }
-
-    // Get stats
-    function getStats() {
-      if (typeof greenmetricsAdmin.rest_url !== 'undefined') {
-        $.ajax({
-          url: greenmetricsAdmin.rest_url + 'greenmetrics/v1/metrics',
-          type: 'GET',
-          beforeSend: function(xhr) {
-            xhr.setRequestHeader('X-WP-Nonce', greenmetricsAdmin.rest_nonce);
-          },
-          success: function(response) {
-            updateStatsDisplay(response);
-          },
-          error: function(xhr, status, error) {
-            console.error('Error getting stats:', error);
-            $('#greenmetrics-stats').html('<p class="error">Error loading stats. Please try again.</p>');
-          }
-        });
+        // Set up event listeners
+        setupEventListeners();
       }
-    }
 
-    // Update stats display
-    function updateStatsDisplay(stats) {
-      if ($('#greenmetrics-stats').length && stats) {
-        const html = `
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <h3>Total Views</h3>
-                        <p class="stat-value">${stats.total_views}</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Carbon Footprint</h3>
-                        <p class="stat-value">${stats.carbon_footprint.toFixed(2)} g CO2</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Energy Consumption</h3>
-                        <p class="stat-value">${stats.energy_consumption.toFixed(2)} kWh</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Data Transfer</h3>
-                        <p class="stat-value">${stats.avg_data_transfer.toFixed(2)} KB</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Requests</h3>
-                        <p class="stat-value">${stats.requests}</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Performance Score</h3>
-                        <p class="stat-value">${stats.performance_score.toFixed(2)}%</p>
-                    </div>
-                </div>
-            `;
-        $('#greenmetrics-stats').html(html);
+      // Get stats
+      function getStats() {
+        if (typeof greenmetricsAdmin !== 'undefined' && greenmetricsAdmin.rest_url) {
+          $.ajax({
+            url: greenmetricsAdmin.rest_url + 'greenmetrics/v1/metrics',
+            type: 'GET',
+            beforeSend: function(xhr) {
+              xhr.setRequestHeader('X-WP-Nonce', greenmetricsAdmin.rest_nonce);
+            },
+            success: function(response) {
+              updateStatsDisplay(response);
+            },
+            error: function(xhr, status, error) {
+              console.error('Error getting stats:', error);
+              $('#greenmetrics-stats').html('<p class="error">Error loading stats. Please try again.</p>');
+            }
+          });
+        }
       }
+
+      // Update stats display
+      function updateStatsDisplay(stats) {
+        if ($('#greenmetrics-stats').length && stats) {
+          const html = `
+            <div class="stats-grid">
+              <div class="stat-card">
+                <h3>Total Views</h3>
+                <p class="stat-value">${stats.total_views}</p>
+              </div>
+              <div class="stat-card">
+                <h3>Carbon Footprint</h3>
+                <p class="stat-value">${stats.carbon_footprint.toFixed(2)} g CO2</p>
+              </div>
+              <div class="stat-card">
+                <h3>Energy Consumption</h3>
+                <p class="stat-value">${stats.energy_consumption.toFixed(2)} kWh</p>
+              </div>
+              <div class="stat-card">
+                <h3>Data Transfer</h3>
+                <p class="stat-value">${stats.avg_data_transfer.toFixed(2)} KB</p>
+              </div>
+              <div class="stat-card">
+                <h3>Requests</h3>
+                <p class="stat-value">${stats.requests}</p>
+              </div>
+              <div class="stat-card">
+                <h3>Performance Score</h3>
+                <p class="stat-value">${stats.performance_score.toFixed(2)}%</p>
+              </div>
+            </div>
+          `;
+          $('#greenmetrics-stats').html(html);
+        }
+      }
+
+      // Initialize dashboard
+      initDashboard();
     }
 
     // Function to set up event listeners
@@ -133,9 +260,13 @@
       // Handle select field changes
       $selects.on('change', function() {
         if ($(this).attr('id') === 'badge_icon_type') {
+          const iconType = $(this).val();
+          
+          // Update visual selection
+          $('.icon-option').removeClass('selected');
+          $('.icon-option[data-value="' + iconType + '"]').addClass('selected');
+          
           if ($('#display_icon').is(':checked')) {
-            const iconType = $(this).val();
-
             if (iconType === 'custom') {
               $('#badge_custom_icon').closest('tr').show();
               $('#custom-icon-field-wrapper').show();
@@ -154,17 +285,17 @@
         debouncedUpdateBadgePreview();
       });
 
-      // Handle icon selection
-      $iconOptions.on('click', function() {
+      // Handle icon selection - completely rewritten
+      $('.icon-option').on('click', function() {
         const value = $(this).data('value');
-
-        // Update the hidden select field
+        
+        // Update the select field
         $('#badge_icon_type').val(value).trigger('change');
-
+        
         // Update visual selection
         $('.icon-option').removeClass('selected');
         $(this).addClass('selected');
-
+        
         // Only show custom icon upload if display_icon is checked and custom is selected
         if ($('#display_icon').is(':checked') && value === 'custom') {
           $('#badge_custom_icon').closest('tr').show();
@@ -172,22 +303,22 @@
         } else {
           $('#badge_custom_icon').closest('tr').hide();
         }
-
-        markDirty();
+        
+        // Update preview with the new icon type
+        updateBadgePreview();
       });
 
       // Handle custom icon upload button
       $('.upload-custom-icon').on('click', function(e) {
         e.preventDefault();
 
-        const button = $(this);
         const customIconField = $('#badge_custom_icon');
 
         // Create a media frame
         const mediaFrame = wp.media({
-          title: greenmetricsAdmin.selectIconText,
+          title: greenmetricsAdmin.selectIconText || 'Select or Upload Icon',
           button: {
-            text: greenmetricsAdmin.selectIconBtnText
+            text: greenmetricsAdmin.selectIconBtnText || 'Use this Icon'
           },
           multiple: false
         });
@@ -196,7 +327,7 @@
         mediaFrame.on('select', function() {
           const attachment = mediaFrame.state().get('selection').first().toJSON();
           customIconField.val(attachment.url);
-          markDirty();
+          updateBadgePreview();
         });
 
         // Open the media frame
@@ -249,6 +380,12 @@
         $('#badge_custom_icon').closest('tr').hide();
       }
     }
+
+    // Set up event listeners for the icon-related fields
+    $('#display_icon').on('change', function() {
+      toggleIconOptions();
+      updateBadgePreview();
+    });
 
     // Update badge preview
     function updateBadgePreview() {
@@ -321,6 +458,56 @@
         // Remove or hide icon
         $badge.find('.icon-container').hide();
       }
+
+      // Get current popover settings for preview update
+      const popoverTitle = $('#popover_title').val();
+      const popoverBgColor = $('#popover_bg_color').val();
+      const popoverTextColor = $('#popover_text_color').val();
+      const popoverMetricsColor = $('#popover_metrics_color').val();
+      const popoverMetricsBgColor = $('#popover_metrics_bg_color').val();
+      const popoverContentFont = $('#popover_content_font').val();
+      const popoverContentFontSize = $('#popover_content_font_size').val();
+      const popoverMetricsFont = $('#popover_metrics_font').val();
+      const popoverMetricsFontSize = $('#popover_metrics_font_size').val();
+      const popoverCustomContent = $('#popover_custom_content').val();
+      
+      // Get selected metrics
+      const selectedMetrics = [];
+      $('input[name="greenmetrics_settings[popover_metrics][]"]:checked').each(function() {
+        selectedMetrics.push($(this).val());
+      });
+      
+      // Update popover title
+      $('#popover-preview-container h3').text(popoverTitle);
+      
+      // Update popover container styling
+      $('#popover-preview-container').css({
+        'background-color': popoverBgColor,
+        'color': popoverTextColor,
+        'font-family': popoverContentFont,
+        'font-size': popoverContentFontSize
+      });
+      
+      // Update popover custom content
+      let customContent = '';
+      if (popoverCustomContent) {
+        customContent = '<div class="greenmetrics-global-badge-custom-content" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1);">' + popoverCustomContent + '</div>';
+      }
+      $('#popover-preview-container .greenmetrics-global-badge-custom-content').html(customContent);
+      
+      // Update metric values styling
+      $('#popover-preview-container .greenmetrics-global-badge-metric-value').css({
+        'color': popoverMetricsColor,
+        'font-family': popoverMetricsFont,
+        'font-size': popoverMetricsFontSize,
+        'background-color': popoverMetricsBgColor
+      });
+      
+      // Show/hide metrics based on selection
+      $('#popover-preview-container .greenmetrics-global-badge-metric').each(function() {
+        const metricKey = $(this).data('metric');
+        $(this).toggle(selectedMetrics.length === 0 || selectedMetrics.includes(metricKey));
+      });
     }
 
     // Show notice - used for displaying success/error messages
@@ -335,13 +522,27 @@
     }
 
     // Initialize UI elements based on current state
-    if ($('#display_icon').length) {
-      toggleIconOptions();
+    toggleIconOptions();
+    
+    // Force update the proper selection on load to override database values
+    const currentIcon = $('#badge_icon_type').val();
+    $('.icon-option').removeClass('selected');
+    $('.icon-option[data-value="' + currentIcon + '"]').addClass('selected');
+    
+    // Make sure custom icon field is visible/hidden appropriately on load
+    if ($('#display_icon').is(':checked') && currentIcon === 'custom') {
+      $('#badge_custom_icon').closest('tr').show();
+      $('#custom-icon-field-wrapper').show();
+    } else {
+      $('#badge_custom_icon').closest('tr').hide();
     }
 
     // Update badge preview on page load
     if ($('#badge-preview-container').length) {
       updateBadgePreview();
     }
+    
+    // Set up event listeners
+    setupEventListeners();
   });
 })(jQuery);

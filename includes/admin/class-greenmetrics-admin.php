@@ -108,6 +108,7 @@ class GreenMetrics_Admin {
 					'popover_bg_color'       => '#ffffff',
 					'popover_text_color'     => '#333333',
 					'popover_metrics_color'  => '#4CAF50',
+					'popover_metrics_bg_color' => 'rgba(0, 0, 0, 0.05)',
 					'popover_content_font'   => 'inherit',
 					'popover_content_font_size' => '16px',
 					'popover_metrics_font'   => 'inherit',
@@ -293,6 +294,15 @@ class GreenMetrics_Admin {
 			'greenmetrics_display',
 			'greenmetrics_popover_content',
 			array( 'label_for' => 'popover_metrics_color' )
+		);
+
+		add_settings_field(
+			'popover_metrics_bg_color',
+			__( 'Metrics Background Color', 'greenmetrics' ),
+			array( $this, 'render_popover_metrics_bg_color_field' ),
+			'greenmetrics_display',
+			'greenmetrics_popover_content',
+			array( 'label_for' => 'popover_metrics_bg_color' )
 		);
 
 		add_settings_field(
@@ -486,6 +496,10 @@ class GreenMetrics_Admin {
 			$sanitized['popover_metrics_color'] = sanitize_hex_color( $input['popover_metrics_color'] );
 		}
 
+		if ( isset( $input['popover_metrics_bg_color'] ) ) {
+			$sanitized['popover_metrics_bg_color'] = sanitize_hex_color( $input['popover_metrics_bg_color'] );
+		}
+
 		if ( isset( $input['popover_content_font'] ) ) {
 			$sanitized['popover_content_font'] = sanitize_text_field( $input['popover_content_font'] );
 		}
@@ -571,7 +585,7 @@ class GreenMetrics_Admin {
 		$value   = isset( $options['badge_icon_type'] ) ? $options['badge_icon_type'] : 'leaf';
 		?>
 		<div class="greenmetrics-icon-selection">
-			<select id="badge_icon_type" name="greenmetrics_settings[badge_icon_type]" style="display:none;">
+			<select id="badge_icon_type" name="greenmetrics_settings[badge_icon_type]" style="margin-bottom: 15px;">
 				<option value="leaf" <?php selected( $value, 'leaf' ); ?>><?php esc_html_e( 'Leaf', 'greenmetrics' ); ?></option>
 				<option value="tree" <?php selected( $value, 'tree' ); ?>><?php esc_html_e( 'Tree', 'greenmetrics' ); ?></option>
 				<option value="globe" <?php selected( $value, 'globe' ); ?>><?php esc_html_e( 'Globe', 'greenmetrics' ); ?></option>
@@ -639,8 +653,8 @@ class GreenMetrics_Admin {
 		$options = get_option( 'greenmetrics_settings' );
 		$value   = isset( $options['badge_icon_color'] ) ? $options['badge_icon_color'] : '#ffffff';
 		?>
-		<input type="color" id="badge_icon_color" name="greenmetrics_settings[badge_icon_color]" value="<?php echo esc_attr( $value ); ?>">
-		<p class="description"><?php esc_html_e( 'Icon color for the badge.', 'greenmetrics' ); ?></p>
+		<input type="text" id="badge_icon_color" name="greenmetrics_settings[badge_icon_color]" value="<?php echo esc_attr( $value ); ?>" class="greenmetrics-color-picker" data-alpha="true">
+		<p class="description"><?php esc_html_e( 'Color of the badge icon.', 'greenmetrics' ); ?></p>
 		<?php
 	}
 
@@ -696,7 +710,7 @@ class GreenMetrics_Admin {
 		$options = get_option( 'greenmetrics_settings' );
 		$value   = isset( $options['badge_background_color'] ) ? $options['badge_background_color'] : '#4CAF50';
 		?>
-		<input type="color" id="badge_background_color" name="greenmetrics_settings[badge_background_color]" value="<?php echo esc_attr( $value ); ?>">
+		<input type="text" id="badge_background_color" name="greenmetrics_settings[badge_background_color]" value="<?php echo esc_attr( $value ); ?>" class="greenmetrics-color-picker" data-alpha="true">
 		<p class="description"><?php esc_html_e( 'Background color of the badge.', 'greenmetrics' ); ?></p>
 		<?php
 	}
@@ -708,7 +722,7 @@ class GreenMetrics_Admin {
 		$options = get_option( 'greenmetrics_settings' );
 		$value   = isset( $options['badge_text_color'] ) ? $options['badge_text_color'] : '#ffffff';
 		?>
-		<input type="color" id="badge_text_color" name="greenmetrics_settings[badge_text_color]" value="<?php echo esc_attr( $value ); ?>">
+		<input type="text" id="badge_text_color" name="greenmetrics_settings[badge_text_color]" value="<?php echo esc_attr( $value ); ?>" class="greenmetrics-color-picker" data-alpha="true">
 		<p class="description"><?php esc_html_e( 'Text color for the badge.', 'greenmetrics' ); ?></p>
 		<?php
 	}
@@ -804,7 +818,7 @@ class GreenMetrics_Admin {
 		$options = get_option( 'greenmetrics_settings' );
 		$value   = isset( $options['popover_bg_color'] ) ? $options['popover_bg_color'] : '#ffffff';
 		?>
-		<input type="color" id="popover_bg_color" name="greenmetrics_settings[popover_bg_color]" value="<?php echo esc_attr( $value ); ?>">
+		<input type="text" id="popover_bg_color" name="greenmetrics_settings[popover_bg_color]" value="<?php echo esc_attr( $value ); ?>" class="greenmetrics-color-picker" data-alpha="true">
 		<p class="description"><?php esc_html_e( 'Background color of the popover content.', 'greenmetrics' ); ?></p>
 		<?php
 	}
@@ -814,9 +828,9 @@ class GreenMetrics_Admin {
 	 */
 	public function render_popover_text_color_field() {
 		$options = get_option( 'greenmetrics_settings' );
-		$value   = isset( $options['popover_text_color'] ) ? $options['popover_text_color'] : '#000000';
+		$value   = isset( $options['popover_text_color'] ) ? $options['popover_text_color'] : '#333333';
 		?>
-		<input type="color" id="popover_text_color" name="greenmetrics_settings[popover_text_color]" value="<?php echo esc_attr( $value ); ?>">
+		<input type="text" id="popover_text_color" name="greenmetrics_settings[popover_text_color]" value="<?php echo esc_attr( $value ); ?>" class="greenmetrics-color-picker" data-alpha="true">
 		<p class="description"><?php esc_html_e( 'Text color of the popover content.', 'greenmetrics' ); ?></p>
 		<?php
 	}
@@ -826,10 +840,22 @@ class GreenMetrics_Admin {
 	 */
 	public function render_popover_metrics_color_field() {
 		$options = get_option( 'greenmetrics_settings' );
-		$value   = isset( $options['popover_metrics_color'] ) ? $options['popover_metrics_color'] : '#000000';
+		$value   = isset( $options['popover_metrics_color'] ) ? $options['popover_metrics_color'] : '#4CAF50';
 		?>
-		<input type="color" id="popover_metrics_color" name="greenmetrics_settings[popover_metrics_color]" value="<?php echo esc_attr( $value ); ?>">
+		<input type="text" id="popover_metrics_color" name="greenmetrics_settings[popover_metrics_color]" value="<?php echo esc_attr( $value ); ?>" class="greenmetrics-color-picker" data-alpha="true">
 		<p class="description"><?php esc_html_e( 'Text color of the metrics in the popover.', 'greenmetrics' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Render popover metrics background color field.
+	 */
+	public function render_popover_metrics_bg_color_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['popover_metrics_bg_color'] ) ? $options['popover_metrics_bg_color'] : 'rgba(0, 0, 0, 0.05)';
+		?>
+		<input type="text" id="popover_metrics_bg_color" name="greenmetrics_settings[popover_metrics_bg_color]" value="<?php echo esc_attr( $value ); ?>" class="greenmetrics-color-picker" data-alpha="true">
+		<p class="description"><?php esc_html_e( 'Background color of the metrics in the popover.', 'greenmetrics' ); ?></p>
 		<?php
 	}
 
@@ -874,7 +900,7 @@ class GreenMetrics_Admin {
 	 */
 	public function render_popover_metrics_font_size_field() {
 		$options = get_option( 'greenmetrics_settings' );
-		$value   = isset( $options['popover_metrics_font_size'] ) ? $options['popover_metrics_font_size'] : '16px';
+		$value   = isset( $options['popover_metrics_font_size'] ) ? $options['popover_metrics_font_size'] : '14px';
 		?>
 		<input type="text" id="popover_metrics_font_size" name="greenmetrics_settings[popover_metrics_font_size]" value="<?php echo esc_attr( $value ); ?>" class="regular-text">
 		<p class="description"><?php esc_html_e( 'Font size for the metrics in the popover.', 'greenmetrics' ); ?></p>
@@ -899,8 +925,9 @@ class GreenMetrics_Admin {
 	 */
 	public function enqueue_scripts() {
 		wp_enqueue_style( 'wp-color-picker' );
-		wp_enqueue_media();
-
+		wp_enqueue_script( 'wp-color-picker' );
+		wp_enqueue_media(); // Add media uploader scripts
+		
 		wp_enqueue_script(
 			'greenmetrics-admin',
 			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin.js',
@@ -921,7 +948,17 @@ class GreenMetrics_Admin {
 				'selectIconText'    => __( 'Select or Upload Icon', 'greenmetrics' ),
 				'selectIconBtnText' => __( 'Use this Icon', 'greenmetrics' ),
 				'customIconText'    => __( 'Custom Icon', 'greenmetrics' ),
+				'rest_url'          => get_rest_url( null, 'greenmetrics/v1' ),
+				'rest_nonce'        => wp_create_nonce( 'wp_rest' )
 			)
+		);
+
+		wp_enqueue_style(
+			'greenmetrics-admin',
+			GREENMETRICS_PLUGIN_URL . 'includes/admin/css/greenmetrics-admin.css',
+			array( 'wp-color-picker' ),
+			GREENMETRICS_VERSION,
+			'all'
 		);
 	}
 

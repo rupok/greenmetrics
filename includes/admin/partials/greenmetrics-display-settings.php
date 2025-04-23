@@ -146,15 +146,20 @@ $settings = get_option(
 									isset($settings['popover_metrics_font_size']) ? esc_attr($settings['popover_metrics_font_size']) : '14px'
 								);
 								
+								$popover_metrics_bg_style = sprintf(
+									'background-color: %s;',
+									isset($settings['popover_metrics_bg_color']) ? esc_attr($settings['popover_metrics_bg_color']) : 'rgba(0, 0, 0, 0.05)'
+								);
+								
 								// Show selected metrics
 								foreach ($popover_metrics as $metric_key) {
 									if (isset($metrics_data[$metric_key])) {
 										?>
-										<div class="greenmetrics-global-badge-metric" style="display: flex; flex-direction: column; gap: 4px;">
+										<div class="greenmetrics-global-badge-metric" data-metric="<?php echo esc_attr($metric_key); ?>" style="display: flex; flex-direction: column; gap: 4px;">
 											<div class="greenmetrics-global-badge-metric-label" style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; opacity: 0.8;">
 												<span><?php echo esc_html($metrics_data[$metric_key]['label']); ?></span>
 											</div>
-											<div class="greenmetrics-global-badge-metric-value" style="<?php echo $popover_metrics_style; ?> padding: 4px 8px; background-color: rgba(0, 0, 0, 0.05); border-radius: 4px; font-weight: 500;">
+											<div class="greenmetrics-global-badge-metric-value" style="<?php echo $popover_metrics_style . ' ' . $popover_metrics_bg_style; ?> padding: 4px 8px; border-radius: 4px; font-weight: 500;">
 												<?php echo esc_html($metrics_data[$metric_key]['value']); ?>
 											</div>
 										</div>
@@ -266,6 +271,7 @@ jQuery(document).ready(function($) {
 		const popoverBgColor = $('#popover_bg_color').val();
 		const popoverTextColor = $('#popover_text_color').val();
 		const popoverMetricsColor = $('#popover_metrics_color').val();
+		const popoverMetricsBgColor = $('#popover_metrics_bg_color').val();
 		const popoverContentFont = $('#popover_content_font').val();
 		const popoverContentFontSize = $('#popover_content_font_size').val();
 		const popoverMetricsFont = $('#popover_metrics_font').val();
@@ -300,7 +306,8 @@ jQuery(document).ready(function($) {
 		$('#popover-preview-container .greenmetrics-global-badge-metric-value').css({
 			'color': popoverMetricsColor,
 			'font-family': popoverMetricsFont,
-			'font-size': popoverMetricsFontSize
+			'font-size': popoverMetricsFontSize,
+			'background-color': popoverMetricsBgColor
 		});
 		
 		// Show/hide metrics based on selection
