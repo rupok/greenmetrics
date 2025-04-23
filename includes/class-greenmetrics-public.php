@@ -708,6 +708,7 @@ class GreenMetrics_Public {
 		$popover_content_font_size = $settings_manager->get( 'popover_content_font_size', '16px' );
 		$popover_metrics_font = $settings_manager->get( 'popover_metrics_font', 'inherit' );
 		$popover_metrics_font_size = $settings_manager->get( 'popover_metrics_font_size', '14px' );
+		$popover_metrics_label_font_size = $settings_manager->get( 'popover_metrics_label_font_size', '12px' );
 		
 		// Get metrics data for the popover
 		$metrics = $this->get_metrics_data();
@@ -760,6 +761,12 @@ class GreenMetrics_Public {
 			esc_attr($popover_metrics_bg_color)
 		);
 		
+		// Add metrics label style
+		$popover_metrics_label_style = sprintf(
+			'font-size: %s; opacity: 0.8;',
+			esc_attr($popover_metrics_label_font_size)
+		);
+		
 		// Output HTML with all dashboard settings applied
 		?>
 		<div class="<?php echo esc_attr( $global_class ); ?>">
@@ -802,7 +809,7 @@ class GreenMetrics_Public {
 					<div class="greenmetrics-global-badge-metrics">
 						<?php if (in_array('carbon_footprint', $popover_metrics)) : ?>
 						<div class="greenmetrics-global-badge-metric">
-							<div class="greenmetrics-global-badge-metric-label">
+							<div class="greenmetrics-global-badge-metric-label" style="<?php echo $popover_metrics_label_style; ?>">
 								<span><?php esc_html_e('Carbon Footprint', 'greenmetrics'); ?></span>
 							</div>
 							<div class="greenmetrics-global-badge-metric-value" style="<?php echo $popover_metrics_style; ?>"><?php echo esc_html($carbon_formatted); ?></div>
@@ -811,7 +818,7 @@ class GreenMetrics_Public {
 						
 						<?php if (in_array('energy_consumption', $popover_metrics)) : ?>
 						<div class="greenmetrics-global-badge-metric">
-							<div class="greenmetrics-global-badge-metric-label">
+							<div class="greenmetrics-global-badge-metric-label" style="<?php echo $popover_metrics_label_style; ?>">
 								<span><?php esc_html_e('Energy Consumption', 'greenmetrics'); ?></span>
 							</div>
 							<div class="greenmetrics-global-badge-metric-value" style="<?php echo $popover_metrics_style; ?>"><?php echo esc_html($energy_formatted); ?></div>
@@ -820,7 +827,7 @@ class GreenMetrics_Public {
 						
 						<?php if (in_array('data_transfer', $popover_metrics)) : ?>
 						<div class="greenmetrics-global-badge-metric">
-							<div class="greenmetrics-global-badge-metric-label">
+							<div class="greenmetrics-global-badge-metric-label" style="<?php echo $popover_metrics_label_style; ?>">
 								<span><?php esc_html_e('Data Transfer', 'greenmetrics'); ?></span>
 							</div>
 							<div class="greenmetrics-global-badge-metric-value" style="<?php echo $popover_metrics_style; ?>"><?php echo esc_html($data_formatted); ?></div>
@@ -829,7 +836,7 @@ class GreenMetrics_Public {
 						
 						<?php if (in_array('total_views', $popover_metrics)) : ?>
 						<div class="greenmetrics-global-badge-metric">
-							<div class="greenmetrics-global-badge-metric-label">
+							<div class="greenmetrics-global-badge-metric-label" style="<?php echo $popover_metrics_label_style; ?>">
 								<span><?php esc_html_e('Page Views', 'greenmetrics'); ?></span>
 							</div>
 							<div class="greenmetrics-global-badge-metric-value" style="<?php echo $popover_metrics_style; ?>"><?php echo esc_html($views_formatted); ?></div>
@@ -838,7 +845,7 @@ class GreenMetrics_Public {
 						
 						<?php if (in_array('requests', $popover_metrics)) : ?>
 						<div class="greenmetrics-global-badge-metric">
-							<div class="greenmetrics-global-badge-metric-label">
+							<div class="greenmetrics-global-badge-metric-label" style="<?php echo $popover_metrics_label_style; ?>">
 								<span><?php esc_html_e('HTTP Requests', 'greenmetrics'); ?></span>
 							</div>
 							<div class="greenmetrics-global-badge-metric-value" style="<?php echo $popover_metrics_style; ?>"><?php echo esc_html($requests_formatted); ?></div>
@@ -847,7 +854,7 @@ class GreenMetrics_Public {
 						
 						<?php if (in_array('performance_score', $popover_metrics)) : ?>
 						<div class="greenmetrics-global-badge-metric">
-							<div class="greenmetrics-global-badge-metric-label">
+							<div class="greenmetrics-global-badge-metric-label" style="<?php echo $popover_metrics_label_style; ?>">
 								<span><?php esc_html_e('Performance Score', 'greenmetrics'); ?></span>
 							</div>
 							<div class="greenmetrics-global-badge-metric-value" style="<?php echo $popover_metrics_style; ?>"><?php echo esc_html($score_formatted); ?></div>

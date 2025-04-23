@@ -75,7 +75,7 @@ $settings = get_option(
 												echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c4.97 0 9-4.03 9-9-4.97 0-9 4.03-9 9zm2.44-9.43h-.44v2h.44c2.32 0 2.49 3.23 2.49 3.23 1.52-1.84 2.63-4.43 1.73-7C17.56 8.37 15.5 7 15.5 7S14.8 9.1 13 9.42v.36c1.32-.18 2.44.11 2.44.11s-1.22 1.91-1 3.68z"/><path d="M12.28 10h-.56v2h.56c2.33 0 2.51 3.45 2.51 3.45 1.55-1.89 2.67-4.63 1.77-7.24-.51-1.46-2.18-3.02-2.18-3.02s-.99 2.18-2.1 2.48V8c1.34-.2 2.55.07 2.55.07s-1.34 1.66-1.14 3.44z"/><path d="M12.63 5.33c-.28.47-1.04 1.68-2 1.87V8.8c1.35-.19 2.97.31 2.97.31S12.69 10.3 12.22 12h.33v-2h-.16c.06-.32.2-.65.44-.97.19.38.39.75.58 1.09l.66-.42c-.18-.28-.33-.57-.46-.85 0 0 .99.17 2.22.5-.27-.5-2.47-4.02-3.2-4.02z"/><path d="M10.45 12h-.43v8.17c.34-.14.66-.34.95-.55L10.45 12zm1.66 4.62c.1.21.19.42.27.63-.16-.19-.31-.39-.46-.57.07-.02.12-.04.19-.06zm1.14-4.62L12.1 17.1c.45-.11.88-.29 1.29-.51l-.14-4.59z"/><path d="M9.3 14.13l-.24 7.14c.24.11.48.19.73.26l-.42-7.8c-.02.14-.05.27-.07.4zm3.33 1.7c-.04-.04-.08-.09-.12-.14.03.05.06.09.09.13.01 0 .02.01.03.01zm-.83-3.83l-.32 7.46c.29.05.58.08.88.08.12 0 .24-.01.36-.02L12 12l-.2 0z"/></svg>';
 												break;
 											case 'globe':
-												echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>';
+												echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>';
 												break;
 											case 'recycle':
 												echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M5.77 7.15L7.2 4.78l1.03-1.71c.39-.65 1.33-.65 1.72 0l1.48 2.46-1.23 2.06-1 1.34-2.43-4.78zm15.95 5.82l-1.6-2.66-3.46 2L18.87 16H21v2l-3.87-7.03zM16 21h1.5l2.05-3.42-3.46-2-1.09 1.84L16 21zm-3.24-3.71l-1.03-1.71-1.43 2.43-2.43 4.78 1.6 2.66 3.46-2 1.03-1.71-1.43-2.45zM13.42 8.5l-1.48-2.46c-.39-.65-1.33-.65-1.72 0L9.22 7.15l-1 1.34 2.43 4.78 1.6-2.66 1.17-2.11zM10.5 14.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>';
@@ -111,7 +111,7 @@ $settings = get_option(
 							box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 							background-color: <?php echo isset($settings['popover_bg_color']) ? esc_attr($settings['popover_bg_color']) : '#ffffff'; ?>;
 							color: <?php echo isset($settings['popover_text_color']) ? esc_attr($settings['popover_text_color']) : '#333333'; ?>;
-							font-family: <?php echo isset($settings['popover_content_font']) ? esc_attr($settings['popover_content_font']) : '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif'; ?>;
+							font-family: <?php echo isset($settings['popover_content_font']) ? esc_attr($settings['popover_content_font']) : 'inherit'; ?>;
 							font-size: <?php echo isset($settings['popover_content_font_size']) ? esc_attr($settings['popover_content_font_size']) : '16px'; ?>;
 						">
 							<h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: <?php echo isset($settings['popover_text_color']) ? esc_attr($settings['popover_text_color']) : '#333333'; ?>;">
@@ -151,12 +151,17 @@ $settings = get_option(
 									isset($settings['popover_metrics_bg_color']) ? esc_attr($settings['popover_metrics_bg_color']) : 'rgba(0, 0, 0, 0.05)'
 								);
 								
+								$popover_metrics_label_style = sprintf(
+									'font-size: %s; opacity: 0.8;',
+									isset($settings['popover_metrics_label_font_size']) ? esc_attr($settings['popover_metrics_label_font_size']) : '12px'
+								);
+								
 								// Show selected metrics
 								foreach ($popover_metrics as $metric_key) {
 									if (isset($metrics_data[$metric_key])) {
 										?>
 										<div class="greenmetrics-global-badge-metric" data-metric="<?php echo esc_attr($metric_key); ?>" style="display: flex; flex-direction: column; gap: 4px;">
-											<div class="greenmetrics-global-badge-metric-label" style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; opacity: 0.8;">
+											<div class="greenmetrics-global-badge-metric-label" style="display: flex; justify-content: space-between; align-items: center; <?php echo $popover_metrics_label_style; ?>">
 												<span><?php echo esc_html($metrics_data[$metric_key]['label']); ?></span>
 											</div>
 											<div class="greenmetrics-global-badge-metric-value" style="<?php echo $popover_metrics_style . ' ' . $popover_metrics_bg_style; ?> padding: 4px 8px; border-radius: 4px; font-weight: 500;">
@@ -230,8 +235,16 @@ jQuery(document).ready(function($) {
 	// Update badge and popover preview when settings change
 	$('#enable_badge, #badge_position, #badge_size, #badge_text, #badge_background_color, #badge_text_color, #badge_icon_color, ' +
 	  '#popover_title, #popover_custom_content, #popover_bg_color, #popover_text_color, #popover_metrics_color, ' +
-	  '#popover_content_font, #popover_content_font_size, #popover_metrics_font, #popover_metrics_font_size')
+	  '#popover_content_font, #popover_metrics_font')
 	.on('change input', function() {
+		updatePreview();
+	});
+	
+	// Handle font size number input changes
+	$('#popover_content_font_size_number, #popover_metrics_font_size_number, #popover_metrics_label_font_size_number').on('change input', function() {
+		// Update hidden field value
+		var targetId = $(this).attr('id').replace('_number', '');
+		$('#' + targetId).val($(this).val() + 'px');
 		updatePreview();
 	});
 	
@@ -239,6 +252,14 @@ jQuery(document).ready(function($) {
 	$('input[name="greenmetrics_settings[popover_metrics][]"]').on('change', function() {
 		updatePreview();
 	});
+	
+	// Initialize font size input fields
+	function initFontSizeFields() {
+		// Set the number input value from the hidden field
+		$('#popover_content_font_size_number').val(parseInt($('#popover_content_font_size').val()));
+		$('#popover_metrics_font_size_number').val(parseInt($('#popover_metrics_font_size').val()));
+		$('#popover_metrics_label_font_size_number').val(parseInt($('#popover_metrics_label_font_size').val()));
+	}
 	
 	function updatePreview() {
 		// Get current badge settings
@@ -276,6 +297,7 @@ jQuery(document).ready(function($) {
 		const popoverContentFontSize = $('#popover_content_font_size').val();
 		const popoverMetricsFont = $('#popover_metrics_font').val();
 		const popoverMetricsFontSize = $('#popover_metrics_font_size').val();
+		const popoverMetricsLabelFontSize = $('#popover_metrics_label_font_size').val();
 		const popoverCustomContent = $('#popover_custom_content').val();
 		
 		// Get selected metrics
@@ -310,13 +332,19 @@ jQuery(document).ready(function($) {
 			'background-color': popoverMetricsBgColor
 		});
 		
+		// Update metric labels styling
+		$('#popover-preview-container .greenmetrics-global-badge-metric-label').css({
+			'font-size': popoverMetricsLabelFontSize
+		});
+		
 		// Show/hide metrics based on selection
 		$('#popover-preview-container .greenmetrics-global-badge-metric').each(function(index) {
 			$(this).toggle(selectedMetrics.length === 0 || index < selectedMetrics.length);
 		});
 	}
 	
-	// Set initial preview
+	// Initialize fields and set initial preview
+	initFontSizeFields();
 	updatePreview();
 	
 	// Auto-dismiss notice after 5 seconds if present

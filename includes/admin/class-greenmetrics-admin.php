@@ -113,6 +113,7 @@ class GreenMetrics_Admin {
 					'popover_content_font_size' => '16px',
 					'popover_metrics_font'   => 'inherit',
 					'popover_metrics_font_size' => '14px',
+					'popover_metrics_label_font_size' => '12px',
 				),
 			)
 		);
@@ -333,8 +334,17 @@ class GreenMetrics_Admin {
 		);
 
 		add_settings_field(
+			'popover_metrics_label_font_size',
+			__( 'Metrics Label Font Size', 'greenmetrics' ),
+			array( $this, 'render_popover_metrics_label_font_size_field' ),
+			'greenmetrics_display',
+			'greenmetrics_popover_content',
+			array( 'label_for' => 'popover_metrics_label_font_size' )
+		);
+
+		add_settings_field(
 			'popover_metrics_font_size',
-			__( 'Metrics Font Size', 'greenmetrics' ),
+			__( 'Metrics Value Font Size', 'greenmetrics' ),
 			array( $this, 'render_popover_metrics_font_size_field' ),
 			'greenmetrics_display',
 			'greenmetrics_popover_content',
@@ -505,15 +515,61 @@ class GreenMetrics_Admin {
 		}
 
 		if ( isset( $input['popover_content_font_size'] ) ) {
-			$sanitized['popover_content_font_size'] = sanitize_text_field( $input['popover_content_font_size'] );
+			$font_size = sanitize_text_field( $input['popover_content_font_size'] );
+			// Check if the value already has 'px' suffix, otherwise add it
+			if ( strpos( $font_size, 'px' ) === false ) {
+				$font_size = intval( $font_size ) . 'px';
+			}
+			// Ensure the font size is within reasonable bounds (8px to 36px)
+			$numeric_size = intval( $font_size );
+			if ( $numeric_size < 8 ) {
+				$font_size = '8px';
+			} elseif ( $numeric_size > 36 ) {
+				$font_size = '36px';
+			} else {
+				$font_size = $numeric_size . 'px';
+			}
+			$sanitized['popover_content_font_size'] = $font_size;
 		}
 
 		if ( isset( $input['popover_metrics_font'] ) ) {
 			$sanitized['popover_metrics_font'] = sanitize_text_field( $input['popover_metrics_font'] );
 		}
 
+		if ( isset( $input['popover_metrics_label_font_size'] ) ) {
+			$font_size = sanitize_text_field( $input['popover_metrics_label_font_size'] );
+			// Check if the value already has 'px' suffix, otherwise add it
+			if ( strpos( $font_size, 'px' ) === false ) {
+				$font_size = intval( $font_size ) . 'px';
+			}
+			// Ensure the font size is within reasonable bounds (8px to 36px)
+			$numeric_size = intval( $font_size );
+			if ( $numeric_size < 8 ) {
+				$font_size = '8px';
+			} elseif ( $numeric_size > 36 ) {
+				$font_size = '36px';
+			} else {
+				$font_size = $numeric_size . 'px';
+			}
+			$sanitized['popover_metrics_label_font_size'] = $font_size;
+		}
+
 		if ( isset( $input['popover_metrics_font_size'] ) ) {
-			$sanitized['popover_metrics_font_size'] = sanitize_text_field( $input['popover_metrics_font_size'] );
+			$font_size = sanitize_text_field( $input['popover_metrics_font_size'] );
+			// Check if the value already has 'px' suffix, otherwise add it
+			if ( strpos( $font_size, 'px' ) === false ) {
+				$font_size = intval( $font_size ) . 'px';
+			}
+			// Ensure the font size is within reasonable bounds (8px to 36px)
+			$numeric_size = intval( $font_size );
+			if ( $numeric_size < 8 ) {
+				$font_size = '8px';
+			} elseif ( $numeric_size > 36 ) {
+				$font_size = '36px';
+			} else {
+				$font_size = $numeric_size . 'px';
+			}
+			$sanitized['popover_metrics_font_size'] = $font_size;
 		}
 
 		// Log the result
@@ -864,10 +920,34 @@ class GreenMetrics_Admin {
 	 */
 	public function render_popover_content_font_field() {
 		$options = get_option( 'greenmetrics_settings' );
-		$value   = isset( $options['popover_content_font'] ) ? $options['popover_content_font'] : 'Arial';
+		$value   = isset( $options['popover_content_font'] ) ? $options['popover_content_font'] : 'inherit';
+		
+		$font_options = array(
+			'inherit' => __( 'Theme Default', 'greenmetrics' ),
+			'Arial, sans-serif' => 'Arial',
+			'Helvetica, Arial, sans-serif' => 'Helvetica',
+			'Georgia, serif' => 'Georgia',
+			'Times New Roman, Times, serif' => 'Times New Roman',
+			'Verdana, Geneva, sans-serif' => 'Verdana',
+			'system-ui, sans-serif' => 'System UI',
+			'Tahoma, Geneva, sans-serif' => 'Tahoma',
+			'Trebuchet MS, sans-serif' => 'Trebuchet MS',
+			'Courier New, monospace' => 'Courier New',
+			'Palatino, serif' => 'Palatino',
+			'Garamond, serif' => 'Garamond',
+			'Century Gothic, sans-serif' => 'Century Gothic',
+			'sans-serif' => 'Generic Sans-serif',
+			'serif' => 'Generic Serif',
+			'monospace' => 'Generic Monospace',
+		);
+		
 		?>
-		<input type="text" id="popover_content_font" name="greenmetrics_settings[popover_content_font]" value="<?php echo esc_attr( $value ); ?>" class="regular-text">
-		<p class="description"><?php esc_html_e( 'Font family for the popover content.', 'greenmetrics' ); ?></p>
+		<select id="popover_content_font" name="greenmetrics_settings[popover_content_font]" class="regular-text">
+			<?php foreach ( $font_options as $font_value => $font_name ) : ?>
+				<option value="<?php echo esc_attr( $font_value ); ?>" <?php selected( $value, $font_value ); ?>><?php echo esc_html( $font_name ); ?></option>
+			<?php endforeach; ?>
+		</select>
+		<p class="description"><?php esc_html_e( 'Font family for the popover content. "Theme Default" will inherit the font from your theme.', 'greenmetrics' ); ?></p>
 		<?php
 	}
 
@@ -877,9 +957,62 @@ class GreenMetrics_Admin {
 	public function render_popover_content_font_size_field() {
 		$options = get_option( 'greenmetrics_settings' );
 		$value   = isset( $options['popover_content_font_size'] ) ? $options['popover_content_font_size'] : '16px';
+		// Remove 'px' for the raw input value
+		$numeric_value = intval( $value );
 		?>
-		<input type="text" id="popover_content_font_size" name="greenmetrics_settings[popover_content_font_size]" value="<?php echo esc_attr( $value ); ?>" class="regular-text">
-		<p class="description"><?php esc_html_e( 'Font size for the popover content.', 'greenmetrics' ); ?></p>
+		<div class="greenmetrics-font-size-wrapper">
+			<div class="font-size-control">
+				<div class="font-size-input-group">
+					<input type="number" 
+						id="popover_content_font_size_number" 
+						min="8" 
+						max="36" 
+						step="1" 
+						value="<?php echo esc_attr( $numeric_value ); ?>" 
+						class="font-size-number" 
+						onchange="document.getElementById('popover_content_font_size').value = this.value + 'px';">
+					<div class="font-size-unit">
+						<span>px</span>
+					</div>
+				</div>
+				<div class="font-size-arrows">
+					<span class="dashicons dashicons-arrow-up-alt2" onclick="incrementFontSize('popover_content_font_size_number')"></span>
+					<span class="dashicons dashicons-arrow-down-alt2" onclick="decrementFontSize('popover_content_font_size_number')"></span>
+				</div>
+				<input type="hidden" 
+					id="popover_content_font_size" 
+					name="greenmetrics_settings[popover_content_font_size]" 
+					value="<?php echo esc_attr( $value ); ?>">
+			</div>
+			<p class="description"><?php esc_html_e( 'Font size for the popover content.', 'greenmetrics' ); ?></p>
+		</div>
+		<script>
+		function incrementFontSize(inputId) {
+			const input = document.getElementById(inputId);
+			const hiddenInput = document.getElementById(inputId.replace('_number', ''));
+			const currentValue = parseInt(input.value) || 0;
+			const newValue = Math.min(currentValue + 1, parseInt(input.max));
+			input.value = newValue;
+			hiddenInput.value = newValue + 'px';
+			
+			// Trigger change event for preview update
+			const event = new Event('change', { bubbles: true });
+			input.dispatchEvent(event);
+		}
+		
+		function decrementFontSize(inputId) {
+			const input = document.getElementById(inputId);
+			const hiddenInput = document.getElementById(inputId.replace('_number', ''));
+			const currentValue = parseInt(input.value) || 0;
+			const newValue = Math.max(currentValue - 1, parseInt(input.min));
+			input.value = newValue;
+			hiddenInput.value = newValue + 'px';
+			
+			// Trigger change event for preview update
+			const event = new Event('change', { bubbles: true });
+			input.dispatchEvent(event);
+		}
+		</script>
 		<?php
 	}
 
@@ -888,10 +1021,72 @@ class GreenMetrics_Admin {
 	 */
 	public function render_popover_metrics_font_field() {
 		$options = get_option( 'greenmetrics_settings' );
-		$value   = isset( $options['popover_metrics_font'] ) ? $options['popover_metrics_font'] : 'Arial';
+		$value   = isset( $options['popover_metrics_font'] ) ? $options['popover_metrics_font'] : 'inherit';
+		
+		$font_options = array(
+			'inherit' => __( 'Theme Default', 'greenmetrics' ),
+			'Arial, sans-serif' => 'Arial',
+			'Helvetica, Arial, sans-serif' => 'Helvetica',
+			'Georgia, serif' => 'Georgia',
+			'Times New Roman, Times, serif' => 'Times New Roman',
+			'Verdana, Geneva, sans-serif' => 'Verdana',
+			'system-ui, sans-serif' => 'System UI',
+			'Tahoma, Geneva, sans-serif' => 'Tahoma',
+			'Trebuchet MS, sans-serif' => 'Trebuchet MS',
+			'Courier New, monospace' => 'Courier New',
+			'Palatino, serif' => 'Palatino',
+			'Garamond, serif' => 'Garamond',
+			'Century Gothic, sans-serif' => 'Century Gothic',
+			'sans-serif' => 'Generic Sans-serif',
+			'serif' => 'Generic Serif',
+			'monospace' => 'Generic Monospace',
+		);
+		
 		?>
-		<input type="text" id="popover_metrics_font" name="greenmetrics_settings[popover_metrics_font]" value="<?php echo esc_attr( $value ); ?>" class="regular-text">
-		<p class="description"><?php esc_html_e( 'Font family for the metrics in the popover.', 'greenmetrics' ); ?></p>
+		<select id="popover_metrics_font" name="greenmetrics_settings[popover_metrics_font]" class="regular-text">
+			<?php foreach ( $font_options as $font_value => $font_name ) : ?>
+				<option value="<?php echo esc_attr( $font_value ); ?>" <?php selected( $value, $font_value ); ?>><?php echo esc_html( $font_name ); ?></option>
+			<?php endforeach; ?>
+		</select>
+		<p class="description"><?php esc_html_e( 'Font family for the metrics in the popover. "Theme Default" will inherit the font from your theme.', 'greenmetrics' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Render popover metrics label font size field.
+	 */
+	public function render_popover_metrics_label_font_size_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['popover_metrics_label_font_size'] ) ? $options['popover_metrics_label_font_size'] : '12px';
+		// Remove 'px' for the raw input value
+		$numeric_value = intval( $value );
+		?>
+		<div class="greenmetrics-font-size-wrapper">
+			<div class="font-size-control">
+				<div class="font-size-input-group">
+					<input type="number" 
+						id="popover_metrics_label_font_size_number" 
+						min="8" 
+						max="36" 
+						step="1" 
+						value="<?php echo esc_attr( $numeric_value ); ?>" 
+						class="font-size-number" 
+						onchange="document.getElementById('popover_metrics_label_font_size').value = this.value + 'px';">
+					<div class="font-size-unit">
+						<span>px</span>
+					</div>
+				</div>
+				<div class="font-size-arrows">
+					<span class="dashicons dashicons-arrow-up-alt2" onclick="incrementFontSize('popover_metrics_label_font_size_number')"></span>
+					<span class="dashicons dashicons-arrow-down-alt2" onclick="decrementFontSize('popover_metrics_label_font_size_number')"></span>
+				</div>
+				<input type="hidden" 
+					id="popover_metrics_label_font_size" 
+					name="greenmetrics_settings[popover_metrics_label_font_size]" 
+					value="<?php echo esc_attr( $value ); ?>">
+			</div>
+			<p class="description"><?php esc_html_e( 'Font size for the metric labels in the popover.', 'greenmetrics' ); ?></p>
+		</div>
 		<?php
 	}
 
@@ -901,9 +1096,35 @@ class GreenMetrics_Admin {
 	public function render_popover_metrics_font_size_field() {
 		$options = get_option( 'greenmetrics_settings' );
 		$value   = isset( $options['popover_metrics_font_size'] ) ? $options['popover_metrics_font_size'] : '14px';
+		// Remove 'px' for the raw input value
+		$numeric_value = intval( $value );
 		?>
-		<input type="text" id="popover_metrics_font_size" name="greenmetrics_settings[popover_metrics_font_size]" value="<?php echo esc_attr( $value ); ?>" class="regular-text">
-		<p class="description"><?php esc_html_e( 'Font size for the metrics in the popover.', 'greenmetrics' ); ?></p>
+		<div class="greenmetrics-font-size-wrapper">
+			<div class="font-size-control">
+				<div class="font-size-input-group">
+					<input type="number" 
+						id="popover_metrics_font_size_number" 
+						min="8" 
+						max="36" 
+						step="1" 
+						value="<?php echo esc_attr( $numeric_value ); ?>" 
+						class="font-size-number" 
+						onchange="document.getElementById('popover_metrics_font_size').value = this.value + 'px';">
+					<div class="font-size-unit">
+						<span>px</span>
+					</div>
+				</div>
+				<div class="font-size-arrows">
+					<span class="dashicons dashicons-arrow-up-alt2" onclick="incrementFontSize('popover_metrics_font_size_number')"></span>
+					<span class="dashicons dashicons-arrow-down-alt2" onclick="decrementFontSize('popover_metrics_font_size_number')"></span>
+				</div>
+				<input type="hidden" 
+					id="popover_metrics_font_size" 
+					name="greenmetrics_settings[popover_metrics_font_size]" 
+					value="<?php echo esc_attr( $value ); ?>">
+			</div>
+			<p class="description"><?php esc_html_e( 'Font size for the metrics in the popover.', 'greenmetrics' ); ?></p>
+		</div>
 		<?php
 	}
 
@@ -918,6 +1139,76 @@ class GreenMetrics_Admin {
 			GREENMETRICS_VERSION,
 			'all'
 		);
+		
+		// Add inline styles for the font size inputs
+		$font_size_styles = '
+		.greenmetrics-font-size-wrapper {
+			margin-bottom: 15px;
+		}
+		.font-size-control {
+			display: flex;
+			align-items: center;
+			max-width: 165px;
+			position: relative;
+			margin-bottom: 5px;
+		}
+		.font-size-input-group {
+			display: flex;
+			border: 1px solid #8d96a0;
+			border-radius: 4px;
+			overflow: hidden;
+			flex: 1;
+		}
+		.font-size-number {
+			border: none !important;
+			box-shadow: none !important;
+			flex: 1;
+			text-align: center;
+			padding: 0 5px !important;
+			min-height: 30px;
+			-moz-appearance: textfield;
+			width: 65px !important;
+			font-size: 13px !important;
+		}
+		.font-size-number:focus {
+			outline: none !important;
+		}
+		.font-size-number::-webkit-outer-spin-button,
+		.font-size-number::-webkit-inner-spin-button {
+			-webkit-appearance: none;
+			margin: 0;
+		}
+		.font-size-unit {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background: #f0f0f1;
+			min-width: 30px;
+			color: #50575e;
+			border-left: 1px solid #8d96a0;
+			font-size: 13px;
+		}
+		.font-size-arrows {
+			display: flex;
+			flex-direction: column;
+			margin-left: 6px;
+			height: 30px;
+			justify-content: space-between;
+		}
+		.font-size-arrows .dashicons {
+			font-size: 18px;
+			height: 15px;
+			width: 15px;
+			cursor: pointer;
+			color: #2271b1;
+			transition: color 0.2s ease;
+			line-height: 15px;
+		}
+		.font-size-arrows .dashicons:hover {
+			color: #135e96;
+		}
+		';
+		wp_add_inline_style( 'greenmetrics-admin', $font_size_styles );
 	}
 
 	/**
