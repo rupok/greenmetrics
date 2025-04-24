@@ -748,13 +748,11 @@
 #badge-preview-container.top-left {
     top: 0;
     left: 0;
-	margin-top: 40px;
 }
 
 #badge-preview-container.top-right {
     top: 0;
     right: 0;
-	margin-top: 40px
 }
 
 #badge-preview-container.bottom-left {
