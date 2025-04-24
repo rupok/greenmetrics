@@ -590,7 +590,7 @@
     });
     
     // Custom icon selection
-    $('#select_custom_icon').on('click', function(e) {
+    $('.upload-custom-icon').on('click', function(e) {
       e.preventDefault();
       
       // Create media frame
