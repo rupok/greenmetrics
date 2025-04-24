@@ -643,7 +643,6 @@ class GreenMetrics_Admin {
 		$value   = isset( $options['enable_badge'] ) ? $options['enable_badge'] : 1;
 		?>
 		<input type="checkbox" id="enable_badge" name="greenmetrics_settings[enable_badge]" value="1" <?php checked( $value, 1 ); ?>>
-		<label for="enable_badge"><?php esc_html_e( 'Display eco-friendly badge', 'greenmetrics' ); ?></label>
 		<p class="description"><?php esc_html_e( 'Show an eco-friendly badge on your website to highlight your commitment to sustainability.', 'greenmetrics' ); ?></p>
 		<?php
 	}
@@ -656,7 +655,6 @@ class GreenMetrics_Admin {
 		$value   = isset( $options['display_icon'] ) ? $options['display_icon'] : 1;
 		?>
 		<input type="checkbox" id="display_icon" name="greenmetrics_settings[display_icon]" value="1" <?php checked( $value, 1 ); ?>>
-		<label for="display_icon"><?php esc_html_e( 'Display icon', 'greenmetrics' ); ?></label>
 		<p class="description"><?php esc_html_e( 'Show an icon next to the badge', 'greenmetrics' ); ?></p>
 		<?php
 	}

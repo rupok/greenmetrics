@@ -664,63 +664,88 @@
     fill: currentColor;
 }
 
-/* Color Picker Styles */
-.greenmetrics-color-picker {
-    width: 100px !important;
-}
-
+/* Color Picker Styling */
 .wp-picker-container {
-    display: flex !important;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    max-width: 400px;
+    margin-top: 4px;
+    display: block;
 }
 
 .wp-picker-container .wp-color-result {
-    margin-right: 10px;
-    margin-bottom: 10px;
+    margin: 0 6px 6px 0;
+    height: 30px;
 }
 
 .wp-picker-container .wp-color-result-text {
-    background-color: #f0f0f0;
-    border-left: 1px solid #ddd;
-    color: #333;
-    font-size: 12px;
     line-height: 28px;
-    padding: 0 10px;
 }
 
+/* Important: Don't hide any input elements */
 .wp-picker-container .wp-picker-input-wrap {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
+    display: inline-block;
+    vertical-align: top;
 }
 
+/* Make sure the label is visible but compact */
 .wp-picker-container .wp-picker-input-wrap label {
     display: inline-block;
-    margin-right: 5px;
+    margin-right: 2px;
 }
 
-.wp-picker-container .wp-picker-input-wrap .wp-color-picker {
-    width: 80px !important;
-}
-
-.wp-picker-container .wp-picker-clear {
+.wp-picker-container input[type="text"].wp-color-picker {
+    display: inline-block;
+    vertical-align: top;
+    margin: 0 4px 0 0;
     height: 28px;
-    margin-left: 5px;
-    line-height: 1;
+    width: 80px;
 }
 
-.wp-picker-container .wp-picker-holder {
-    margin-top: 10px;
-    width: 100%;
-    clear: both;
+.wp-picker-container .button.wp-picker-clear {
+    display: inline-block;
+    height: 28px;
+    line-height: 26px;
+    padding: 0 10px;
+    margin: 0;
+    font-size: 12px;
 }
 
-/* Ensure the color preview shows up properly */
 .wp-color-result .color-alpha {
     height: 100% !important;
-    width: 30px !important;
+}
+
+/* Form-field specific color picker styling */
+.form-field .wp-picker-container {
+    display: block;
+    margin-top: 6px;
+}
+
+.form-field .wp-picker-container .wp-picker-holder {
+    margin-top: 6px;
+}
+
+.form-field .wp-picker-container.wp-picker-active {
+    display: block;
+}
+
+/* Ensure proper alignment for color picker input group */
+.form-field .wp-picker-container .wp-picker-input-wrap {
+    display: inline-block;
+    vertical-align: top;
+}
+
+/* Ensure the color text input has a proper width */
+.form-field .wp-picker-container input[type="text"].wp-color-picker {
+    height: 28px;
+    width: 80px;
+    margin: 0 4px 0 0;
+}
+
+/* Style the clear/reset button */
+.form-field .wp-picker-container .button.wp-picker-clear {
+    height: 28px;
+    line-height: 26px;
+    padding: 0 10px;
+    margin: 0;
+    font-size: 12px;
 }
 
 /* Preview Container Styles */
@@ -964,7 +989,7 @@
 .form-field label {
     display: block;
     font-weight: 600;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 
 /* Style the descriptions coming from the render functions */
@@ -990,12 +1015,6 @@
 .form-field textarea {
     width: 100%;
     max-width: 400px;
-}
-
-/* Color picker adjustments */
-.form-field .wp-picker-container {
-    display: block;
-    margin-top: 6px;
 }
 
 /* Checkbox styling */
