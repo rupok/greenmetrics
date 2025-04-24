@@ -22,10 +22,13 @@ For more information, visit [getgreenmetrics.com](https://getgreenmetrics.com).
 - **Environmental Impact Context**: Understanding the real-world impact of your website through relatable metrics.
 - **Optimization Suggestions**: Actionable advice with status indicators for Page Size, HTTP Requests, Performance Score, and Green Hosting.
 - **Gutenberg Block & Shortcode**: Easily display your environmental stats on any page using the built-in block editor or `[greenmetrics_badge]` shortcode.
-- **Customizable Badge**: Control the position, theme, and size of your eco-metrics badge with numerous configuration options.
+- **Customizable Badge**: Control the position, theme, size, colors, icon and text of your eco-metrics badge with numerous configuration options.
+- **Enhanced Metrics Display**: Fully customizable metrics list with hover effects, fonts, and styling options.
 - **Real-time Tracking**: Continuous monitoring of your site's performance and environmental impact metrics.
 - **Per-Page and Total Website Metrics**: View both aggregated stats and per-page averages to identify optimization opportunities.
 - **Carbon Intensity Settings**: Configure your energy consumption calculations based on your hosting location.
+- **Global Badge Display**: Option to automatically display badge site-wide without manual placement.
+- **Popover Customization**: Complete control over popover appearance including colors, fonts, metrics display and hover effects.
 
 GreenMetrics is ideal for:
 - Eco-conscious website owners who want to reduce their digital carbon footprint
@@ -40,11 +43,44 @@ GreenMetrics is ideal for:
 3. Go to your WordPress dashboard to view the metrics.
 4. Use the GreenMetrics block or `[greenmetrics_badge]` shortcode to display your site's stats.
 
+== Usage ==
+
+= Admin Dashboard =
+1. Go to WordPress admin > GreenMetrics
+2. Enable/disable tracking and badge display
+3. View your website's performance metrics and environmental impact
+
+= Display Settings =
+The Display Settings page provides comprehensive customization for your badge and metrics display:
+
+- **Badge Configuration**: Control visibility, position, size, and text
+- **Icon Settings**: Choose between different icon styles or upload a custom icon
+- **Color Options**: Customize badge background, text, and icon colors
+- **Popover Settings**: Configure title, metrics to display, and custom content
+- **Styling Options**: Customize fonts, font sizes, background colors, and hover effects
+
+= Display Badge =
+You can display the eco-friendly badge in three ways:
+
+1. **Gutenberg Block**
+   - Add the "GreenMetrics Badge" block to your page/post
+   - Customize the appearance in the block settings
+
+2. **Shortcode**
+   - Use `[greenmetrics_badge theme="light" size="medium" position="bottom-right"]`
+   - Parameters: theme (light/dark), size (small/medium/large), position (bottom-right/bottom-left/top-right/top-left)
+
+3. **Global Badge**
+   - Enable the global badge option in Display Settings to show the badge site-wide
+   - Customize all aspects of the badge and popover through the admin interface
+
 == Screenshots ==
 
 1. Environmental impact metrics on the WordPress dashboard.
 2. Add a GreenMetrics block to display stats on your site.
 3. Example of the eco-awareness badge in the footer.
+4. Customizable badge display settings.
+5. Metrics popover with hover effects.
 
 == Frequently Asked Questions ==
 
@@ -55,7 +91,7 @@ We use a combination of observed data based on asset size, page views, and HTTP 
 No. GreenMetrics is lightweight and designed for performance. It uses efficient tracking methods and does not load external scripts on the frontend.
 
 = Can I customize how the metrics are displayed? =
-Yes, the shortcode and block offer multiple customization options including position (top-left, top-right, bottom-left, bottom-right), theme (light/dark), and size (small/medium/large).
+Yes, the Display Settings page offers extensive customization options for the badge and popover, including colors, fonts, metrics selection, and hover effects. Additionally, the shortcode and block offer multiple customization options.
 
 = How accurate are the carbon and energy calculations? =
 Our calculations are based on industry research regarding energy consumption per byte of data transferred and carbon intensity of electrical grids. While they provide meaningful approximations, they may not account for all variables in the hosting infrastructure.
@@ -74,6 +110,9 @@ Yes, GreenMetrics is compatible with most popular caching plugins. It tracks act
 * Environmental impact context visualizations
 * Optimization suggestions with status indicators
 * Customizable metrics badge via shortcode and block
+* Global badge display option
+* Enhanced display settings with complete customization of colors, fonts, and hover effects
+* Popover customization with metrics selection
 
 == Upgrade Notice ==
 

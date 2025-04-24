@@ -10,10 +10,13 @@ Website: [getgreenmetrics.com](https://getgreenmetrics.com)
 - **Environmental Impact Context**: Understanding the real-world impact of your website through relatable metrics
 - **Optimization Suggestions**: Actionable advice with status indicators for Page Size, HTTP Requests, Performance Score, and Green Hosting
 - **Gutenberg Block & Shortcode**: Easily display your environmental stats on any page
-- **Customizable Badge**: Control the position, theme, and size of your eco-metrics badge
+- **Customizable Badge**: Control the position, theme, size, colors, icon and text of your eco-metrics badge
+- **Enhanced Metrics Display**: Fully customizable metrics list with hover effects, fonts, and styling options
 - **Real-time Tracking**: Continuous monitoring of your site's performance and environmental impact metrics
 - **Per-Page and Total Website Metrics**: View both aggregated stats and per-page averages
 - **Carbon Intensity Settings**: Configure your energy consumption calculations based on your hosting location
+- **Global Badge Display**: Option to automatically display badge site-wide without manual placement
+- **Popover Customization**: Complete control over popover appearance including colors, fonts, metrics display and hover effects
 
 ## Installation
 
@@ -30,9 +33,19 @@ Website: [getgreenmetrics.com](https://getgreenmetrics.com)
 2. Enable/disable tracking and badge display
 3. View your website's performance metrics and environmental impact
 
+### Display Settings
+
+The Display Settings page provides comprehensive customization for your badge and metrics display:
+
+- **Badge Configuration**: Control visibility, position, size, and text
+- **Icon Settings**: Choose between different icon styles or upload a custom icon
+- **Color Options**: Customize badge background, text, and icon colors
+- **Popover Settings**: Configure title, metrics to display, and custom content
+- **Styling Options**: Customize fonts, font sizes, background colors, and hover effects
+
 ### Display Badge
 
-You can display the eco-friendly badge in two ways:
+You can display the eco-friendly badge in three ways:
 
 1. **Gutenberg Block**
    - Add the "GreenMetrics Badge" block to your page/post
@@ -47,6 +60,10 @@ You can display the eco-friendly badge in two ways:
    - `theme`: light, dark (default: light)
    - `size`: small, medium, large (default: medium)
    - `position`: bottom-right, bottom-left, top-right, top-left (default: bottom-right)
+
+3. **Global Badge**
+   - Enable the global badge option in Display Settings to show the badge site-wide
+   - Customize all aspects of the badge and popover through the admin interface
 
 ## Who is it for?
 
@@ -69,6 +86,9 @@ Our calculations are based on industry research regarding energy consumption per
 
 ### Can I track individual page performance?
 Yes, GreenMetrics tracks metrics on a per-page basis, allowing you to identify which pages have the highest environmental impact and optimize them accordingly.
+
+### Can I customize how the metrics are displayed?
+Yes, the Display Settings page offers extensive customization options for the badge and popover, including colors, fonts, metrics selection, and hover effects.
 
 ## Development
 
