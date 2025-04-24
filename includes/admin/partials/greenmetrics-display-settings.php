@@ -39,15 +39,177 @@ $settings = get_option(
 		<div class="greenmetrics-admin-content-wrapper">
 			<!-- Left Column: Settings Form -->
 			<div class="greenmetrics-admin-settings-column">
-				<div class="greenmetrics-admin-card">
-					<form method="post" action="options.php">
-						<?php
-						settings_fields( 'greenmetrics_settings' );
-						do_settings_sections( 'greenmetrics_display' );
-						submit_button();
-						?>
-					</form>
-				</div>
+				<form method="post" action="options.php">
+					<?php 
+					settings_fields( 'greenmetrics_settings' );
+					
+					// Get admin instance if not already available
+					if (!isset($this) || !method_exists($this, 'render_badge_field')) {
+						global $greenmetrics_admin;
+						$admin = $greenmetrics_admin;
+					} else {
+						$admin = $this;
+					}
+					?>
+					
+					<!-- Badge Display -->
+					<div class="greenmetrics-admin-card settings-card badge-display">
+						<h3 class="settings-card-header">
+							<span class="dashicons dashicons-visibility card-icon"></span>
+							<?php esc_html_e( 'Badge Display', 'greenmetrics' ); ?>
+						</h3>
+						<div class="settings-card-content">
+							<div class="form-field">
+								<label for="enable_badge"><?php esc_html_e( 'Display Badge', 'greenmetrics' ); ?></label>
+								<?php $admin->render_badge_field(); ?>
+							</div>
+							
+							<div class="form-field">
+								<label for="badge_position"><?php esc_html_e( 'Badge Position', 'greenmetrics' ); ?></label>
+								<?php $admin->render_badge_position_field(); ?>
+							</div>
+							
+							<div class="form-field">
+								<label for="badge_size"><?php esc_html_e( 'Badge Size', 'greenmetrics' ); ?></label>
+								<?php $admin->render_badge_size_field(); ?>
+							</div>
+						</div>
+					</div>
+					
+					<!-- Badge Appearance -->
+					<div class="greenmetrics-admin-card settings-card badge-appearance">
+						<h3 class="settings-card-header">
+							<span class="dashicons dashicons-art card-icon"></span>
+							<?php esc_html_e( 'Badge Appearance', 'greenmetrics' ); ?>
+						</h3>
+						<div class="settings-card-content">
+							<div class="form-field">
+								<label for="badge_text"><?php esc_html_e( 'Badge Text', 'greenmetrics' ); ?></label>
+								<?php $admin->render_badge_text_field(); ?>
+							</div>
+							
+							<div class="form-field">
+								<label for="badge_background_color"><?php esc_html_e( 'Background Color', 'greenmetrics' ); ?></label>
+								<?php $admin->render_badge_background_color_field(); ?>
+							</div>
+							
+							<div class="form-field">
+								<label for="badge_text_color"><?php esc_html_e( 'Text Color', 'greenmetrics' ); ?></label>
+								<?php $admin->render_badge_text_color_field(); ?>
+							</div>
+							
+							<div class="form-field">
+								<label for="display_icon"><?php esc_html_e( 'Display Icon', 'greenmetrics' ); ?></label>
+								<?php $admin->render_display_icon_field(); ?>
+							</div>
+							
+							<div class="form-field icon-settings">
+								<label for="badge_icon_type"><?php esc_html_e( 'Choose Icon', 'greenmetrics' ); ?></label>
+								<?php $admin->render_badge_icon_type_field(); ?>
+							</div>
+							
+							<div class="form-field custom-icon-field">
+								<label for="badge_custom_icon"><?php esc_html_e( 'Custom Icon', 'greenmetrics' ); ?></label>
+								<?php $admin->render_badge_custom_icon_field(); ?>
+							</div>
+							
+							<div class="form-field icon-settings">
+								<label for="badge_icon_color"><?php esc_html_e( 'Icon Color', 'greenmetrics' ); ?></label>
+								<?php $admin->render_badge_icon_color_field(); ?>
+							</div>
+						</div>
+					</div>
+					
+					<!-- Popover Content -->
+					<div class="greenmetrics-admin-card settings-card popover-content">
+						<h3 class="settings-card-header">
+							<span class="dashicons dashicons-editor-table card-icon"></span>
+							<?php esc_html_e( 'Popover Content', 'greenmetrics' ); ?>
+						</h3>
+						<div class="settings-card-content">
+							<div class="form-field">
+								<label for="popover_title"><?php esc_html_e( 'Content Title', 'greenmetrics' ); ?></label>
+								<?php $admin->render_popover_title_field(); ?>
+							</div>
+							
+							<div class="form-field">
+								<label for="popover_metrics"><?php esc_html_e( 'Metrics to Display', 'greenmetrics' ); ?></label>
+								<?php $admin->render_popover_metrics_field(); ?>
+							</div>
+							
+							<div class="form-field">
+								<label for="popover_custom_content"><?php esc_html_e( 'Custom Content', 'greenmetrics' ); ?></label>
+								<?php $admin->render_popover_custom_content_field(); ?>
+							</div>
+						</div>
+					</div>
+					
+					<!-- Popover Appearance -->
+					<div class="greenmetrics-admin-card settings-card popover-appearance">
+						<h3 class="settings-card-header">
+							<span class="dashicons dashicons-admin-appearance card-icon"></span>
+							<?php esc_html_e( 'Popover Appearance', 'greenmetrics' ); ?>
+						</h3>
+						<div class="settings-card-content">
+							<div class="form-field">
+								<label for="popover_bg_color"><?php esc_html_e( 'Content Background Color', 'greenmetrics' ); ?></label>
+								<?php $admin->render_popover_bg_color_field(); ?>
+							</div>
+							
+							<div class="form-field">
+								<label for="popover_text_color"><?php esc_html_e( 'Content Text Color', 'greenmetrics' ); ?></label>
+								<?php $admin->render_popover_text_color_field(); ?>
+							</div>
+							
+							<div class="form-field">
+								<label for="popover_metrics_color"><?php esc_html_e( 'Metrics Text Color', 'greenmetrics' ); ?></label>
+								<?php $admin->render_popover_metrics_color_field(); ?>
+							</div>
+							
+							<div class="form-field">
+								<label for="popover_metrics_bg_color"><?php esc_html_e( 'Metrics Background Color', 'greenmetrics' ); ?></label>
+								<?php $admin->render_popover_metrics_bg_color_field(); ?>
+							</div>
+							
+							<div class="form-field">
+								<label for="popover_metrics_list_bg_color"><?php esc_html_e( 'Metrics List Background', 'greenmetrics' ); ?></label>
+								<?php $admin->render_popover_metrics_list_bg_color_field(); ?>
+							</div>
+							
+							<div class="form-field">
+								<label for="popover_metrics_list_hover_bg_color"><?php esc_html_e( 'Metrics List Hover Background', 'greenmetrics' ); ?></label>
+								<?php $admin->render_popover_metrics_list_hover_bg_color_field(); ?>
+							</div>
+							
+							<div class="form-field">
+								<label for="popover_content_font"><?php esc_html_e( 'Content Font Family', 'greenmetrics' ); ?></label>
+								<?php $admin->render_popover_content_font_field(); ?>
+							</div>
+							
+							<div class="form-field">
+								<label for="popover_content_font_size_number"><?php esc_html_e( 'Content Font Size', 'greenmetrics' ); ?></label>
+								<?php $admin->render_popover_content_font_size_field(); ?>
+							</div>
+							
+							<div class="form-field">
+								<label for="popover_metrics_font"><?php esc_html_e( 'Metrics Font Family', 'greenmetrics' ); ?></label>
+								<?php $admin->render_popover_metrics_font_field(); ?>
+							</div>
+							
+							<div class="form-field">
+								<label for="popover_metrics_font_size_number"><?php esc_html_e( 'Metrics Font Size', 'greenmetrics' ); ?></label>
+								<?php $admin->render_popover_metrics_font_size_field(); ?>
+							</div>
+							
+							<div class="form-field">
+								<label for="popover_metrics_label_font_size_number"><?php esc_html_e( 'Metrics Label Font Size', 'greenmetrics' ); ?></label>
+								<?php $admin->render_popover_metrics_label_font_size_field(); ?>
+							</div>
+						</div>
+					</div>
+					
+					<?php submit_button(); ?>
+				</form>
 			</div>
 			
 			<!-- Right Column: Preview -->
@@ -232,6 +394,33 @@ jQuery(document).ready(function($) {
 		updatePreview();
 	});
 	
+	// Toggle icon-related fields based on Display Icon checkbox
+	$('#display_icon').on('change', function() {
+		const isChecked = $(this).is(':checked');
+		// Toggle visibility of icon-related settings
+		if (isChecked) {
+			$('.form-field.icon-settings').show();
+			// Show custom icon field only if "custom" is selected
+			if ($('#badge_icon_type').val() === 'custom') {
+				$('.form-field.custom-icon-field').addClass('visible');
+			}
+		} else {
+			$('.form-field.icon-settings').hide();
+			$('.form-field.custom-icon-field').removeClass('visible');
+		}
+		updatePreview();
+	});
+	
+	// Toggle custom icon field based on icon type selection
+	$('#badge_icon_type').on('change', function() {
+		if ($(this).val() === 'custom') {
+			$('.form-field.custom-icon-field').addClass('visible');
+		} else {
+			$('.form-field.custom-icon-field').removeClass('visible');
+		}
+		updatePreview();
+	});
+	
 	// Handle font size number input changes
 	$('#popover_content_font_size_number, #popover_metrics_font_size_number, #popover_metrics_label_font_size_number').on('change input', function() {
 		// Update hidden field value
@@ -261,6 +450,7 @@ jQuery(document).ready(function($) {
 		const bgColor = $('#badge_background_color').val();
 		const textColor = $('#badge_text_color').val();
 		const iconColor = $('#badge_icon_color').val();
+		const displayIcon = $('#display_icon').is(':checked');
 		
 		// Update badge position
 		$('#badge-preview-container').attr('class', position);
@@ -276,8 +466,12 @@ jQuery(document).ready(function($) {
 		// Update badge text
 		$badge.find('span').text(text);
 		
-		// Update badge icon color
-		$badge.find('.icon-container').css('color', iconColor);
+		// Update icon visibility
+		if (displayIcon) {
+			$badge.find('.icon-container').show().css('color', iconColor);
+		} else {
+			$badge.find('.icon-container').hide();
+		}
 		
 		// Get popover settings
 		const popoverTitle = $('#popover_title').val();
@@ -356,6 +550,21 @@ jQuery(document).ready(function($) {
 	
 	// Initialize
 	initFontSizeFields();
+	
+	// Initialize color pickers properly
+	$('.greenmetrics-color-picker').wpColorPicker({
+		change: function(event, ui) {
+			// Trigger change event after color is picked
+			setTimeout(function() {
+				$(event.target).trigger('change');
+			}, 100);
+		}
+	});
+	
+	// Set initial state of icon fields based on Display Icon checkbox
+	$('#display_icon').trigger('change');
+	
+	// Then update the preview
 	updatePreview();
 });
 </script>

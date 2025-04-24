@@ -670,70 +670,57 @@
 }
 
 .wp-picker-container {
-    display: inline-block;
-    position: relative;
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    max-width: 400px;
 }
 
 .wp-picker-container .wp-color-result {
-    margin: 0 6px 6px 0;
-    padding: 0;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    background-color: #f7f7f7;
-    cursor: pointer;
-    display: inline-block;
-    height: 30px;
-    min-height: 30px;
-    vertical-align: bottom;
-    box-shadow: 0 1px 0 rgba(0,0,0,.05);
+    margin-right: 10px;
+    margin-bottom: 10px;
 }
 
 .wp-picker-container .wp-color-result-text {
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    padding: 3px 5px;
-    margin-left: 6px;
-    background: #fff;
-    color: #555;
+    background-color: #f0f0f0;
+    border-left: 1px solid #ddd;
+    color: #333;
     font-size: 12px;
-    line-height: 1.5;
-    display: inline-block;
-    vertical-align: top;
-}
-
-.wp-picker-container .wp-picker-holder {
-    position: absolute;
-    z-index: 100;
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    margin-top: 5px;
+    line-height: 28px;
+    padding: 0 10px;
 }
 
 .wp-picker-container .wp-picker-input-wrap {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.wp-picker-container .wp-picker-input-wrap label {
     display: inline-block;
-    vertical-align: top;
+    margin-right: 5px;
+}
+
+.wp-picker-container .wp-picker-input-wrap .wp-color-picker {
+    width: 80px !important;
 }
 
 .wp-picker-container .wp-picker-clear {
-    margin-left: 6px;
-    padding: 0 8px;
-    font-size: 12px;
-    line-height: 2;
-    min-height: 30px;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    background: #f7f7f7;
-    color: #555;
-    cursor: pointer;
-    vertical-align: top;
+    height: 28px;
+    margin-left: 5px;
+    line-height: 1;
 }
 
-.wp-picker-container .wp-picker-clear:hover {
-    background: #fafafa;
-    border-color: #999;
-    color: #23282d;
+.wp-picker-container .wp-picker-holder {
+    margin-top: 10px;
+    width: 100%;
+    clear: both;
+}
+
+/* Ensure the color preview shows up properly */
+.wp-color-result .color-alpha {
+    height: 100% !important;
+    width: 30px !important;
 }
 
 /* Preview Container Styles */
@@ -871,13 +858,17 @@
         flex-direction: column;
     }
     
+    .greenmetrics-admin-settings-column,
     .greenmetrics-admin-preview-column {
         width: 100%;
+        max-width: 100%;
     }
     
     .greenmetrics-admin-preview-sticky {
         position: relative;
         top: 0;
+        width: 100%;
+        margin-top: 20px;
     }
 }
 
@@ -900,4 +891,189 @@
 #badge-preview-container.bottom-right {
     bottom: 15px;
     right: 15px;
+}
+
+/* Enhanced Visual Grouping for Settings Cards */
+.settings-card {
+    margin-bottom: 25px;
+    border: 1px solid #e2e4e7;
+    border-radius: 10px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s ease;
+    overflow: hidden;
+}
+
+.settings-card:hover {
+    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.08);
+}
+
+.settings-card-header {
+    background-color: #f8f9fa;
+    padding: 15px 20px;
+    margin: 0;
+    border-bottom: 1px solid #e2e4e7;
+    font-size: 16px;
+    font-weight: 600;
+    color: #23282d;
+    display: flex;
+    align-items: center;
+}
+
+.settings-card-header .card-icon {
+    margin-right: 10px;
+    color: #0073aa;
+    width: 20px;
+    height: 20px;
+}
+
+.settings-card-content {
+    padding: 20px;
+    background-color: #fff;
+}
+
+/* Card categories */
+.settings-card.badge-display {
+    border-left: 4px solid #4CAF50;
+}
+
+.settings-card.badge-appearance {
+    border-left: 4px solid #2196F3; 
+}
+
+.settings-card.popover-content {
+    border-left: 4px solid #9C27B0;
+}
+
+.settings-card.popover-appearance {
+    border-left: 4px solid #FF9800;
+}
+
+/* Form field spacing and styling */
+.form-field {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.form-field:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.form-field label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+/* Style the descriptions coming from the render functions */
+.form-field .description {
+    display: block;
+    margin-top: 8px;
+    color: #666;
+    font-style: italic;
+    font-size: 13px;
+}
+
+/* Styling for icon-related settings */
+.form-field.icon-settings {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+/* Fix input styles within the form fields */
+.form-field input[type="text"],
+.form-field input[type="number"],
+.form-field select,
+.form-field textarea {
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Color picker adjustments */
+.form-field .wp-picker-container {
+    display: block;
+    margin-top: 6px;
+}
+
+/* Checkbox styling */
+.form-field input[type="checkbox"] {
+    margin-top: 6px;
+}
+
+/* Hidden fields - important for JS functionality */
+.form-field.custom-icon-field {
+    display: none;
+}
+
+.form-field.custom-icon-field.visible {
+    display: block;
+}
+
+/* Metrics checkboxes styling */
+.metrics-checkboxes {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #eee;
+    margin-top: 8px;
+}
+
+.metrics-checkbox-label {
+    display: flex;
+    align-items: center;
+    font-weight: normal;
+}
+
+.metrics-checkbox-label input {
+    margin-right: 8px;
+}
+
+/* Responsive adjustments for settings layout */
+@media screen and (max-width: 1200px) {
+    .greenmetrics-admin-content-wrapper {
+        flex-direction: column;
+    }
+    
+    .greenmetrics-admin-settings-column,
+    .greenmetrics-admin-preview-column {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .greenmetrics-admin-preview-sticky {
+        position: relative;
+        top: 0;
+        width: 100%;
+        margin-top: 20px;
+    }
+}
+
+@media screen and (max-width: 782px) {
+    .metrics-checkboxes {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-field {
+        margin-bottom: 20px;
+    }
+    
+    .settings-card-content {
+        padding: 15px;
+    }
+    
+    .greenmetrics-admin-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .greenmetrics-admin-header h1 {
+        margin-top: 10px;
+    }
 } 
