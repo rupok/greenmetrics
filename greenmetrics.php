@@ -108,6 +108,9 @@ function greenmetrics_init() {
 	// Load text domain
 	load_plugin_textdomain( 'greenmetrics', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 
+	// Explicitly load the Icons class to avoid autoloading issues
+	require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-icons.php';
+
 	// TEMPORARY DEBUG - Reset settings to default
 	if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
 		// Clear any potentially cached version of the settings

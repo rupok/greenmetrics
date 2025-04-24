@@ -750,8 +750,8 @@ class GreenMetrics_Public {
 			if ( $icon_type === 'custom' && $custom_icon ) {
 				$icon_html = '<img src="' . esc_url( $custom_icon ) . '" alt="Icon" class="leaf-icon" style="width: 20px; height: 20px; fill: ' . esc_attr( $icon_color ) . ';">';
 			} else {
-				$icon = GreenMetrics_Icons::get_icon( $icon_type );
-				$icon_html = '<div class="icon-container" style="color: ' . esc_attr( $icon_color ) . ';">' . $icon . '</div>';
+				$icon = \GreenMetrics\GreenMetrics_Icons::get_icon( $icon_type );
+				$icon_html = '<div class="icon-container" style="color: ' . esc_attr( $icon_color ) . '; display: flex; align-items: center; justify-content: center; width: 20px; height: 20px;">' . $icon . '</div>';
 			}
 		}
 		

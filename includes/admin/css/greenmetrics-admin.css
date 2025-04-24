@@ -820,4 +820,86 @@
 
 .metrics-checkbox-label input {
     margin-right: 8px;
+}
+
+/* Two-column layout for display settings */
+.greenmetrics-admin-content-wrapper {
+    display: flex;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.greenmetrics-admin-settings-column {
+    flex: 1;
+    min-width: 0; /* Prevents overflow on small screens */
+}
+
+.greenmetrics-admin-preview-column {
+    width: 400px;
+    flex-shrink: 0;
+}
+
+.greenmetrics-admin-preview-sticky {
+    position: sticky;
+    top: 32px; /* WP Admin bar height */
+}
+
+/* Preview styles */
+.badge-preview-panel {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    height: 200px;
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.popover-preview-panel {
+    margin-bottom: 20px;
+}
+
+.preview-section {
+    margin-bottom: 30px;
+}
+
+.preview-section h3 {
+    border-bottom: 1px solid #eee;
+    margin-bottom: 15px;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 1200px) {
+    .greenmetrics-admin-content-wrapper {
+        flex-direction: column;
+    }
+    
+    .greenmetrics-admin-preview-column {
+        width: 100%;
+    }
+    
+    .greenmetrics-admin-preview-sticky {
+        position: relative;
+        top: 0;
+    }
+}
+
+/* Badge preview positions */
+#badge-preview-container.top-left {
+    top: 15px;
+    left: 15px;
+}
+
+#badge-preview-container.top-right {
+    top: 15px;
+    right: 15px;
+}
+
+#badge-preview-container.bottom-left {
+    bottom: 15px;
+    left: 15px;
+}
+
+#badge-preview-container.bottom-right {
+    bottom: 15px;
+    right: 15px;
 } 
