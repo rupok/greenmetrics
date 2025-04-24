@@ -28,8 +28,11 @@ $settings = get_option(
 <div class="wrap">
 	<div class="greenmetrics-admin-container">
 		<div class="greenmetrics-admin-header">
-			<img src="<?php echo esc_url( GREENMETRICS_PLUGIN_URL . 'includes/admin/img/greenmetrics-icon.png' ); ?>" alt="<?php esc_attr_e( 'GreenMetrics Icon', 'greenmetrics' ); ?>" />
-			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
+			<div class="header-content">
+				<img src="<?php echo esc_url( GREENMETRICS_PLUGIN_URL . 'includes/admin/img/greenmetrics-icon.png' ); ?>" alt="<?php esc_attr_e( 'GreenMetrics Icon', 'greenmetrics' ); ?>" />
+				<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
+			</div>
+			<span class="version"><?php echo esc_html( 'GreenMetrics v' . GREENMETRICS_VERSION ); ?></span>
 		</div>
 
 		<div class="greenmetrics-admin-content">

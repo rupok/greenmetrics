@@ -575,6 +575,13 @@
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 	display: flex;
 	align-items: center;
+	justify-content: space-between;
+	gap: 15px;
+}
+
+.greenmetrics-admin-header .header-content {
+	display: flex;
+	align-items: center;
 	gap: 15px;
 }
 
@@ -584,6 +591,14 @@
 	font-size: 23px;
 	line-height: 1.3;
 	color: #23282d;
+}
+
+.greenmetrics-admin-header .version {
+	color: #646970;
+	font-size: 13px;
+	padding: 4px 10px;
+	background: #f6f7f7;
+	border-radius: 4px;
 }
 
 .greenmetrics-admin-header img {
