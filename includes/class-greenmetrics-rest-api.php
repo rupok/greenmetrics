@@ -43,6 +43,35 @@ class GreenMetrics_Rest_API {
 			)
 		);
 
+		// Add a new endpoint for metrics by date range
+		register_rest_route(
+			'greenmetrics/v1',
+			'/metrics-by-date',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_metrics_by_date' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'start_date' => array(
+						'required'          => false,
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'end_date' => array(
+						'required'          => false,
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'interval' => array(
+						'required'          => false,
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+						'default'           => 'day',
+					),
+				),
+			)
+		);
+
 		register_rest_route(
 			'greenmetrics/v1',
 			'/track',
@@ -286,6 +315,48 @@ class GreenMetrics_Rest_API {
 				$e,
 				'tracking_exception',
 				'Exception tracking page: ' . $e->getMessage(),
+				500
+			);
+		}
+	}
+
+	/**
+	 * Get metrics data by date range.
+	 *
+	 * @param \WP_REST_Request $request The request object.
+	 * @return \WP_REST_Response The response object.
+	 */
+	public function get_metrics_by_date( $request ) {
+		try {
+			$start_date = $request->get_param( 'start_date' );
+			$end_date = $request->get_param( 'end_date' );
+			$interval = $request->get_param( 'interval' ) ?: 'day';
+
+			greenmetrics_log( 'REST: Getting metrics by date range', array( 'start' => $start_date, 'end' => $end_date, 'interval' => $interval ) );
+
+			// Get the tracker instance
+			$tracker = GreenMetrics_Tracker::get_instance();
+			
+			// Get metrics by date range
+			$metrics = $tracker->get_metrics_by_date_range( $start_date, $end_date, $interval );
+
+			if ( ! $metrics || ! is_array( $metrics ) ) {
+				greenmetrics_log( 'REST: Failed to retrieve metrics by date range', null, 'error' );
+				return GreenMetrics_Error_Handler::create_error(
+					'invalid_metrics',
+					'Failed to retrieve metrics by date range',
+					array(),
+					500
+				);
+			}
+
+			return rest_ensure_response( $metrics );
+		} catch ( \Exception $e ) {
+			greenmetrics_log( 'REST: Error retrieving metrics by date range', $e->getMessage(), 'error' );
+			return GreenMetrics_Error_Handler::handle_exception(
+				$e,
+				'metrics_error',
+				'Error retrieving metrics by date range: ' . $e->getMessage(),
 				500
 			);
 		}

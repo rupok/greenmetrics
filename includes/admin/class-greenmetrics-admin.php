@@ -1269,10 +1269,19 @@ class GreenMetrics_Admin {
 		wp_enqueue_script( 'wp-color-picker' );
 		wp_enqueue_media(); // Add media uploader scripts
 		
+		// Enqueue Chart.js
+		wp_enqueue_script(
+			'chart-js',
+			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/chart.min.js',
+			array(),
+			GREENMETRICS_VERSION,
+			true
+		);
+		
 		wp_enqueue_script(
 			'greenmetrics-admin',
 			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin.js',
-			array( 'jquery', 'wp-color-picker', 'wp-util' ),
+			array( 'jquery', 'wp-color-picker', 'wp-util', 'chart-js' ),
 			GREENMETRICS_VERSION,
 			true
 		);
@@ -1290,7 +1299,9 @@ class GreenMetrics_Admin {
 				'selectIconBtnText' => __( 'Use this Icon', 'greenmetrics' ),
 				'customIconText'    => __( 'Custom Icon', 'greenmetrics' ),
 				'rest_url'          => get_rest_url( null, 'greenmetrics/v1' ),
-				'rest_nonce'        => wp_create_nonce( 'wp_rest' )
+				'rest_nonce'        => wp_create_nonce( 'wp_rest' ),
+				'loadingText'       => __( 'Loading data...', 'greenmetrics' ),
+				'noDataText'        => __( 'No data available for the selected period.', 'greenmetrics' ),
 			)
 		);
 

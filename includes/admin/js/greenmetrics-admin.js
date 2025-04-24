@@ -8,6 +8,12 @@
     var $texts = $('input[type="text"]');
     var $iconOptions = $('.icon-option');
     var mediaFrame;
+    
+    // Chart.js components
+    var metricsChart = null;
+    var chartCanvas = document.getElementById('greenmetrics-chart');
+    var chartDatasets = [];
+    var chartLabels = [];
 
     // Debounce helper for badge preview
     function debounce(fn, delay) {
@@ -41,6 +47,262 @@
       'popover_metrics_list_hover_bg_color': '#f3f4f6'
     };
     
+    // Chart color settings
+    const chartColors = {
+      'carbon_footprint': {
+        borderColor: 'rgb(255, 99, 132)',
+        backgroundColor: 'rgba(255, 99, 132, 0.5)'
+      },
+      'energy_consumption': {
+        borderColor: 'rgb(54, 162, 235)',
+        backgroundColor: 'rgba(54, 162, 235, 0.5)'
+      },
+      'data_transfer': {
+        borderColor: 'rgb(75, 192, 192)',
+        backgroundColor: 'rgba(75, 192, 192, 0.5)'
+      },
+      'http_requests': {
+        borderColor: 'rgb(153, 102, 255)',
+        backgroundColor: 'rgba(153, 102, 255, 0.5)'
+      },
+      'page_views': {
+        borderColor: 'rgb(255, 159, 64)',
+        backgroundColor: 'rgba(255, 159, 64, 0.5)'
+      }
+    };
+    
+    // Initialize Chart.js if the canvas exists
+    function initChart() {
+      if (!chartCanvas) return;
+      
+      metricsChart = new Chart(chartCanvas, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: []
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          },
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
+          plugins: {
+            tooltip: {
+              enabled: true
+            },
+            legend: {
+              display: false // We're using custom checkboxes for legend
+            }
+          }
+        }
+      });
+      
+      // Load initial data (last 7 days by default)
+      loadMetricsByDate();
+      
+      // Set up event handlers for date range buttons and chart toggles
+      setupDateRangeHandlers();
+      setupChartToggleHandlers();
+    }
+    
+    // Load metrics data by date range
+    function loadMetricsByDate(startDate, endDate) {
+      // Show loading state
+      if (metricsChart) {
+        metricsChart.data.labels = [];
+        metricsChart.data.datasets = [];
+        metricsChart.update();
+      }
+      
+      // Set default date range if not provided (last 7 days)
+      if (!startDate && !endDate) {
+        startDate = getDateString(7); // 7 days ago
+        endDate = getDateString(0);   // Today
+      }
+      
+      // Make API request
+      $.ajax({
+        url: greenmetricsAdmin.rest_url + '/metrics-by-date',
+        method: 'GET',
+        data: {
+          start_date: startDate,
+          end_date: endDate
+        },
+        beforeSend: function(xhr) {
+          xhr.setRequestHeader('X-WP-Nonce', greenmetricsAdmin.rest_nonce);
+        },
+        success: function(response) {
+          updateChart(response);
+        },
+        error: function(xhr, status, error) {
+          console.error('Error loading metrics data:', error);
+          if (metricsChart) {
+            metricsChart.data.labels = [];
+            metricsChart.data.datasets = [];
+            metricsChart.update();
+          }
+        }
+      });
+    }
+    
+    // Update chart with new data
+    function updateChart(data) {
+      if (!metricsChart) return;
+      
+      // Clear previous data
+      metricsChart.data.labels = [];
+      metricsChart.data.datasets = [];
+      
+      // Check if we have valid data
+      if (!data || !data.dates || data.dates.length === 0) {
+        metricsChart.update();
+        return;
+      }
+      
+      // Update chart labels (dates)
+      metricsChart.data.labels = data.dates;
+      
+      // Create datasets for each metric
+      const metrics = [
+        { id: 'carbon_footprint', label: 'Carbon Footprint (g)' },
+        { id: 'energy_consumption', label: 'Energy Consumption (kWh)' },
+        { id: 'data_transfer', label: 'Data Transfer (KB)' },
+        { id: 'http_requests', label: 'HTTP Requests' },
+        { id: 'page_views', label: 'Page Views' }
+      ];
+      
+      // Add each metric dataset if it has data
+      metrics.forEach(function(metric) {
+        if (data[metric.id] && data[metric.id].length > 0) {
+          const colors = chartColors[metric.id];
+          const visible = $('#' + metric.id).prop('checked');
+          
+          metricsChart.data.datasets.push({
+            label: metric.label,
+            data: data[metric.id],
+            borderColor: colors.borderColor,
+            backgroundColor: colors.backgroundColor,
+            borderWidth: 2,
+            pointRadius: 3,
+            hidden: !visible
+          });
+        }
+      });
+      
+      // Update the chart
+      metricsChart.update();
+    }
+    
+    // Set up event handlers for date range buttons
+    function setupDateRangeHandlers() {
+      // Date range button clicks
+      $('.greenmetrics-date-btn').on('click', function(e) {
+        e.preventDefault();
+        
+        // Remove active class from all buttons
+        $('.greenmetrics-date-btn').removeClass('active');
+        
+        // Add active class to clicked button
+        $(this).addClass('active');
+        
+        // Get the date range type
+        const range = $(this).data('range');
+        let startDate, endDate;
+        
+        // Set date range based on button clicked
+        switch(range) {
+          case '7days':
+            startDate = getDateString(7); // 7 days ago
+            endDate = getDateString(0);   // Today
+            break;
+            
+          case '30days':
+            startDate = getDateString(30); // 30 days ago
+            endDate = getDateString(0);    // Today
+            break;
+            
+          case 'thisMonth':
+            // First day of current month
+            const now = new Date();
+            startDate = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-01';
+            endDate = getDateString(0); // Today
+            break;
+            
+          case 'custom':
+            // Use the date inputs for custom range
+            startDate = $('#greenmetrics-start-date').val();
+            endDate = $('#greenmetrics-end-date').val();
+            
+            // Validate dates
+            if (!startDate || !endDate) {
+              return; // Don't proceed if dates are not set
+            }
+            break;
+            
+          default:
+            return;
+        }
+        
+        // Load metrics for the selected date range
+        loadMetricsByDate(startDate, endDate);
+      });
+      
+      // Set default dates for custom date picker
+      $('#greenmetrics-start-date').val(getDateString(7)); // 7 days ago by default
+      $('#greenmetrics-end-date').val(getDateString(0));   // Today by default
+    }
+    
+    // Set up event handlers for chart metric toggles
+    function setupChartToggleHandlers() {
+      $('.chart-toggle').on('change', function() {
+        if (!metricsChart) return;
+        
+        const metricId = $(this).attr('id');
+        const checked = $(this).prop('checked');
+        
+        // Find the dataset index for this metric
+        const datasetIndex = metricsChart.data.datasets.findIndex(dataset => 
+          dataset.label.toLowerCase().includes(metricId.toLowerCase().replace('_', ' '))
+        );
+        
+        // Toggle visibility if dataset found
+        if (datasetIndex !== -1) {
+          metricsChart.setDatasetVisibility(datasetIndex, checked);
+          metricsChart.update();
+        }
+      });
+    }
+    
+    // Helper function to get date string for N days ago
+    function getDateString(daysAgo) {
+      const date = new Date();
+      date.setDate(date.getDate() - daysAgo);
+      return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
+    }
+    
+    // Helper function to pad single digit numbers with a leading zero
+    function pad(num) {
+      return num < 10 ? '0' + num : num;
+    }
+
+    // Event Listeners
+    $checkboxes.on('change', markDirty);
+    $selects.on('change', markDirty);
+    $texts.on('keyup', debouncedUpdateBadgePreview);
+    $iconOptions.on('click', function() {
+      $iconOptions.removeClass('selected');
+      $(this).addClass('selected');
+      $('#badge_icon_type').val($(this).data('icon'));
+      markDirty();
+    });
+
     // Initialize color pickers with alpha support
     $('.greenmetrics-color-picker').each(function() {
       const $this = $(this);
@@ -384,6 +646,11 @@
     toggleIconOptions();
     initFontSizeFields();
     updateBadgePreview();
+    
+    // Only initialize chart if we're on the dashboard page
+    if (chartCanvas) {
+      initChart();
+    }
     
     // Only initialize dashboard if we're on the dashboard page
     if ($('#greenmetrics-stats').length) {

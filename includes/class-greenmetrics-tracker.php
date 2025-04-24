@@ -665,4 +665,94 @@ class GreenMetrics_Tracker {
 		self::refresh_stats_cache();
 		greenmetrics_log( 'Manual cache refresh completed' );
 	}
+
+	/**
+	 * Get metrics by date range for chart display.
+	 *
+	 * @param string $start_date Start date (Y-m-d format).
+	 * @param string $end_date End date (Y-m-d format).
+	 * @param string $interval Interval (day, week, month).
+	 * @return array Array of metrics data grouped by date.
+	 */
+	public function get_metrics_by_date_range( $start_date = null, $end_date = null, $interval = 'day' ) {
+		global $wpdb;
+		$table_name_escaped = esc_sql( $this->table_name );
+
+		// Set default date range if not provided (last 7 days)
+		if ( empty( $start_date ) ) {
+			$start_date = date( 'Y-m-d', strtotime( '-7 days' ) );
+		}
+
+		if ( empty( $end_date ) ) {
+			$end_date = date( 'Y-m-d' );
+		}
+
+		// Format dates for SQL query
+		$start_date_sql = date( 'Y-m-d 00:00:00', strtotime( $start_date ) );
+		$end_date_sql = date( 'Y-m-d 23:59:59', strtotime( $end_date ) );
+
+		// Group by interval
+		$group_by = "DATE(created_at)";
+		$select_date = "DATE(created_at) as date";
+		
+		if ( $interval === 'week' ) {
+			$group_by = "YEARWEEK(created_at)";
+			$select_date = "STR_TO_DATE(CONCAT(YEARWEEK(created_at),' Sunday'), '%X%V %W') as date";
+		} elseif ( $interval === 'month' ) {
+			$group_by = "DATE_FORMAT(created_at, '%Y-%m')";
+			$select_date = "DATE_FORMAT(created_at, '%Y-%m-01') as date";
+		}
+
+		// Prepare the SQL query
+		$sql = $wpdb->prepare(
+			"SELECT 
+				$select_date,
+				COUNT(*) as views,
+				SUM(data_transfer) as data_transfer,
+				SUM(carbon_footprint) as carbon_footprint,
+				SUM(energy_consumption) as energy_consumption,
+				SUM(requests) as requests,
+				AVG(load_time) as avg_load_time
+			FROM $table_name_escaped
+			WHERE created_at BETWEEN %s AND %s
+			GROUP BY $group_by
+			ORDER BY date ASC",
+			$start_date_sql,
+			$end_date_sql
+		);
+
+		// Execute the query
+		$results = $wpdb->get_results( $sql, ARRAY_A );
+
+		// Check if we got results
+		if ( ! $results ) {
+			greenmetrics_log( 'No metrics found for date range', array( 'start' => $start_date, 'end' => $end_date ), 'warning' );
+			return array();
+		}
+
+		// Format results for chart display
+		$formatted_results = array(
+			'dates' => array(),
+			'carbon_footprint' => array(),
+			'energy_consumption' => array(),
+			'data_transfer' => array(),
+			'http_requests' => array(),
+			'page_views' => array(),
+		);
+
+		foreach ( $results as $row ) {
+			// Format date for display
+			$formatted_date = date( 'M j', strtotime( $row['date'] ) );
+			
+			// Add data to the formatted results
+			$formatted_results['dates'][] = $formatted_date;
+			$formatted_results['carbon_footprint'][] = round( floatval( $row['carbon_footprint'] ), 2 );
+			$formatted_results['energy_consumption'][] = round( floatval( $row['energy_consumption'] ), 4 );
+			$formatted_results['data_transfer'][] = round( floatval( $row['data_transfer'] ) / 1024, 2 ); // Convert to KB
+			$formatted_results['http_requests'][] = intval( $row['requests'] );
+			$formatted_results['page_views'][] = intval( $row['views'] );
+		}
+
+		return $formatted_results;
+	}
 }

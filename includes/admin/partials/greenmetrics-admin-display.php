@@ -283,6 +283,58 @@ $settings = get_option(
 				</div>
 			</div>
 
+			<!-- Historical Metrics Analysis Section -->
+			<div class="greenmetrics-admin-stats greenmetrics-metrics-trends">
+				<h2><?php esc_html_e( 'Environmental Metrics Trends', 'greenmetrics' ); ?></h2>
+				
+				<!-- Date Range Selector -->
+				<div class="greenmetrics-date-range">
+					<h3 class="greenmetrics-date-range-title"><?php esc_html_e( 'Select Date Range', 'greenmetrics' ); ?></h3>
+					<div class="greenmetrics-date-range-controls">
+						<button class="button greenmetrics-date-btn active" data-range="7days"><?php esc_html_e( 'Last 7 days', 'greenmetrics' ); ?></button>
+						<button class="button greenmetrics-date-btn" data-range="30days"><?php esc_html_e( 'Last 30 days', 'greenmetrics' ); ?></button>
+						<button class="button greenmetrics-date-btn" data-range="thisMonth"><?php esc_html_e( 'This Month', 'greenmetrics' ); ?></button>
+						
+						<div class="greenmetrics-custom-date-range">
+							<span><?php esc_html_e( 'Custom Range:', 'greenmetrics' ); ?></span>
+							<input type="date" id="greenmetrics-start-date" name="greenmetrics-start-date" class="greenmetrics-date-input">
+							<span><?php esc_html_e( 'to', 'greenmetrics' ); ?></span>
+							<input type="date" id="greenmetrics-end-date" name="greenmetrics-end-date" class="greenmetrics-date-input">
+							<button class="button greenmetrics-date-btn" data-range="custom" id="greenmetrics-apply-date"><?php esc_html_e( 'Apply', 'greenmetrics' ); ?></button>
+						</div>
+					</div>
+				</div>
+				
+				<!-- Metrics Chart -->
+				<div class="greenmetrics-metrics-chart">
+					<div class="greenmetrics-chart-container">
+						<canvas id="greenmetrics-chart"></canvas>
+					</div>
+					<div class="greenmetrics-chart-legend">
+						<div class="greenmetrics-chart-legend-item">
+							<input type="checkbox" id="carbon_footprint" class="chart-toggle" checked>
+							<label for="carbon_footprint"><?php esc_html_e( 'Carbon Footprint (g)', 'greenmetrics' ); ?></label>
+						</div>
+						<div class="greenmetrics-chart-legend-item">
+							<input type="checkbox" id="energy_consumption" class="chart-toggle" checked>
+							<label for="energy_consumption"><?php esc_html_e( 'Energy Consumption (kWh)', 'greenmetrics' ); ?></label>
+						</div>
+						<div class="greenmetrics-chart-legend-item">
+							<input type="checkbox" id="data_transfer" class="chart-toggle" checked>
+							<label for="data_transfer"><?php esc_html_e( 'Data Transfer (KB)', 'greenmetrics' ); ?></label>
+						</div>
+						<div class="greenmetrics-chart-legend-item">
+							<input type="checkbox" id="http_requests" class="chart-toggle" checked>
+							<label for="http_requests"><?php esc_html_e( 'HTTP Requests', 'greenmetrics' ); ?></label>
+						</div>
+						<div class="greenmetrics-chart-legend-item">
+							<input type="checkbox" id="page_views" class="chart-toggle" checked>
+							<label for="page_views"><?php esc_html_e( 'Page Views', 'greenmetrics' ); ?></label>
+						</div>
+					</div>
+				</div>
+			</div>
+
 			<div class="greenmetrics-admin-settings">
 				<h2><?php esc_html_e( 'Settings', 'greenmetrics' ); ?></h2>
 				
