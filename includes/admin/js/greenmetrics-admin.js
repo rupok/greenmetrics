@@ -345,6 +345,21 @@
     setTimeout(function() {
       $('.wp-picker-clear').each(function() {
         $(this).text('Set to Default');
+        
+        // Add special handling for metrics bg color clear button
+        if ($(this).closest('.wp-picker-container').find('#popover_metrics_bg_color').length) {
+          $(this).on('click', function(e) {
+            // Add a small delay to let the default clear handler execute first
+            setTimeout(function() {
+              // Force the correct rgba value after the clear operation
+              $('#popover_metrics_bg_color').iris('color', 'rgba(0, 0, 0, 0.05)');
+              $('#popover_metrics_bg_color').val('rgba(0, 0, 0, 0.05)').trigger('change');
+              
+              // Also update the badge preview
+              updateBadgePreview();
+            }, 100);
+          });
+        }
       });
     }, 100);
 
