@@ -1246,4 +1246,59 @@
 	.greenmetrics-chart-container {
 		height: 300px;
 	}
+}
+
+.greenmetrics-font-size-wrapper {
+    max-width: 200px;
+}
+
+.font-size-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.font-size-input-group {
+    display: flex;
+    border: 1px solid #8c8f94;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.font-size-input-group input[type="number"] {
+    border: none;
+    width: 60px;
+    text-align: right;
+    -moz-appearance: textfield;
+}
+
+.font-size-input-group input[type="number"]::-webkit-outer-spin-button,
+.font-size-input-group input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.font-size-unit {
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    background: #f0f0f1;
+    border-left: 1px solid #8c8f94;
+}
+
+.font-size-arrows {
+    display: flex;
+    flex-direction: column;
+}
+
+.font-size-arrows .dashicons {
+    cursor: pointer;
+    color: #2271b1;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+.font-size-arrows .dashicons:hover {
+    color: #135e96;
 } 

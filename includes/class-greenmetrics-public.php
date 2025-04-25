@@ -688,6 +688,7 @@ class GreenMetrics_Public {
 		$display_icon = $settings_manager->get( 'display_icon', 1 );
 		$icon_type = $settings_manager->get( 'badge_icon_type', 'leaf' );
 		$custom_icon = $settings_manager->get( 'badge_custom_icon', '' );
+		$icon_size = $settings_manager->get( 'badge_icon_size', '16px' );
 		
 		// Get popover content settings
 		$popover_title = $settings_manager->get( 'popover_title', 'Environmental Impact' );
@@ -748,10 +749,10 @@ class GreenMetrics_Public {
 		$icon_html = '';
 		if ( $display_icon && $icon_type ) {
 			if ( $icon_type === 'custom' && $custom_icon ) {
-				$icon_html = '<img src="' . esc_url( $custom_icon ) . '" alt="Icon" class="leaf-icon" style="width: 20px; height: 20px; fill: ' . esc_attr( $icon_color ) . ';">';
+				$icon_html = '<img src="' . esc_url( $custom_icon ) . '" alt="Icon" class="leaf-icon" style="width: ' . esc_attr( $icon_size ) . '; height: ' . esc_attr( $icon_size ) . '; fill: ' . esc_attr( $icon_color ) . ';">';
 			} else {
 				$icon = \GreenMetrics\GreenMetrics_Icons::get_icon( $icon_type );
-				$icon_html = '<div class="icon-container" style="color: ' . esc_attr( $icon_color ) . '; display: flex; align-items: center; justify-content: center; width: 20px; height: 20px;">' . $icon . '</div>';
+				$icon_html = '<div class="icon-container" style="color: ' . esc_attr( $icon_color ) . '; display: flex; align-items: center; justify-content: center; width: ' . esc_attr( $icon_size ) . '; height: ' . esc_attr( $icon_size ) . ';">' . $icon . '</div>';
 			}
 		}
 		

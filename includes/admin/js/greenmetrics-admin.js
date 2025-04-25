@@ -367,13 +367,13 @@
     $('#enable_badge, #badge_position, #badge_size, #badge_text, #badge_background_color, #badge_text_color, #badge_icon_color, ' +
       '#popover_title, #popover_custom_content, #popover_bg_color, #popover_text_color, #popover_metrics_color, #popover_metrics_bg_color, ' +
       '#popover_content_font, #popover_content_font_size, #popover_metrics_font, #popover_metrics_font_size, #popover_metrics_list_bg_color, ' +
-      '#popover_metrics_list_hover_bg_color')
+      '#popover_metrics_list_hover_bg_color, #badge_icon_size')
     .on('change input', function() {
       updateBadgePreview();
     });
     
     // Handle font size number input changes
-    $('#popover_content_font_size_number, #popover_metrics_font_size_number, #popover_metrics_label_font_size_number').on('change input', function() {
+    $('#popover_content_font_size_number, #popover_metrics_font_size_number, #popover_metrics_label_font_size_number, #badge_icon_size_number').on('change input', function() {
       // Update hidden field value
       var targetId = $(this).attr('id').replace('_number', '');
       $('#' + targetId).val($(this).val() + 'px');
@@ -397,6 +397,7 @@
       $('#popover_content_font_size_number').val(parseInt($('#popover_content_font_size').val()));
       $('#popover_metrics_font_size_number').val(parseInt($('#popover_metrics_font_size').val()));
       $('#popover_metrics_label_font_size_number').val(parseInt($('#popover_metrics_label_font_size').val()));
+      $('#badge_icon_size_number').val(parseInt($('#badge_icon_size').val()));
     }
     
     // Function to toggle icon options based on display_icon checkbox
@@ -440,6 +441,7 @@
       const displayIcon = $('#display_icon').is(':checked');
       const iconType = $('#badge_icon_type').val();
       const customIcon = $('#badge_custom_icon').val();
+      const iconSize = $('#badge_icon_size').val();
       
       // Update badge position
       $('#badge-preview-container').attr('class', position);
@@ -481,7 +483,7 @@
             break;
           case 'custom':
             if (customIcon) {
-              iconSvg = '<img src="' + customIcon + '" alt="Custom Icon" style="width: 20px; height: 20px;">';
+              iconSvg = '<img src="' + customIcon + '" alt="Custom Icon" style="width: ' + iconSize + '; height: ' + iconSize + ';">';
             } else {
               iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';
             }
@@ -490,6 +492,12 @@
             iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17 1.02.3 1.58.3C17 20 22 13.46 22 6c0-.55-.06-1.09-.14-1.62C20.18 4.15 18.66 4 17 4V2c1.67 0 3.35.12 5 .34V4c-1.67-.22-3.33-.34-5-.34v2zM2 6c0 7.46 5 14 14.5 14 .56 0 1.1-.13 1.58-.3l.95 2.3 1.89-.66C18.1 16.17 16 10 7 8c0 0-5 0-5 0z"/></svg>';
         }
         $badge.find('.icon-container').html(iconSvg);
+        
+        // Apply icon size to all SVG and image icons
+        $badge.find('.icon-container svg, .icon-container img').css({
+          'width': iconSize,
+          'height': iconSize
+        });
       } else {
         // Hide icon if display icon is unchecked
         $badge.find('.icon-container').hide();
@@ -741,6 +749,26 @@
       
       // Call init dashboard if we're on the dashboard page
       initDashboard();
+    }
+
+    function incrementFontSize(inputId) {
+        const input = document.getElementById(inputId);
+        const currentValue = parseInt(input.value);
+        const max = parseInt(input.getAttribute('max'));
+        if (currentValue < max) {
+            input.value = currentValue + 1;
+            input.dispatchEvent(new Event('change'));
+        }
+    }
+
+    function decrementFontSize(inputId) {
+        const input = document.getElementById(inputId);
+        const currentValue = parseInt(input.value);
+        const min = parseInt(input.getAttribute('min'));
+        if (currentValue > min) {
+            input.value = currentValue - 1;
+            input.dispatchEvent(new Event('change'));
+        }
     }
   });
 })(jQuery);

@@ -225,8 +225,6 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    height: 20px;
 }
 
 .greenmetrics-global-badge-button .icon-container svg {
@@ -234,6 +232,11 @@
     height: 100%;
     fill: currentColor;
     display: block;
+}
+
+.greenmetrics-global-badge-button:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
 }
 
 .greenmetrics-global-badge-button .leaf-icon {

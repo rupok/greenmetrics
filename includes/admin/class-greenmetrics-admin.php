@@ -102,6 +102,7 @@ class GreenMetrics_Admin {
 					'badge_background_color' => '#4CAF50',
 					'badge_text_color'       => '#ffffff',
 					'badge_icon_color'       => '#ffffff',
+					'badge_icon_size'        => '16px',
 					'popover_title'          => 'Environmental Impact',
 					'popover_metrics'        => array('carbon_footprint', 'energy_consumption', 'data_transfer', 'total_views', 'requests', 'performance_score'),
 					'popover_custom_content' => '',
@@ -190,6 +191,15 @@ class GreenMetrics_Admin {
 			'greenmetrics_display',
 			'greenmetrics_display',
 			array( 'label_for' => 'badge_icon_color' )
+		);
+
+		add_settings_field(
+			'badge_icon_size',
+			__( 'Icon Size', 'greenmetrics' ),
+			array( $this, 'render_badge_icon_size_field' ),
+			'greenmetrics_display',
+			'greenmetrics_display',
+			array( 'label_for' => 'badge_icon_size' )
 		);
 
 		add_settings_field(
@@ -415,6 +425,7 @@ class GreenMetrics_Admin {
 				'badge_background_color' => '#4CAF50',
 				'badge_text_color'       => '#ffffff',
 				'badge_icon_color'       => '#ffffff',
+				'badge_icon_size'        => '16px',
 			);
 		}
 
@@ -471,6 +482,13 @@ class GreenMetrics_Admin {
 
 		if ( isset( $input['badge_icon_color'] ) ) {
 			$sanitized['badge_icon_color'] = sanitize_hex_color( $input['badge_icon_color'] );
+		}
+
+		// Sanitize icon size
+		if ( isset( $input['badge_icon_size'] ) ) {
+			$size = intval( $input['badge_icon_size'] );
+			$size = max( 8, min( 48, $size ) ); // Limit between 8px and 48px
+			$sanitized['badge_icon_size'] = $size . 'px';
 		}
 
 		// Sanitize popover content settings
@@ -737,6 +755,43 @@ class GreenMetrics_Admin {
 		?>
 		<input type="text" id="badge_icon_color" name="greenmetrics_settings[badge_icon_color]" value="<?php echo esc_attr( $value ); ?>" class="greenmetrics-color-picker" data-alpha="true">
 		<p class="description"><?php esc_html_e( 'Color of the badge icon.', 'greenmetrics' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Render badge icon size field.
+	 */
+	public function render_badge_icon_size_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['badge_icon_size'] ) ? $options['badge_icon_size'] : '16px';
+		$numeric_value = intval( $value );
+		?>
+		<div class="greenmetrics-font-size-wrapper">
+			<div class="font-size-control">
+				<div class="font-size-input-group">
+					<input type="number" 
+						id="badge_icon_size_number" 
+						min="8" 
+						max="48" 
+						step="1" 
+						value="<?php echo esc_attr( $numeric_value ); ?>" 
+						class="font-size-number" 
+						onchange="document.getElementById('badge_icon_size').value = this.value + 'px';">
+					<div class="font-size-unit">
+						<span>px</span>
+					</div>
+				</div>
+				<div class="font-size-arrows">
+					<span class="dashicons dashicons-arrow-up-alt2" onclick="incrementFontSize('badge_icon_size_number')"></span>
+					<span class="dashicons dashicons-arrow-down-alt2" onclick="decrementFontSize('badge_icon_size_number')"></span>
+				</div>
+				<input type="hidden" 
+					id="badge_icon_size" 
+					name="greenmetrics_settings[badge_icon_size]" 
+					value="<?php echo esc_attr( $value ); ?>">
+			</div>
+			<p class="description"><?php esc_html_e( 'Size of the badge icon in pixels.', 'greenmetrics' ); ?></p>
+		</div>
 		<?php
 	}
 
