@@ -1,0 +1,9 @@
+.wp-block-greenmetrics-badge {
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.wp-block-greenmetrics-badge .dashicons {
+    display: inline-block;
+    line-height: 1;
+} 

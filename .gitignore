@@ -27,6 +27,8 @@ wp-content/plugins/*
 # Build files
 /build/
 /dist/
+# Exception for block build files
+!public/js/blocks/*/build/
 
 # Environment files
 .env
@@ -41,10 +43,6 @@ composer.lock
 /node_modules/
 package-lock.json
 yarn.lock
-
-# Build files
-/public/js/blocks/*/build/
-/public/js/blocks/*/dist/
 
 # IDE
 .idea/

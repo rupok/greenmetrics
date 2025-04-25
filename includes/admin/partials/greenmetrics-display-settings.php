@@ -633,17 +633,17 @@ jQuery(document).ready(function($) {
 
 .greenmetrics-badge.small {
 	font-size: 12px;
-	padding: 6px 10px;
+	padding: 4px 8px;
 }
 
 .greenmetrics-badge.medium {
 	font-size: 14px;
-	padding: 8px 12px;
+	padding: 8px 16px;
 }
 
 .greenmetrics-badge.large {
 	font-size: 16px;
-	padding: 10px 14px;
+	padding: 12px 24px;
 }
 
 .greenmetrics-badge .icon-container {

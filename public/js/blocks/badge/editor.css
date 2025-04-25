@@ -1,0 +1,12 @@
+.wp-block-greenmetrics-badge {
+    padding: 8px;
+    border: 1px dashed #ccc;
+    border-radius: 4px;
+    margin: 8px 0;
+}
+
+.wp-block-greenmetrics-badge .dashicons {
+    display: inline-block;
+    line-height: 1;
+    vertical-align: middle;
+} 

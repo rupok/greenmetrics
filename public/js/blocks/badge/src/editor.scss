@@ -1,0 +1,137 @@
+.wp-block-greenmetrics-badge-wrapper {
+    position: relative;
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+}
+
+.wp-block-greenmetrics-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    outline: 1px solid transparent;
+
+    &:focus {
+        outline: 1px solid #4CAF50;
+    }
+}
+
+.wp-block-greenmetrics-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    color: #ffffff;
+    transition: all 0.3s ease;
+}
+
+.wp-block-greenmetrics-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: #ffffff;
+}
+
+.wp-block-greenmetrics-content {
+    position: relative;
+    min-width: 300px;
+    margin-top: 16px;
+    padding: 24px;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+}
+
+.wp-block-greenmetrics-content h3 {
+    margin: 0 0 16px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.wp-block-greenmetrics-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.wp-block-greenmetrics-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.metric-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.metric-value {
+    font-size: 14px;
+    font-weight: 500;
+    padding: 4px 8px;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+.wp-block-greenmetrics-custom-content {
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+// Icon selector styles
+.icon-selector {
+    margin-bottom: 16px;
+}
+
+.icon-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.icon-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+        border-color: #4CAF50;
+        background-color: rgba(76, 175, 80, 0.1);
+    }
+
+    &.selected {
+        border-color: #4CAF50;
+        background-color: rgba(76, 175, 80, 0.2);
+    }
+
+    svg {
+        width: 20px;
+        height: 20px;
+        color: #333333;
+    }
+}
+
+.color-picker {
+    margin-top: 16px;
+
+    p {
+        margin: 0 0 8px;
+        font-size: 13px;
+        font-weight: 500;
+    }
+} 

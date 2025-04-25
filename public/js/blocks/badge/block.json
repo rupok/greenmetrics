@@ -1,0 +1,19 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "greenmetrics/badge",
+    "version": "1.0.0",
+    "title": "GreenMetrics Badge",
+    "category": "widgets",
+    "icon": "chart-bar",
+    "description": "Display a GreenMetrics badge with customizable styles.",
+    "supports": {
+        "html": false,
+        "align": true
+    },
+    "textdomain": "greenmetrics",
+    "editorScript": "file:./build/index.js",
+    "editorStyle": "file:./build/index.css",
+    "style": "file:./style.css",
+    "viewScript": "file:./build/view.js"
+} 
