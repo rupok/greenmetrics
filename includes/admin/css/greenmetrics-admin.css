@@ -264,9 +264,14 @@
 	border-radius: 4px;
 }
 
+.greenmetrics-admin-stats .greenmetrics-environmental-context h3::before {
+	display: none;
+}
+
 .greenmetrics-admin-stats h3:nth-of-type(2)::before {
 	background: #2196F3;
 }
+
 
 .greenmetrics-admin-sidebar {
 	width: 300px;
@@ -605,6 +610,7 @@
 
 .greenmetrics-environmental-context h3 {
 	margin: 0 0 15px !important;
+	padding: 0 !important;
 	font-size: 20px !important;
 	font-weight: 600 !important;
 	color: white !important;
