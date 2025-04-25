@@ -15,17 +15,39 @@ if ( ! defined( 'WPINC' ) ) {
 $settings = get_option(
 	'greenmetrics_settings',
 	array(
-		'enable_badge'           => 1,
-		'display_icon'           => 1,
-		'badge_position'         => 'bottom-right',
-		'badge_size'             => 'medium',
-		'badge_text'             => 'Eco-Friendly Site',
-		'badge_icon_type'        => 'leaf',
-		'badge_custom_icon'      => '',
-		'badge_background_color' => '#4CAF50',
-		'badge_text_color'       => '#ffffff',
-		'badge_icon_color'       => '#ffffff',
-		'badge_icon_size'        => '16px',
+		'enable_badge'                     => 0,
+		'display_icon'                     => 1,
+		'badge_position'                   => 'bottom-right',
+		'badge_size'                       => 'medium',
+		'badge_text'                       => 'Eco-Friendly Site',
+		'badge_icon_type'                  => 'leaf',
+		'badge_custom_icon'                => '',
+		'badge_background_color'           => '#4CAF50',
+		'badge_text_color'                 => '#ffffff',
+		'badge_icon_color'                 => '#ffffff',
+		'badge_icon_size'                  => '16px',
+		'badge_theme'                      => 'light',
+		'popover_title'                    => 'Environmental Impact',
+		'popover_bg_color'                 => '#ffffff',
+		'popover_text_color'               => '#333333',
+		'popover_metrics_color'            => '#4CAF50',
+		'popover_metrics_bg_color'         => 'rgba(0, 0, 0, 0.05)',
+		'popover_metrics_list_bg_color'    => '#f8f9fa',
+		'popover_metrics_list_hover_bg_color' => '#f3f4f6',
+		'popover_content_font'             => '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif',
+		'popover_content_font_size'        => '16px',
+		'popover_metrics_font'             => '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif',
+		'popover_metrics_font_size'        => '15px',
+		'popover_metrics_label_font_size'  => '14px',
+		'popover_custom_content'           => '',
+		'popover_metrics'                  => array(
+			'carbon_footprint',
+			'energy_consumption',
+			'data_transfer',
+			'total_views',
+			'requests',
+			'performance_score'
+		),
 	)
 );
 ?>
@@ -233,13 +255,13 @@ $settings = get_option(
 						<div class="preview-section">
 							<h3 style="padding: 10px 0; text-align: center;"><?php esc_html_e( 'Badge', 'greenmetrics' ); ?></h3>
 							<div class="badge-preview-panel">
-								<div id="badge-preview-container" style="position: absolute;" class="<?php echo esc_attr( $settings['badge_position'] ); ?>">
-									<div class="greenmetrics-badge <?php echo esc_attr( $settings['badge_size'] ); ?>" style="
-										background-color: <?php echo esc_attr( $settings['badge_background_color'] ); ?>;
-										color: <?php echo esc_attr( $settings['badge_text_color'] ); ?>;
+								<div id="badge-preview-container" style="position: absolute;" class="<?php echo esc_attr( isset($settings['badge_position']) ? $settings['badge_position'] : 'bottom-right' ); ?>">
+									<div class="greenmetrics-badge <?php echo esc_attr( isset($settings['badge_size']) ? $settings['badge_size'] : 'medium' ); ?>" style="
+										background-color: <?php echo esc_attr( isset($settings['badge_background_color']) ? $settings['badge_background_color'] : '#4CAF50' ); ?>;
+										color: <?php echo esc_attr( isset($settings['badge_text_color']) ? $settings['badge_text_color'] : '#ffffff' ); ?>;
 									">
 										<?php if ( isset( $settings['display_icon'] ) && $settings['display_icon'] ) : ?>
-											<div class="icon-container" style="color: <?php echo esc_attr( $settings['badge_icon_color'] ); ?>;">
+											<div class="icon-container" style="color: <?php echo esc_attr( isset($settings['badge_icon_color']) ? $settings['badge_icon_color'] : '#ffffff' ); ?>;">
 												<?php
 												$icon_type = isset( $settings['badge_icon_type'] ) ? $settings['badge_icon_type'] : 'leaf';
 												$custom_icon = isset( $settings['badge_custom_icon'] ) ? $settings['badge_custom_icon'] : '';
@@ -271,7 +293,7 @@ $settings = get_option(
 												?>
 											</div>
 										<?php endif; ?>
-										<span><?php echo esc_html( $settings['badge_text'] ); ?></span>
+										<span><?php echo esc_html( isset($settings['badge_text']) ? $settings['badge_text'] : 'Eco-Friendly Site' ); ?></span>
 									</div>
 								</div>
 							</div>
