@@ -75,6 +75,9 @@
     function initChart() {
       if (!chartCanvas) return;
       
+      Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
+      Chart.defaults.font.size = 12;
+      
       metricsChart = new Chart(chartCanvas, {
         type: 'line',
         data: {
@@ -86,7 +89,31 @@
           maintainAspectRatio: false,
           scales: {
             y: {
-              beginAtZero: true
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(0, 0, 0, 0.05)',
+                lineWidth: 1
+              },
+              ticks: {
+                padding: 10,
+                color: '#666'
+              },
+              border: {
+                dash: [4, 4]
+              }
+            },
+            x: {
+              grid: {
+                color: 'rgba(0, 0, 0, 0.03)',
+                lineWidth: 1,
+                drawOnChartArea: true
+              },
+              ticks: {
+                padding: 10,
+                maxRotation: 45,
+                minRotation: 0,
+                color: '#666'
+              }
             }
           },
           interaction: {
@@ -95,10 +122,48 @@
           },
           plugins: {
             tooltip: {
-              enabled: true
+              enabled: true,
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              titleColor: '#333',
+              bodyColor: '#666',
+              titleFont: {
+                weight: 'bold',
+                size: 14
+              },
+              bodyFont: {
+                size: 13
+              },
+              padding: 12,
+              cornerRadius: 6,
+              boxPadding: 6,
+              borderColor: 'rgba(0, 0, 0, 0.1)',
+              borderWidth: 1,
+              usePointStyle: true,
+              callbacks: {
+                labelPointStyle: function(context) {
+                  return {
+                    pointStyle: 'circle',
+                    rotation: 0
+                  };
+                }
+              }
             },
             legend: {
               display: false // We're using custom checkboxes for legend
+            }
+          },
+          animation: {
+            duration: 750,
+            easing: 'easeOutQuart'
+          },
+          elements: {
+            line: {
+              tension: 0.3 // Smoother curves
+            },
+            point: {
+              radius: 3,
+              hoverRadius: 5,
+              hitRadius: 30
             }
           }
         }
@@ -120,6 +185,9 @@
         metricsChart.data.datasets = [];
         metricsChart.update();
       }
+      
+      // Add loading class to chart container
+      $('.greenmetrics-chart-container').addClass('loading');
       
       // Set default date range if not provided (last 7 days)
       if (!startDate && !endDate) {
@@ -148,6 +216,11 @@
             metricsChart.data.datasets = [];
             metricsChart.update();
           }
+        },
+        complete: function() {
+          // Remove loading states
+          $('.greenmetrics-date-btn').removeClass('loading');
+          $('.greenmetrics-chart-container').removeClass('loading');
         }
       });
     }
@@ -166,8 +239,14 @@
         return;
       }
       
+      // Format dates for display (e.g., "Jan 15" instead of "2023-01-15")
+      const formattedDates = data.dates.map(dateStr => {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      });
+      
       // Update chart labels (dates)
-      metricsChart.data.labels = data.dates;
+      metricsChart.data.labels = formattedDates;
       
       // Create datasets for each metric
       const metrics = [
@@ -190,8 +269,19 @@
             borderColor: colors.borderColor,
             backgroundColor: colors.backgroundColor,
             borderWidth: 2,
-            pointRadius: 3,
-            hidden: !visible
+            pointRadius: 4,
+            pointStyle: 'circle',
+            pointBackgroundColor: colors.borderColor,
+            pointBorderColor: 'rgba(255, 255, 255, 0.8)',
+            pointBorderWidth: 2,
+            pointHoverRadius: 6,
+            pointHoverBackgroundColor: colors.borderColor,
+            pointHoverBorderColor: 'white',
+            pointHoverBorderWidth: 2,
+            hidden: !visible,
+            cubicInterpolationMode: 'monotone',
+            tension: 0.4,
+            fill: false
           });
         }
       });
@@ -221,11 +311,19 @@
           case '7days':
             startDate = getDateString(7); // 7 days ago
             endDate = getDateString(0);   // Today
+            
+            // Update date inputs to match selected range
+            $('#greenmetrics-start-date').val(startDate);
+            $('#greenmetrics-end-date').val(endDate);
             break;
             
           case '30days':
             startDate = getDateString(30); // 30 days ago
             endDate = getDateString(0);    // Today
+            
+            // Update date inputs to match selected range
+            $('#greenmetrics-start-date').val(startDate);
+            $('#greenmetrics-end-date').val(endDate);
             break;
             
           case 'thisMonth':
@@ -233,6 +331,10 @@
             const now = new Date();
             startDate = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-01';
             endDate = getDateString(0); // Today
+            
+            // Update date inputs to match selected range
+            $('#greenmetrics-start-date').val(startDate);
+            $('#greenmetrics-end-date').val(endDate);
             break;
             
           case 'custom':
@@ -242,7 +344,21 @@
             
             // Validate dates
             if (!startDate || !endDate) {
+              // Show feedback to user
+              alert('Please select both start and end dates');
               return; // Don't proceed if dates are not set
+            }
+            
+            // Check if end date is before start date
+            if (new Date(endDate) < new Date(startDate)) {
+              // Swap dates
+              const temp = startDate;
+              startDate = endDate;
+              endDate = temp;
+              
+              // Update inputs
+              $('#greenmetrics-start-date').val(startDate);
+              $('#greenmetrics-end-date').val(endDate);
             }
             break;
             
@@ -250,13 +366,31 @@
             return;
         }
         
+        // Show loading state
+        $(this).addClass('loading');
+        
         // Load metrics for the selected date range
         loadMetricsByDate(startDate, endDate);
       });
       
+      // Date input changes
+      $('.greenmetrics-date-input').on('change', function() {
+        // When date inputs change, highlight the custom button
+        $('.greenmetrics-date-btn').removeClass('active');
+        $('.greenmetrics-date-btn[data-range="custom"]').addClass('active');
+      });
+      
       // Set default dates for custom date picker
+      const today = new Date();
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(today.getDate() - 7);
+      
       $('#greenmetrics-start-date').val(getDateString(7)); // 7 days ago by default
       $('#greenmetrics-end-date').val(getDateString(0));   // Today by default
+      
+      // Set max date for both date pickers to today
+      const maxDate = getDateString(0);
+      $('#greenmetrics-start-date, #greenmetrics-end-date').attr('max', maxDate);
     }
     
     // Set up event handlers for chart metric toggles

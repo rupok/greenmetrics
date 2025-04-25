@@ -311,24 +311,29 @@ $settings = get_option(
 						<canvas id="greenmetrics-chart"></canvas>
 					</div>
 					<div class="greenmetrics-chart-legend">
-						<div class="greenmetrics-chart-legend-item">
+						<div class="greenmetrics-chart-legend-item carbon_footprint">
 							<input type="checkbox" id="carbon_footprint" class="chart-toggle" checked>
+							<span class="color-indicator"></span>
 							<label for="carbon_footprint"><?php esc_html_e( 'Carbon Footprint (g)', 'greenmetrics' ); ?></label>
 						</div>
-						<div class="greenmetrics-chart-legend-item">
+						<div class="greenmetrics-chart-legend-item energy_consumption">
 							<input type="checkbox" id="energy_consumption" class="chart-toggle" checked>
+							<span class="color-indicator"></span>
 							<label for="energy_consumption"><?php esc_html_e( 'Energy Consumption (kWh)', 'greenmetrics' ); ?></label>
 						</div>
-						<div class="greenmetrics-chart-legend-item">
+						<div class="greenmetrics-chart-legend-item data_transfer">
 							<input type="checkbox" id="data_transfer" class="chart-toggle" checked>
+							<span class="color-indicator"></span>
 							<label for="data_transfer"><?php esc_html_e( 'Data Transfer (KB)', 'greenmetrics' ); ?></label>
 						</div>
-						<div class="greenmetrics-chart-legend-item">
+						<div class="greenmetrics-chart-legend-item http_requests">
 							<input type="checkbox" id="http_requests" class="chart-toggle" checked>
+							<span class="color-indicator"></span>
 							<label for="http_requests"><?php esc_html_e( 'HTTP Requests', 'greenmetrics' ); ?></label>
 						</div>
-						<div class="greenmetrics-chart-legend-item">
+						<div class="greenmetrics-chart-legend-item page_views">
 							<input type="checkbox" id="page_views" class="chart-toggle" checked>
+							<span class="color-indicator"></span>
 							<label for="page_views"><?php esc_html_e( 'Page Views', 'greenmetrics' ); ?></label>
 						</div>
 					</div>
