@@ -284,7 +284,7 @@ $settings = get_option(
 			</div>
 
 			<!-- Historical Metrics Analysis Section -->
-			<div class="greenmetrics-admin-stats greenmetrics-metrics-trends">
+			<div class="greenmetrics-metrics-trends">
 				<h2><?php esc_html_e( 'Environmental Metrics Trends', 'greenmetrics' ); ?></h2>
 				
 				<!-- Date Range Selector -->
@@ -341,7 +341,6 @@ $settings = get_option(
 			</div>
 
 			<div class="greenmetrics-admin-settings">
-				<h2><?php esc_html_e( 'Settings', 'greenmetrics' ); ?></h2>
 				
 				<!-- Tracking Settings Section -->
 				<form method="post" action="options.php">
