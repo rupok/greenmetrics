@@ -582,7 +582,15 @@
       
       // Update badge appearance
       const $badge = $('#badge-preview-container .greenmetrics-badge');
-      $badge.attr('class', 'greenmetrics-badge ' + size);
+      
+      // Make sure to properly apply the size class
+      $badge.removeClass('small medium large').addClass(size);
+      
+      // Ensure the badge has the greenmetrics-badge base class
+      if (!$badge.hasClass('greenmetrics-badge')) {
+        $badge.addClass('greenmetrics-badge');
+      }
+      
       $badge.css({
         'background-color': bgColor,
         'color': textColor

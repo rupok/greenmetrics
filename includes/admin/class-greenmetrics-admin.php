@@ -647,7 +647,10 @@ class GreenMetrics_Admin {
 		$options = get_option( 'greenmetrics_settings' );
 		$value   = isset( $options['tracking_enabled'] ) ? $options['tracking_enabled'] : 1;
 		?>
-		<input type="checkbox" id="tracking_enabled" name="greenmetrics_settings[tracking_enabled]" value="1" <?php checked( $value, 1 ); ?>>
+		<label class="toggle-switch">
+			<input type="checkbox" id="tracking_enabled" name="greenmetrics_settings[tracking_enabled]" value="1" <?php checked( $value, 1 ); ?>>
+			<span class="slider"></span>
+		</label>
 		<label for="tracking_enabled"><?php esc_html_e( 'Enable page tracking', 'greenmetrics' ); ?></label>
 		<p class="description"><?php esc_html_e( 'Collect data about page views, load times, and resource usage.', 'greenmetrics' ); ?></p>
 		<?php
@@ -660,7 +663,10 @@ class GreenMetrics_Admin {
 		$options = get_option( 'greenmetrics_settings' );
 		$value   = isset( $options['enable_badge'] ) ? $options['enable_badge'] : 1;
 		?>
-		<input type="checkbox" id="enable_badge" name="greenmetrics_settings[enable_badge]" value="1" <?php checked( $value, 1 ); ?>>
+		<label class="toggle-switch">
+			<input type="checkbox" id="enable_badge" name="greenmetrics_settings[enable_badge]" value="1" <?php checked( $value, 1 ); ?>>
+			<span class="slider"></span>
+		</label>
 		<p class="description"><?php esc_html_e( 'Show an eco-friendly badge on your website to highlight your commitment to sustainability.', 'greenmetrics' ); ?></p>
 		<?php
 	}
@@ -672,7 +678,10 @@ class GreenMetrics_Admin {
 		$options = get_option( 'greenmetrics_settings' );
 		$value   = isset( $options['display_icon'] ) ? $options['display_icon'] : 1;
 		?>
-		<input type="checkbox" id="display_icon" name="greenmetrics_settings[display_icon]" value="1" <?php checked( $value, 1 ); ?>>
+		<label class="toggle-switch">
+			<input type="checkbox" id="display_icon" name="greenmetrics_settings[display_icon]" value="1" <?php checked( $value, 1 ); ?>>
+			<span class="slider"></span>
+		</label>
 		<p class="description"><?php esc_html_e( 'Show an icon next to the badge', 'greenmetrics' ); ?></p>
 		<?php
 	}
@@ -915,24 +924,10 @@ class GreenMetrics_Admin {
 						value="<?php echo esc_attr( $metric_key ); ?>" 
 						<?php checked( in_array( $metric_key, $metrics, true ) ); ?>>
 					<?php echo esc_html( $metric_label ); ?>
-				</label><br>
+				</label>
 			<?php endforeach; ?>
 		</div>
 		<p class="description"><?php esc_html_e( 'Select which metrics to display in the popover.', 'greenmetrics' ); ?></p>
-		<style>
-			.metrics-checkboxes {
-				max-height: 200px;
-				overflow-y: auto;
-				border: 1px solid #ddd;
-				padding: 10px;
-				margin-bottom: 10px;
-				background: #f9f9f9;
-			}
-			.metrics-checkbox-label {
-				display: block;
-				margin-bottom: 5px;
-			}
-		</style>
 		<?php
 	}
 

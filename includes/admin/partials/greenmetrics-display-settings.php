@@ -353,42 +353,48 @@ $settings = get_option(
 		<div class="greenmetrics-admin-card" style="margin-top: 30px;">
 			<h2><?php esc_html_e( 'Usage Instructions', 'greenmetrics' ); ?></h2>
 			
-			<h3><?php esc_html_e( 'Automatic Badge Display', 'greenmetrics' ); ?></h3>
-			<p><?php esc_html_e( 'When enabled in the settings, the badge will automatically appear on all pages of your site in the position you select.', 'greenmetrics' ); ?></p>
-			
-			<h3><?php esc_html_e( 'Using Shortcode', 'greenmetrics' ); ?></h3>
-			<p><?php esc_html_e( 'You can also add the badge to specific locations using the shortcode:', 'greenmetrics' ); ?></p>
-			<div class="code-block" style="background: #f5f5f5; padding: 15px; border-radius: 4px;">
-				<code>[greenmetrics_badge]</code>
+			<div class="guide-card">
+				<h3><?php esc_html_e( 'Automatic Badge Display', 'greenmetrics' ); ?></h3>
+				<p><?php esc_html_e( 'When enabled in the settings, the badge will automatically appear on all pages of your site in the position you select.', 'greenmetrics' ); ?></p>
 			</div>
 			
-			<p style="margin-top: 15px;"><?php esc_html_e( 'The shortcode can include custom attributes to override the default settings:', 'greenmetrics' ); ?></p>
-			<ul style="list-style-type: disc; margin-left: 20px;">
-				<li><code>position="top-left|top-right|bottom-left|bottom-right"</code></li>
-				<li><code>size="small|medium|large"</code></li>
-				<li><code>text="Your custom badge text"</code></li>
-				<li><code>background_color="#hexcolor"</code></li>
-				<li><code>text_color="#hexcolor"</code></li>
-				<li><code>icon_color="#hexcolor"</code></li>
-			</ul>
-			
-			<p><?php esc_html_e( 'Example with custom attributes:', 'greenmetrics' ); ?></p>
-			<div class="code-block" style="background: #f5f5f5; padding: 15px; border-radius: 4px;">
-				<code>[greenmetrics_badge position="top-right" size="large" text="Green Website"]</code>
+			<div class="guide-card">
+				<h3><?php esc_html_e( 'Using Shortcode', 'greenmetrics' ); ?></h3>
+				<p><?php esc_html_e( 'You can also add the badge to specific locations using the shortcode:', 'greenmetrics' ); ?></p>
+				<div class="code-block">
+					<code>[greenmetrics_badge]</code>
+				</div>
+				
+				<p><?php esc_html_e( 'The shortcode can include custom attributes to override the default settings:', 'greenmetrics' ); ?></p>
+				<ul class="attributes-list">
+					<li><code>position="top-left|top-right|bottom-left|bottom-right"</code></li>
+					<li><code>size="small|medium|large"</code></li>
+					<li><code>text="Your custom badge text"</code></li>
+					<li><code>background_color="#hexcolor"</code></li>
+					<li><code>text_color="#hexcolor"</code></li>
+					<li><code>icon_color="#hexcolor"</code></li>
+				</ul>
+				
+				<p><?php esc_html_e( 'Example with custom attributes:', 'greenmetrics' ); ?></p>
+				<div class="code-block">
+					<code>[greenmetrics_badge position="top-right" size="large" text="Green Website"]</code>
+				</div>
 			</div>
 			
-			<h3><?php esc_html_e( 'Using Block Editor', 'greenmetrics' ); ?></h3>
-			<p><?php esc_html_e( 'Add the GreenMetrics badge using the Block Editor in your page or post:', 'greenmetrics' ); ?></p>
-			<ol style="margin-left: 20px; line-height: 1.6;">
-				<li><?php esc_html_e( 'Edit a page or post using the Block Editor', 'greenmetrics' ); ?></li>
-				<li><?php esc_html_e( 'Click the "+" button to add a new block', 'greenmetrics' ); ?></li>
-				<li><?php esc_html_e( 'Search for "GreenMetrics"', 'greenmetrics' ); ?></li>
-				<li><?php esc_html_e( 'Select the "GreenMetrics Badge" block', 'greenmetrics' ); ?></li>
-				<li><?php esc_html_e( 'Customize the badge appearance using the block settings sidebar', 'greenmetrics' ); ?></li>
-			</ol>
-			
-			<div style="background: #f8f9f9; border: 1px solid #ddd; border-left: 4px solid #4CAF50; padding: 15px; margin-top: 15px; border-radius: 4px;">
-				<p style="margin: 0;"><strong><?php esc_html_e( 'Tip:', 'greenmetrics' ); ?></strong> <?php esc_html_e( 'The Block Editor provides a visual way to customize the badge with the same options available in the shortcode.', 'greenmetrics' ); ?></p>
+			<div class="guide-card">
+				<h3><?php esc_html_e( 'Using Block Editor', 'greenmetrics' ); ?></h3>
+				<p><?php esc_html_e( 'Add the GreenMetrics badge using the Block Editor in your page or post:', 'greenmetrics' ); ?></p>
+				<ol>
+					<li><?php esc_html_e( 'Edit a page or post using the Block Editor', 'greenmetrics' ); ?></li>
+					<li><?php esc_html_e( 'Click the "+" button to add a new block', 'greenmetrics' ); ?></li>
+					<li><?php esc_html_e( 'Search for "GreenMetrics"', 'greenmetrics' ); ?></li>
+					<li><?php esc_html_e( 'Select the "GreenMetrics Badge" block', 'greenmetrics' ); ?></li>
+					<li><?php esc_html_e( 'Customize the badge appearance using the block settings sidebar', 'greenmetrics' ); ?></li>
+				</ol>
+				
+				<div class="tip-box">
+					<p><strong><?php esc_html_e( 'Tip:', 'greenmetrics' ); ?></strong> <?php esc_html_e( 'The Block Editor provides a visual way to customize the badge with the same options available in the shortcode.', 'greenmetrics' ); ?></p>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -467,7 +473,15 @@ jQuery(document).ready(function($) {
 		
 		// Update badge appearance
 		const $badge = $('#badge-preview-container .greenmetrics-badge');
-		$badge.attr('class', 'greenmetrics-badge ' + size);
+		
+		// Make sure to properly apply the size class
+		$badge.removeClass('small medium large').addClass(size);
+		
+		// Ensure the badge has the greenmetrics-badge base class
+		if (!$badge.hasClass('greenmetrics-badge')) {
+			$badge.addClass('greenmetrics-badge');
+		}
+		
 		$badge.css({
 			'background-color': bgColor,
 			'color': textColor
