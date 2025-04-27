@@ -744,38 +744,53 @@
       }
     }
     
-    // Badge icon type selection
-    $('#badge_icon_type').on('change', function() {
-      const iconType = $(this).val();
-      
-      // Update visual selection of icon options if they exist
-      if ($('.icon-option').length) {
+    // Icon option selection
+    $('.icon-option').on('click', function() {
+        const iconType = $(this).data('value');
+        console.log('Icon clicked:', iconType);
+        
+        // Update select value
+        $('#badge_icon_type').val(iconType).trigger('change');
+        
+        // Update visual selection
         $('.icon-option').removeClass('selected');
-        $('.icon-option[data-value="' + iconType + '"]').addClass('selected');
-      }
-      
-      // Show/hide custom icon field
-      if (iconType === 'custom') {
-        $('#badge_custom_icon').closest('tr').show();
-        $('#custom-icon-field-wrapper').show();
-      } else {
-        $('#badge_custom_icon').closest('tr').hide();
-        $('#custom-icon-field-wrapper').hide();
-      }
-      
-      updateBadgePreview();
+        $(this).addClass('selected');
+        
+        // If custom is selected, show custom icon field
+        if (iconType === 'custom') {
+            $('#badge_custom_icon').closest('tr').show();
+            $('#custom-icon-field-wrapper').show();
+        } else {
+            $('#badge_custom_icon').closest('tr').hide();
+            $('#custom-icon-field-wrapper').hide();
+        }
+        
+        // Mark as changed and update preview
+        markDirty();
     });
     
-    // Icon option selection (visual clickable icons)
-    $('.icon-option').on('click', function() {
-      const value = $(this).data('value');
-      
-      // Update the select field
-      $('#badge_icon_type').val(value).trigger('change');
-      
-      // Update visual selection
-      $('.icon-option').removeClass('selected');
-      $(this).addClass('selected');
+    // Badge icon type selection
+    $('#badge_icon_type').on('change', function() {
+        const iconType = $(this).val();
+        console.log('Icon type changed to:', iconType);
+        
+        // Update visual selection of icon options if they exist
+        if ($('.icon-option').length) {
+            $('.icon-option').removeClass('selected');
+            $('.icon-option[data-value="' + iconType + '"]').addClass('selected');
+        }
+        
+        // Show/hide custom icon field
+        if (iconType === 'custom') {
+            $('#badge_custom_icon').closest('tr').show();
+            $('#custom-icon-field-wrapper').show();
+        } else {
+            $('#badge_custom_icon').closest('tr').hide();
+            $('#custom-icon-field-wrapper').hide();
+        }
+        
+        // Mark as changed and update preview
+        markDirty();
     });
     
     // Custom icon selection

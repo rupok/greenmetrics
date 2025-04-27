@@ -209,7 +209,7 @@ class GreenMetrics_Public {
 				'textColor'              => '#ffffff',
 				'iconColor'              => '#ffffff',
 				'showIcon'               => true,
-				'iconName'               => 'chart-bar',
+				'iconName'               => 'leaf',
 				'iconSize'               => 20,
 				'borderRadius'           => 4,
 				'padding'                => 8,
@@ -229,28 +229,9 @@ class GreenMetrics_Public {
 			)
 		);
 
-		// Include and get icons
-		$icons_file = GREENMETRICS_PLUGIN_DIR . 'public/js/blocks/badge/src/icons.php';
-		if ( ! file_exists( $icons_file ) ) {
-			error_log( 'GreenMetrics: Icons file not found at ' . $icons_file );
-			return '';
-		}
-		include $icons_file;
-		if ( ! isset( $icons ) || ! is_array( $icons ) ) {
-			error_log( 'GreenMetrics: Icons array not properly defined' );
-			return '';
-		}
-
 		// Get the selected icon's SVG content
-		$iconName     = $attributes['iconName'];
-		$selectedIcon = null;
-		foreach ( $icons as $icon ) {
-			if ( $icon['id'] === $iconName ) {
-				$selectedIcon = $icon;
-				break;
-			}
-		}
-		$iconSvg = $selectedIcon ? $selectedIcon['svg'] : $icons[0]['svg'];
+		$iconName = $attributes['iconName'];
+		$iconSvg = $this->get_icon_svg( $iconName );
 		$attributes['icon_svg'] = $iconSvg;
 
 		// Render badge without respect to global setting (always show for blocks)
@@ -581,53 +562,55 @@ class GreenMetrics_Public {
 	 * @return string|null SVG content or null if not found
 	 */
 	private function get_icon_svg( $icon_name ) {
-		// Include and get icons
+		// First try to get icon from the icons.php file
 		$icons_file = GREENMETRICS_PLUGIN_DIR . 'public/js/blocks/badge/src/icons.php';
-		if ( ! file_exists( $icons_file ) ) {
-			greenmetrics_log( 'Icons file not found', $icons_file, 'error' );
-			return null;
-		}
-		include $icons_file;
-		if ( ! isset( $icons ) || ! is_array( $icons ) ) {
-			greenmetrics_log( 'Icons array not properly defined', null, 'error' );
-			return null;
-		}
-
-		// Get the selected icon's SVG content
-		$icon_name = $icon_name ?? 'chart-bar';
-		foreach ( $icons as $icon ) {
-			if ( $icon['id'] === $icon_name ) {
-				return $icon['svg'];
+		if ( file_exists( $icons_file ) ) {
+			include_once $icons_file;
+			if ( isset( $icons ) && is_array( $icons ) ) {
+				// Get the selected icon's SVG content
+				$icon_name = $icon_name ?? 'leaf';
+				foreach ( $icons as $icon ) {
+					if ( $icon['id'] === $icon_name ) {
+						return $icon['svg'];
+					}
+				}
+				
+				// Return first icon as fallback
+				return $icons[0]['svg'] ?? null;
 			}
 		}
-
-		// Return first icon as fallback
-		return $icons[0]['svg'] ?? null;
+		
+		// If icon isn't found in the file, use the GreenMetrics_Icons class
+		return \GreenMetrics\GreenMetrics_Icons::get_icon( $icon_name );
 	}
 
+	/**
+	 * Get the HTML for an icon
+	 *
+	 * @param string $icon_name Icon name
+	 * @return string Icon HTML
+	 */
 	private function get_icon_html( $icon_name ) {
-		// Include and get icons
+		// First try to get icon from the icons.php file
 		$icons_file = GREENMETRICS_PLUGIN_DIR . 'public/js/blocks/badge/src/icons.php';
-		if ( ! file_exists( $icons_file ) ) {
-			greenmetrics_log( 'Icons file not found', $icons_file, 'error' );
-			return '';
-		}
-		include $icons_file;
-		if ( ! isset( $icons ) || ! is_array( $icons ) ) {
-			greenmetrics_log( 'Icons array not properly defined', null, 'error' );
-			return '';
-		}
-
-		// Get the selected icon's SVG content
-		$icon_name = $icon_name ?? 'chart-bar';
-		foreach ( $icons as $icon ) {
-			if ( $icon['id'] === $icon_name ) {
-				return $icon['svg'];
+		if ( file_exists( $icons_file ) ) {
+			include_once $icons_file;
+			if ( isset( $icons ) && is_array( $icons ) ) {
+				// Get the selected icon's SVG content
+				$icon_name = $icon_name ?? 'leaf';
+				foreach ( $icons as $icon ) {
+					if ( $icon['id'] === $icon_name ) {
+						return $icon['svg'];
+					}
+				}
+				
+				// Return first icon as fallback
+				return $icons[0]['svg'] ?? '';
 			}
 		}
-
-		// Return first icon as fallback
-		return $icons[0]['svg'] ?? '';
+		
+		// If icon isn't found in the file, use the GreenMetrics_Icons class
+		return \GreenMetrics\GreenMetrics_Icons::get_icon( $icon_name );
 	}
 
 	/**
@@ -675,8 +658,6 @@ class GreenMetrics_Public {
 			return;
 		}
 		
-		greenmetrics_log( 'Displaying global badge in footer with settings' );
-		
 		// Get all display settings
 		$settings = $settings_manager->get();
 		$position = $settings_manager->get( 'badge_position', 'bottom-right' );
@@ -689,6 +670,17 @@ class GreenMetrics_Public {
 		$icon_type = $settings_manager->get( 'badge_icon_type', 'leaf' );
 		$custom_icon = $settings_manager->get( 'badge_custom_icon', '' );
 		$icon_size = $settings_manager->get( 'badge_icon_size', '16px' );
+		
+		// Log settings for debugging
+		if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
+			greenmetrics_log( 'Badge display settings', array(
+				'display_icon' => $display_icon,
+				'icon_type' => $icon_type,
+				'icon_size' => $icon_size,
+				'icon_color' => $icon_color,
+				'custom_icon' => $custom_icon
+			));
+		}
 		
 		// Get popover content settings
 		$popover_title = $settings_manager->get( 'popover_title', 'Environmental Impact' );
@@ -751,8 +743,19 @@ class GreenMetrics_Public {
 			if ( $icon_type === 'custom' && $custom_icon ) {
 				$icon_html = '<img src="' . esc_url( $custom_icon ) . '" alt="Icon" class="leaf-icon" style="width: ' . esc_attr( $icon_size ) . '; height: ' . esc_attr( $icon_size ) . '; fill: ' . esc_attr( $icon_color ) . ';">';
 			} else {
-				$icon = \GreenMetrics\GreenMetrics_Icons::get_icon( $icon_type );
-				$icon_html = '<div class="icon-container" style="color: ' . esc_attr( $icon_color ) . '; display: flex; align-items: center; justify-content: center; width: ' . esc_attr( $icon_size ) . '; height: ' . esc_attr( $icon_size ) . ';">' . $icon . '</div>';
+				// Try to get the icon using GreenMetrics_Icons class directly
+				$icon_svg = \GreenMetrics\GreenMetrics_Icons::get_icon( $icon_type );
+				
+				// If we couldn't get an icon, try again with the fallback
+				if ( empty( $icon_svg ) || $icon_svg === \GreenMetrics\GreenMetrics_Icons::get_icon( 'leaf' ) ) {
+					// Log the fallback for debugging
+					if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
+						greenmetrics_log( 'Using fallback icon method for type', $icon_type );
+					}
+					$icon_svg = $this->get_icon_svg( $icon_type );
+				}
+				
+				$icon_html = '<div class="icon-container" style="color: ' . esc_attr( $icon_color ) . '; display: flex; align-items: center; justify-content: center; width: ' . esc_attr( $icon_size ) . '; height: ' . esc_attr( $icon_size ) . ';">' . $icon_svg . '</div>';
 			}
 		}
 		
@@ -763,6 +766,12 @@ class GreenMetrics_Public {
 				<style>
 					.greenmetrics-global-badge-wrapper .greenmetrics-global-badge-content .greenmetrics-global-badge-metrics .greenmetrics-global-badge-metric:hover {
 						background-color: <?php echo esc_attr( $popover_metrics_list_hover_bg_color ); ?> !important;
+					}
+					.greenmetrics-global-badge-button .icon-container svg {
+						width: <?php echo esc_attr( $icon_size ); ?>;
+						height: <?php echo esc_attr( $icon_size ); ?>;
+						fill: currentColor;
+						display: block;
 					}
 				</style>
 				<div class="greenmetrics-global-badge-button <?php echo esc_attr( $size ); ?>" style="<?php echo esc_attr( $button_style ); ?>">

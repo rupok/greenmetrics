@@ -465,10 +465,38 @@ class GreenMetrics_Admin {
 		}
 
 		if ( isset( $input['badge_icon_type'] ) ) {
-			$valid_icons = array( 'leaf', 'tree', 'globe', 'recycle', 'custom' );
+			$valid_icons = array( 
+				'leaf', 
+				'tree', 
+				'globe', 
+				'recycle', 
+				'chart-bar', 
+				'chart-line', 
+				'chart-pie', 
+				'analytics', 
+				'performance', 
+				'energy', 
+				'water', 
+				'eco', 
+				'nature', 
+				'sustainability', 
+				'custom' 
+			);
+			
+			// Log icon type for debugging
+			if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
+				greenmetrics_log( 'Icon type before sanitizing', $input['badge_icon_type'] );
+				greenmetrics_log( 'Valid icons', $valid_icons );
+			}
+			
 			$sanitized['badge_icon_type'] = in_array( $input['badge_icon_type'], $valid_icons ) 
 				? $input['badge_icon_type'] 
 				: 'leaf';
+				
+			// Log final icon type for debugging
+			if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
+				greenmetrics_log( 'Icon type after sanitizing', $sanitized['badge_icon_type'] );
+			}
 		}
 
 		if ( isset( $input['badge_custom_icon'] ) ) {
@@ -696,6 +724,11 @@ class GreenMetrics_Admin {
 	public function render_badge_icon_type_field() {
 		$options = get_option( 'greenmetrics_settings' );
 		$value   = isset( $options['badge_icon_type'] ) ? $options['badge_icon_type'] : 'leaf';
+		
+		// Log the current value for debugging
+		if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
+			greenmetrics_log( 'Current badge icon type setting', $value );
+		}
 		?>
 		<div class="greenmetrics-icon-selection">
 			<select id="badge_icon_type" name="greenmetrics_settings[badge_icon_type]" style="margin-bottom: 15px;">
@@ -703,6 +736,16 @@ class GreenMetrics_Admin {
 				<option value="tree" <?php selected( $value, 'tree' ); ?>><?php esc_html_e( 'Tree', 'greenmetrics' ); ?></option>
 				<option value="globe" <?php selected( $value, 'globe' ); ?>><?php esc_html_e( 'Globe', 'greenmetrics' ); ?></option>
 				<option value="recycle" <?php selected( $value, 'recycle' ); ?>><?php esc_html_e( 'Recycle', 'greenmetrics' ); ?></option>
+				<option value="chart-bar" <?php selected( $value, 'chart-bar' ); ?>><?php esc_html_e( 'Chart Bar', 'greenmetrics' ); ?></option>
+				<option value="chart-line" <?php selected( $value, 'chart-line' ); ?>><?php esc_html_e( 'Chart Line', 'greenmetrics' ); ?></option>
+				<option value="chart-pie" <?php selected( $value, 'chart-pie' ); ?>><?php esc_html_e( 'Chart Pie', 'greenmetrics' ); ?></option>
+				<option value="analytics" <?php selected( $value, 'analytics' ); ?>><?php esc_html_e( 'Analytics', 'greenmetrics' ); ?></option>
+				<option value="performance" <?php selected( $value, 'performance' ); ?>><?php esc_html_e( 'Performance', 'greenmetrics' ); ?></option>
+				<option value="energy" <?php selected( $value, 'energy' ); ?>><?php esc_html_e( 'Energy', 'greenmetrics' ); ?></option>
+				<option value="water" <?php selected( $value, 'water' ); ?>><?php esc_html_e( 'Water', 'greenmetrics' ); ?></option>
+				<option value="eco" <?php selected( $value, 'eco' ); ?>><?php esc_html_e( 'Eco', 'greenmetrics' ); ?></option>
+				<option value="nature" <?php selected( $value, 'nature' ); ?>><?php esc_html_e( 'Nature', 'greenmetrics' ); ?></option>
+				<option value="sustainability" <?php selected( $value, 'sustainability' ); ?>><?php esc_html_e( 'Sustainability', 'greenmetrics' ); ?></option>
 				<option value="custom" <?php selected( $value, 'custom' ); ?>><?php esc_html_e( 'Custom', 'greenmetrics' ); ?></option>
 			</select>
 			
@@ -730,6 +773,66 @@ class GreenMetrics_Admin {
 						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('recycle'); ?>
 					</div>
 					<span><?php esc_html_e( 'Recycle', 'greenmetrics' ); ?></span>
+				</div>
+				<div class="icon-option <?php echo $value === 'chart-bar' ? 'selected' : ''; ?>" data-value="chart-bar">
+					<div class="icon-preview">
+						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('chart-bar'); ?>
+					</div>
+					<span><?php esc_html_e( 'Chart Bar', 'greenmetrics' ); ?></span>
+				</div>
+				<div class="icon-option <?php echo $value === 'chart-line' ? 'selected' : ''; ?>" data-value="chart-line">
+					<div class="icon-preview">
+						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('chart-line'); ?>
+					</div>
+					<span><?php esc_html_e( 'Chart Line', 'greenmetrics' ); ?></span>
+				</div>
+				<div class="icon-option <?php echo $value === 'chart-pie' ? 'selected' : ''; ?>" data-value="chart-pie">
+					<div class="icon-preview">
+						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('chart-pie'); ?>
+					</div>
+					<span><?php esc_html_e( 'Chart Pie', 'greenmetrics' ); ?></span>
+				</div>
+				<div class="icon-option <?php echo $value === 'analytics' ? 'selected' : ''; ?>" data-value="analytics">
+					<div class="icon-preview">
+						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('analytics'); ?>
+					</div>
+					<span><?php esc_html_e( 'Analytics', 'greenmetrics' ); ?></span>
+				</div>
+				<div class="icon-option <?php echo $value === 'performance' ? 'selected' : ''; ?>" data-value="performance">
+					<div class="icon-preview">
+						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('performance'); ?>
+					</div>
+					<span><?php esc_html_e( 'Performance', 'greenmetrics' ); ?></span>
+				</div>
+				<div class="icon-option <?php echo $value === 'energy' ? 'selected' : ''; ?>" data-value="energy">
+					<div class="icon-preview">
+						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('energy'); ?>
+					</div>
+					<span><?php esc_html_e( 'Energy', 'greenmetrics' ); ?></span>
+				</div>
+				<div class="icon-option <?php echo $value === 'water' ? 'selected' : ''; ?>" data-value="water">
+					<div class="icon-preview">
+						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('water'); ?>
+					</div>
+					<span><?php esc_html_e( 'Water', 'greenmetrics' ); ?></span>
+				</div>
+				<div class="icon-option <?php echo $value === 'eco' ? 'selected' : ''; ?>" data-value="eco">
+					<div class="icon-preview">
+						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('eco'); ?>
+					</div>
+					<span><?php esc_html_e( 'Eco', 'greenmetrics' ); ?></span>
+				</div>
+				<div class="icon-option <?php echo $value === 'nature' ? 'selected' : ''; ?>" data-value="nature">
+					<div class="icon-preview">
+						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('nature'); ?>
+					</div>
+					<span><?php esc_html_e( 'Nature', 'greenmetrics' ); ?></span>
+				</div>
+				<div class="icon-option <?php echo $value === 'sustainability' ? 'selected' : ''; ?>" data-value="sustainability">
+					<div class="icon-preview">
+						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('sustainability'); ?>
+					</div>
+					<span><?php esc_html_e( 'Sustainability', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'custom' ? 'selected' : ''; ?>" data-value="custom">
 					<div class="icon-preview">
