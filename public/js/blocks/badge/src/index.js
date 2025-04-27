@@ -31,11 +31,15 @@ import './editor.scss';
 
 // Available icons for the badge
 const ICON_OPTIONS = [
+    { value: 'leaf', label: __('Leaf', 'greenmetrics') },
+    { value: 'tree', label: __('Tree', 'greenmetrics') },
+    { value: 'globe', label: __('Globe', 'greenmetrics') },
+    { value: 'recycle', label: __('Recycle', 'greenmetrics') },
     { value: 'chart-bar', label: __('Chart Bar', 'greenmetrics') },
     { value: 'chart-line', label: __('Chart Line', 'greenmetrics') },
     { value: 'chart-pie', label: __('Chart Pie', 'greenmetrics') },
-    { value: 'leaf', label: __('Leaf', 'greenmetrics') },
-    { value: 'recycle', label: __('Recycle', 'greenmetrics') },
+    { value: 'analytics', label: __('Analytics', 'greenmetrics') },
+    { value: 'performance', label: __('Performance', 'greenmetrics') },
     { value: 'energy', label: __('Energy', 'greenmetrics') },
     { value: 'water', label: __('Water', 'greenmetrics') },
     { value: 'eco', label: __('Eco', 'greenmetrics') },
