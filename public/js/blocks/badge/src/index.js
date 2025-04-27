@@ -556,7 +556,7 @@ registerBlockType('greenmetrics/badge', {
                                         }}
                                     />
                                 ) : (
-                                    <div data-icon-name={iconName}></div>
+                                    <div dangerouslySetInnerHTML={{ __html: icons.find(icon => icon.id === iconName)?.svg || icons[0].svg }} />
                                 )}
                             </div>
                         )}
@@ -630,6 +630,10 @@ registerBlockType('greenmetrics/badge', {
             showText,
             textFontSize,
         } = attributes;
+        
+        // Find the icon SVG from the icons array
+        const selectedIcon = icons.find(icon => icon.id === iconName);
+        const iconSvg = selectedIcon ? selectedIcon.svg : icons[0].svg;
 
         return (
             <div {...blockProps}>
@@ -665,7 +669,7 @@ registerBlockType('greenmetrics/badge', {
                                         }}
                                     />
                                 ) : (
-                                    <div data-icon-name={iconName}></div>
+                                    <div dangerouslySetInnerHTML={{ __html: iconSvg }} />
                                 )}
                             </div>
                         )}

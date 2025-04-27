@@ -98,6 +98,7 @@ class GreenMetrics_Public {
 				'rest_nonce'       => $rest_nonce, // Use only one parameter name
 				'tracking_enabled' => $tracking_enabled ? true : false,
 				'page_id'          => $page_id,
+				'nonce'            => wp_create_nonce( 'greenmetrics_get_icon' ),
 			)
 		);
 
@@ -385,7 +386,9 @@ class GreenMetrics_Public {
 					'<div class="wp-block-greenmetrics-badge__icon" style="width:%1$spx;height:%1$spx;color:%2$s">%3$s</div>',
 					esc_attr( $attributes['iconSize'] ),
 					esc_attr( $attributes['iconColor'] ),
-					$attributes['icon_svg']
+					isset($attributes['useCustomIcon']) && $attributes['useCustomIcon'] && isset($attributes['customIconUrl']) && !empty($attributes['customIconUrl']) 
+						? sprintf('<img src="%s" alt="Custom Icon" style="width:100%%;height:100%%;object-fit:contain;">', esc_url($attributes['customIconUrl']))
+						: $attributes['icon_svg']
 				) : '',
 				$attributes['showText'] ? sprintf(
 					'<span style="color:%1$s;font-size:%2$spx">%3$s</span>',

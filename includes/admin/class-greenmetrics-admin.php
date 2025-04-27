@@ -26,6 +26,7 @@ class GreenMetrics_Admin {
 		// AJAX handlers
 		add_action( 'wp_ajax_greenmetrics_refresh_stats', array( $this, 'handle_refresh_stats' ) );
 		add_action( 'wp_ajax_greenmetrics_get_icon', array( $this, 'handle_get_icon' ) );
+		add_action( 'wp_ajax_nopriv_greenmetrics_get_icon', array( $this, 'handle_get_icon' ) );
 	}
 
 	/**
@@ -1516,18 +1517,12 @@ class GreenMetrics_Admin {
 	 * Handle AJAX request to get an icon.
 	 */
 	public function handle_get_icon() {
-		// Verify nonce
-		if ( ! check_ajax_referer( 'greenmetrics_get_icon', 'nonce', false ) ) {
-			wp_send_json_error( 'Invalid nonce' );
-			exit;
-		}
-
 		// Get the icon type from the request
 		$icon_type = isset( $_POST['icon_type'] ) ? sanitize_text_field( $_POST['icon_type'] ) : 'leaf';
-
+		
 		// Get the icon HTML
 		$icon_html = \GreenMetrics\GreenMetrics_Icons::get_icon( $icon_type );
-
+		
 		// Return the icon HTML as a JSON response
 		wp_send_json_success( $icon_html );
 	}

@@ -1,3 +1,6 @@
+/**
+ * GreenMetrics Public JavaScript
+ */
 (function($) {
     'use strict';
 
@@ -102,7 +105,7 @@
     }
 
     // Initialize tracking if enabled
-    if (greenmetricsPublic.tracking_enabled) {
+    if (greenmetricsPublic && greenmetricsPublic.tracking_enabled) {
         trackPage();
     }
 
@@ -115,5 +118,77 @@
             $(this).find('.greenmetrics-content').removeClass('visible');
         }
     );
+
+    /**
+     * Initialize badges
+     */
+    function initBadges() {
+        // Initialize both new SVG icons and legacy data-icon-name elements
+        
+        // First handle existing direct SVGs (make sure they have proper styling)
+        $('.wp-block-greenmetrics-badge__icon div svg').each(function() {
+            $(this).css({
+                'width': '100%',
+                'height': '100%',
+                'fill': 'currentColor'
+            });
+        });
+        
+        // Then handle data-icon-name elements that need SVG loading
+        $('.wp-block-greenmetrics-badge__icon div[data-icon-name]').each(function() {
+            const $icon = $(this);
+            const iconName = $icon.data('icon-name') || 'leaf';
+            
+            console.log('Found icon to load via AJAX:', iconName);
+            
+            // Load SVG icons through AJAX
+            $.ajax({
+                url: greenmetricsPublic.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'greenmetrics_get_icon',
+                    nonce: greenmetricsPublic.nonce,
+                    icon_type: iconName
+                },
+                success: function(response) {
+                    console.log('Icon loaded successfully:', iconName, response);
+                    if (response.success && response.data) {
+                        $icon.html(response.data);
+                    } else {
+                        console.error('Invalid response format:', response);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Failed to load icon:', iconName, error, xhr.responseText);
+                }
+            });
+        });
+
+        // Initialize popover behavior for badges with content
+        $('.wp-block-greenmetrics-badge-wrapper').each(function() {
+            const $wrapper = $(this);
+            const $badge = $wrapper.find('.wp-block-greenmetrics-badge');
+            const $content = $wrapper.find('.wp-block-greenmetrics-content');
+            
+            if ($content.length) {
+                // Initially hide content
+                $content.hide();
+                
+                // Toggle content on badge click
+                $badge.on('click', function() {
+                    $content.slideToggle({
+                        duration: parseInt($content.css('transition-duration')) || 300
+                    });
+                });
+            }
+        });
+    }
+
+    /**
+     * Initialize on DOM ready
+     */
+    $(function() {
+        initBadges();
+    });
 
 })(jQuery); 

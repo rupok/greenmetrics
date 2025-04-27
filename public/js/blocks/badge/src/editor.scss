@@ -134,4 +134,54 @@
         font-size: 13px;
         font-weight: 500;
     }
+}
+
+/* Custom icon upload styles */
+.custom-icon-upload {
+    margin-top: 15px;
+    margin-bottom: 15px;
+    border-top: 1px solid #ddd;
+    padding-top: 15px;
+}
+
+.custom-icon-upload p {
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.custom-icon-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.custom-icon-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border: 1px dashed #ddd;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
+
+.custom-icon-preview img {
+    display: block;
+    margin-bottom: 10px;
+}
+
+/* Fix for the icon in the badge */
+.wp-block-greenmetrics-badge__icon div {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    svg {
+        width: 100%;
+        height: 100%;
+        color: inherit;
+    }
 } 
