@@ -1,6 +1,30 @@
 ;(function($) {
   'use strict';
   $(document).ready(function() {
+    // Move admin notices to top of wrap
+    function moveAdminNotices() {
+      // Find all WordPress admin notices with various possible classes
+      // This includes .notice (standard), .error (legacy), .updated (legacy), and their combinations
+      const $notices = $('.notice, .error:not(.notice), .updated:not(.notice), .update-nag');
+      if ($notices.length) {
+        // Find our custom admin header
+        const $adminHeader = $('.greenmetrics-admin-header');
+        if ($adminHeader.length) {
+          // Move all notices before our admin header
+          $notices.detach().insertBefore($adminHeader);
+        }
+      }
+    }
+    
+    // Execute immediately 
+    moveAdminNotices();
+    
+    // Also run after a short delay to catch notices that might be added dynamically
+    setTimeout(moveAdminNotices, 100);
+    
+    // Run one more time after a longer delay for any notices added by AJAX operations
+    setTimeout(moveAdminNotices, 1000);
+    
     // Cached selectors
     var $submitBtn = $('#submit');
     var $checkboxes = $('input[type="checkbox"]');
