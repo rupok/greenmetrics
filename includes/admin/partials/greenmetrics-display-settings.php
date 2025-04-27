@@ -267,28 +267,12 @@ $settings = get_option(
 												$custom_icon = isset( $settings['badge_custom_icon'] ) ? $settings['badge_custom_icon'] : '';
 												$icon_size = isset( $settings['badge_icon_size'] ) ? $settings['badge_icon_size'] : '16px';
 												
-												switch ( $icon_type ) {
-													case 'leaf':
-														echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: ' . esc_attr( $icon_size ) . '; height: ' . esc_attr( $icon_size ) . ';"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17 1.02.3 1.58.3C17 20 22 13.46 22 6c0-.55-.06-1.09-.14-1.62C20.18 4.15 18.66 4 17 4V2c1.67 0 3.35.12 5 .34V4c-1.67-.22-3.33-.34-5-.34v2zM2 6c0 7.46 5 14 14.5 14 .56 0 1.1-.13 1.58-.3l.95 2.3 1.89-.66C18.1 16.17 16 10 7 8c0 0-5 0-5 0z"/></svg>';
-														break;
-													case 'tree':
-														echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: ' . esc_attr( $icon_size ) . '; height: ' . esc_attr( $icon_size ) . ';"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17 1.02.3 1.58.3C17 20 22 13.46 22 6c0-.55-.06-1.09-.14-1.62C20.18 4.15 18.66 4 17 4V2c1.67 0 3.35.12 5 .34V4c-1.67-.22-3.33-.34-5-.34v2zM2 6c0 7.46 5 14 14.5 14 .56 0 1.1-.13 1.58-.3l.95 2.3 1.89-.66C18.1 16.17 16 10 7 8c0 0-5 0-5 0z"/></svg>';
-														break;
-													case 'globe':
-														echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: ' . esc_attr( $icon_size ) . '; height: ' . esc_attr( $icon_size ) . ';"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>';
-														break;
-													case 'recycle':
-														echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: ' . esc_attr( $icon_size ) . '; height: ' . esc_attr( $icon_size ) . ';"><path d="M5.77 7.15L7.2 4.78l1.03-1.71c.39-.65 1.33-.65 1.72 0l1.48 2.46-1.23 2.06-1 1.34-2.43-4.78zm15.95 5.82l-1.6-2.66-3.46 2L18.87 16H21v2l-3.87-7.03zM16 21h1.5l2.05-3.42-3.46-2-1.09 1.84L16 21zm-3.24-3.71l-1.03-1.71-1.43 2.43-2.43 4.78 1.6 2.66 3.46-2 1.03-1.71-1.43-2.45zM13.42 8.5l-1.48-2.46c-.39-.65-1.33-.65-1.72 0L9.22 7.15l-1 1.34 2.43 4.78 1.6-2.66 1.17-2.11zM10.5 14.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>';
-														break;
-													case 'custom':
-														if ( $custom_icon ) {
-															echo '<img src="' . esc_url( $custom_icon ) . '" alt="Custom Icon" style="width: ' . esc_attr( $icon_size ) . '; height: ' . esc_attr( $icon_size ) . ';">';
-														} else {
-															echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: ' . esc_attr( $icon_size ) . '; height: ' . esc_attr( $icon_size ) . ';"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';
-														}
-														break;
-													default:
-														echo '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: ' . esc_attr( $icon_size ) . '; height: ' . esc_attr( $icon_size ) . ';"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17 1.02.3 1.58.3C17 20 22 13.46 22 6c0-.55-.06-1.09-.14-1.62C20.18 4.15 18.66 4 17 4V2c1.67 0 3.35.12 5 .34V4c-1.67-.22-3.33-.34-5-.34v2zM2 6c0 7.46 5 14 14.5 14 .56 0 1.1-.13 1.58-.3l.95 2.3 1.89-.66C18.1 16.17 16 10 7 8c0 0-5 0-5 0z"/></svg>';
+												if ($icon_type === 'custom' && !empty($custom_icon)) {
+													echo '<img src="' . esc_url( $custom_icon ) . '" alt="Custom Icon" style="width: ' . esc_attr( $icon_size ) . '; height: ' . esc_attr( $icon_size ) . ';">';
+												} else {
+													// Get the icon from GreenMetrics_Icons class
+													$icon_html = \GreenMetrics\GreenMetrics_Icons::get_icon($icon_type);
+													echo '<div style="width: ' . esc_attr( $icon_size ) . '; height: ' . esc_attr( $icon_size ) . ';">' . $icon_html . '</div>';
 												}
 												?>
 											</div>
@@ -489,6 +473,9 @@ jQuery(document).ready(function($) {
 		const textColor = $('#badge_text_color').val();
 		const iconColor = $('#badge_icon_color').val();
 		const displayIcon = $('#display_icon').is(':checked');
+		const iconType = $('#badge_icon_type').val();
+		const customIcon = $('#badge_custom_icon').val();
+		const iconSize = $('#badge_icon_size').val() || '16px';
 		
 		// Update badge position
 		$('#badge-preview-container').attr('class', position);
@@ -512,9 +499,27 @@ jQuery(document).ready(function($) {
 		// Update badge text
 		$badge.find('span').text(text);
 		
-		// Update icon visibility
+		// Update icon
 		if (displayIcon) {
-			$badge.find('.icon-container').show().css('color', iconColor);
+			let $iconContainer = $badge.find('.icon-container');
+			
+			// If the icon container doesn't exist, create it
+			if ($iconContainer.length === 0) {
+				$badge.prepend('<div class="icon-container"></div>');
+				$iconContainer = $badge.find('.icon-container');
+			}
+			
+			$iconContainer.show().css('color', iconColor);
+			
+			if (iconType === 'custom' && customIcon) {
+				// For custom icons, use the uploaded image
+				$iconContainer.html('<img src="' + customIcon + '" alt="Custom Icon" style="width: ' + iconSize + '; height: ' + iconSize + ';">');
+			} else {
+				// For predefined icons, get them from the server
+				getIconSvg(iconType, function(svgContent) {
+					$iconContainer.html('<div style="width: ' + iconSize + '; height: ' + iconSize + ';">' + svgContent + '</div>');
+				});
+			}
 		} else {
 			$badge.find('.icon-container').hide();
 		}
@@ -606,6 +611,32 @@ jQuery(document).ready(function($) {
 			}, 100);
 		}
 	});
+	
+	// Function to get icon SVG using the backend GreenMetrics_Icons class
+	function getIconSvg(iconType, callback) {
+		// Call our endpoint to get the SVG content
+		jQuery.ajax({
+			url: ajaxurl,
+			method: 'POST',
+			data: {
+				action: 'greenmetrics_get_icon',
+				icon_type: iconType,
+				nonce: '<?php echo wp_create_nonce('greenmetrics_get_icon'); ?>'
+			},
+			success: function(response) {
+				if (response.success && response.data) {
+					callback(response.data);
+				} else {
+					console.error('Failed to get icon SVG:', response);
+					callback(''); // Return empty string on error
+				}
+			},
+			error: function(error) {
+				console.error('AJAX error when getting icon:', error);
+				callback(''); // Return empty string on error
+			}
+		});
+	}
 	
 	// Set initial state of icon fields based on Display Icon checkbox
 	$('#display_icon').trigger('change');
