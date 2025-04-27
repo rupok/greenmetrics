@@ -10,6 +10,8 @@ import {
     BlockControls,
     AlignmentToolbar,
     useBlockProps,
+    MediaUpload,
+    MediaUploadCheck,
 } from '@wordpress/block-editor';
 import {
     PanelBody,
@@ -19,6 +21,8 @@ import {
     TextControl,
     CheckboxControl,
     ColorPicker,
+    Button,
+    Spinner,
 } from '@wordpress/components';
 import { icons } from './icons';
 import { useState, useEffect } from '@wordpress/element';
@@ -139,6 +143,18 @@ registerBlockType('greenmetrics/badge', {
             type: 'number',
             default: 20,
         },
+        customIconUrl: {
+            type: 'string',
+            default: '',
+        },
+        customIconId: {
+            type: 'number',
+            default: 0,
+        },
+        useCustomIcon: {
+            type: 'boolean',
+            default: false,
+        },
         borderRadius: {
             type: 'number',
             default: 4,
@@ -193,6 +209,7 @@ registerBlockType('greenmetrics/badge', {
         const blockProps = useBlockProps();
         const [metricsData, setMetricsData] = useState(null);
         const [isLoading, setIsLoading] = useState(true);
+        const [isLoadingIcons, setIsLoadingIcons] = useState(false);
 
         useEffect(() => {
             // Get the current post ID
@@ -203,7 +220,7 @@ registerBlockType('greenmetrics/badge', {
                 setIsLoading(false);
                 return;
             }
-
+            
             // Fetch metrics data
             wp.apiFetch({
                 path: `/greenmetrics/v1/metrics?page_id=${postId}`,
@@ -211,36 +228,6 @@ registerBlockType('greenmetrics/badge', {
             }).then(data => {
                 setMetricsData(data);
                 setIsLoading(false);
-
-                // Send metrics to server for storage
-                const metricsData = {
-                    data_transfer: data.data_transfer || 0,
-                    load_time: data.load_time || 0,
-                    requests: data.requests || 0
-                };
-
-                console.log('Sending metrics data:', {
-                    url: greenmetricsTracking.ajax_url,
-                    action: greenmetricsTracking.action,
-                    nonce: greenmetricsTracking.nonce,
-                    metrics: metricsData
-                });
-
-                jQuery.ajax({
-                    url: greenmetricsTracking.ajax_url,
-                    type: 'POST',
-                    data: {
-                        action: greenmetricsTracking.action,
-                        nonce: greenmetricsTracking.nonce,
-                        metrics: JSON.stringify(metricsData)
-                    },
-                    success: function(response) {
-                        console.log('Metrics saved successfully:', response);
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error sending metrics to server:', error);
-                    }
-                });
             }).catch(error => {
                 console.error('Error fetching metrics:', error);
                 setIsLoading(false);
@@ -256,6 +243,9 @@ registerBlockType('greenmetrics/badge', {
             showIcon,
             iconName,
             iconSize,
+            customIconUrl,
+            customIconId,
+            useCustomIcon,
             borderRadius,
             padding,
             showContent,
@@ -270,10 +260,34 @@ registerBlockType('greenmetrics/badge', {
             textFontSize,
         } = attributes;
 
+        // Handler for selecting a custom icon
+        const onSelectCustomIcon = (media) => {
+            if (!media || !media.url) {
+                return;
+            }
+            
+            setAttributes({
+                customIconUrl: media.url,
+                customIconId: media.id,
+                useCustomIcon: true,
+                iconName: 'custom' // Set to custom so we know to use the custom icon
+            });
+        };
+
+        // Handler for removing the custom icon
+        const removeCustomIcon = () => {
+            setAttributes({
+                customIconUrl: '',
+                customIconId: 0,
+                useCustomIcon: false,
+                iconName: 'chart-bar' // Reset to default icon
+            });
+        };
+
         return (
             <div {...blockProps}>
                 <InspectorControls>
-                    <PanelBody title={__('Badge Settings', 'greenmetrics')}>
+                    <PanelBody title={__('Badge Settings', 'greenmetrics')} initialOpen={true}>
                         <ToggleControl
                             label={__('Show Icon', 'greenmetrics')}
                             checked={showIcon}
@@ -282,26 +296,74 @@ registerBlockType('greenmetrics/badge', {
                         />
                         {showIcon && (
                             <>
-                                <div className="icon-selector">
-                                    <p>{__('Select Icon', 'greenmetrics')}</p>
-                                    <div className="icon-grid">
-                                        {icons.map((icon) => {
-                                            const isSelected = icon.id === iconName;
-                                            return (
-                                                <button
-                                                    key={icon.id}
-                                                    className={`icon-button ${isSelected ? 'selected' : ''}`}
-                                                    onClick={() => {
-                                                        console.log('Setting icon to:', icon.id);
-                                                        setAttributes({ iconName: icon.id });
-                                                    }}
-                                                    dangerouslySetInnerHTML={{ __html: icon.svg }}
-                                                    style={{ color: iconColor }}
-                                                />
-                                            );
-                                        })}
-                                    </div>
-                                </div>
+                                {isLoadingIcons ? (
+                                    <Spinner />
+                                ) : (
+                                    <>
+                                        <div className="icon-selector">
+                                            <p>{__('Select Icon', 'greenmetrics')}</p>
+                                            <div className="icon-grid">
+                                                {icons.map((icon) => {
+                                                    const isSelected = !useCustomIcon && icon.id === iconName;
+                                                    return (
+                                                        <button
+                                                            key={icon.id}
+                                                            className={`icon-button ${isSelected ? 'selected' : ''}`}
+                                                            onClick={() => {
+                                                                setAttributes({ 
+                                                                    iconName: icon.id,
+                                                                    useCustomIcon: false
+                                                                });
+                                                            }}
+                                                            dangerouslySetInnerHTML={{ __html: icon.svg }}
+                                                            style={{ color: iconColor }}
+                                                        />
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                        <div className="custom-icon-upload">
+                                            <p>{__('Or Upload Custom Icon', 'greenmetrics')}</p>
+                                            <div className="custom-icon-controls">
+                                                {useCustomIcon && customIconUrl ? (
+                                                    <div className="custom-icon-preview">
+                                                        <img 
+                                                            src={customIconUrl}
+                                                            alt={__('Custom Icon', 'greenmetrics')}
+                                                            style={{ 
+                                                                maxWidth: '100%',
+                                                                height: 'auto',
+                                                                maxHeight: '60px'
+                                                            }}
+                                                        />
+                                                        <Button 
+                                                            isDestructive 
+                                                            onClick={removeCustomIcon}
+                                                        >
+                                                            {__('Remove', 'greenmetrics')}
+                                                        </Button>
+                                                    </div>
+                                                ) : (
+                                                    <MediaUploadCheck>
+                                                        <MediaUpload
+                                                            onSelect={onSelectCustomIcon}
+                                                            allowedTypes={['image']}
+                                                            value={customIconId}
+                                                            render={({ open }) => (
+                                                                <Button
+                                                                    onClick={open}
+                                                                    variant="secondary"
+                                                                >
+                                                                    {__('Upload Custom Icon', 'greenmetrics')}
+                                                                </Button>
+                                                            )}
+                                                        />
+                                                    </MediaUploadCheck>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
                                 <RangeControl
                                     label={__('Icon Size', 'greenmetrics')}
                                     value={iconSize}
@@ -330,10 +392,10 @@ registerBlockType('greenmetrics/badge', {
                                     __next40pxDefaultSize
                                 />
                                 <RangeControl
-                                    label={__('Text Size', 'greenmetrics')}
+                                    label={__('Text Font Size', 'greenmetrics')}
                                     value={textFontSize}
                                     onChange={(value) => setAttributes({ textFontSize: value })}
-                                    min={12}
+                                    min={10}
                                     max={24}
                                     __nextHasNoMarginBottom
                                     __next40pxDefaultSize
@@ -351,7 +413,7 @@ registerBlockType('greenmetrics/badge', {
                             __next40pxDefaultSize
                         />
                         <RangeControl
-                            label={__('Badge Padding', 'greenmetrics')}
+                            label={__('Padding', 'greenmetrics')}
                             value={padding}
                             onChange={(value) => setAttributes({ padding: value })}
                             min={4}
@@ -482,8 +544,21 @@ registerBlockType('greenmetrics/badge', {
                                     height: `${iconSize}px`, 
                                     color: iconColor 
                                 }}
-                                dangerouslySetInnerHTML={{ __html: icons.find(icon => icon.id === iconName)?.svg || icons[0].svg }}
-                            />
+                            >
+                                {useCustomIcon && customIconUrl ? (
+                                    <img 
+                                        src={customIconUrl} 
+                                        alt="Custom Icon"
+                                        style={{ 
+                                            width: '100%', 
+                                            height: '100%', 
+                                            objectFit: 'contain' 
+                                        }}
+                                    />
+                                ) : (
+                                    <div data-icon-name={iconName}></div>
+                                )}
+                            </div>
                         )}
                         {showText && (
                             <span style={{ 
@@ -540,6 +615,8 @@ registerBlockType('greenmetrics/badge', {
             showIcon,
             iconName,
             iconSize,
+            customIconUrl,
+            useCustomIcon,
             borderRadius,
             padding,
             showContent,
@@ -553,12 +630,6 @@ registerBlockType('greenmetrics/badge', {
             showText,
             textFontSize,
         } = attributes;
-
-        const selectedIcon = icons.find(icon => icon.id === iconName);
-        if (!selectedIcon) {
-            console.error('Icon not found:', iconName);
-        }
-        const iconSvg = selectedIcon ? selectedIcon.svg : icons[0].svg;
 
         return (
             <div {...blockProps}>
@@ -582,8 +653,21 @@ registerBlockType('greenmetrics/badge', {
                                     height: `${iconSize}px`, 
                                     color: iconColor 
                                 }}
-                                dangerouslySetInnerHTML={{ __html: iconSvg }}
-                            />
+                            >
+                                {useCustomIcon && customIconUrl ? (
+                                    <img 
+                                        src={customIconUrl} 
+                                        alt="Custom Icon"
+                                        style={{ 
+                                            width: '100%', 
+                                            height: '100%', 
+                                            objectFit: 'contain' 
+                                        }}
+                                    />
+                                ) : (
+                                    <div data-icon-name={iconName}></div>
+                                )}
+                            </div>
                         )}
                         {showText && (
                             <span style={{ 
