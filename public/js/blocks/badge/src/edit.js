@@ -404,47 +404,47 @@ const Edit = ({ attributes, setAttributes }) => {
                     colorSettings={[
                         {
                             value: backgroundColor,
-                            onChange: (value) => setAttributes({ backgroundColor: value }),
+                            onChange: (value) => setAttributes({ backgroundColor: value || '#4CAF50' }),
                             label: __('Badge Background Color', 'greenmetrics'),
                         },
                         showIcon && {
                             value: iconColor,
-                            onChange: (value) => setAttributes({ iconColor: value }),
+                            onChange: (value) => setAttributes({ iconColor: value || '#ffffff' }),
                             label: __('Icon Color', 'greenmetrics'),
                         },
                         showText && {
                             value: textColor,
-                            onChange: (value) => setAttributes({ textColor: value }),
+                            onChange: (value) => setAttributes({ textColor: value || '#ffffff' }),
                             label: __('Text Color', 'greenmetrics'),
                         },
                         {
                             value: contentBackgroundColor,
-                            onChange: (value) => setAttributes({ contentBackgroundColor: value }),
+                            onChange: (value) => setAttributes({ contentBackgroundColor: value || '#ffffff' }),
                             label: __('Content Background Color', 'greenmetrics'),
                         },
                         {
                             value: contentTextColor,
-                            onChange: (value) => setAttributes({ contentTextColor: value }),
+                            onChange: (value) => setAttributes({ contentTextColor: value || '#333333' }),
                             label: __('Content Text Color', 'greenmetrics'),
                         },
                         showContent && {
                             value: metricsListBgColor || '#f8f9fa',
-                            onChange: (value) => setAttributes({ metricsListBgColor: value }),
+                            onChange: (value) => setAttributes({ metricsListBgColor: value || '#f8f9fa' }),
                             label: __('Metrics List Background Color', 'greenmetrics'),
                         },
                         showContent && {
                             value: metricsListHoverBgColor || '#f3f4f6',
-                            onChange: (value) => setAttributes({ metricsListHoverBgColor: value }),
+                            onChange: (value) => setAttributes({ metricsListHoverBgColor: value || '#f3f4f6' }),
                             label: __('Metrics List Hover Background Color', 'greenmetrics'),
                         },
                         showContent && {
                             value: metricsValueBgColor || 'rgba(0, 0, 0, 0.04)',
-                            onChange: (value) => setAttributes({ metricsValueBgColor: value }),
+                            onChange: (value) => setAttributes({ metricsValueBgColor: value || 'rgba(0, 0, 0, 0.04)' }),
                             label: __('Metrics Value Background Color', 'greenmetrics'),
                         },
                         showContent && {
                             value: metricsValueColor || '#333333',
-                            onChange: (value) => setAttributes({ metricsValueColor: value }),
+                            onChange: (value) => setAttributes({ metricsValueColor: value || '#333333' }),
                             label: __('Metrics Value Text Color', 'greenmetrics'),
                         },
                     ].filter(Boolean)}
