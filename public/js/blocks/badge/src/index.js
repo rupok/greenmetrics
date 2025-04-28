@@ -47,7 +47,7 @@ registerBlockType('greenmetrics/badge', {
         },
         iconName: {
             type: 'string',
-            default: 'chart-bar',
+            default: 'leaf',
         },
         iconSize: {
             type: 'number',

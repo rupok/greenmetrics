@@ -146,7 +146,7 @@ const Edit = ({ attributes, setAttributes }) => {
             customIconUrl: '',
             customIconId: 0,
             useCustomIcon: false,
-            iconName: 'chart-bar' // Reset to default icon
+            iconName: 'leaf' // Reset to default icon
         });
     };
 
