@@ -704,11 +704,6 @@ jQuery(document).ready(function($) {
 	margin-right: 6px;
 }
 
-.greenmetrics-badge svg {
-	width: 16px;
-	height: 16px;
-}
-
 .icon-option svg {
 	width: 36px;
 	height: 36px;
