@@ -203,6 +203,30 @@ registerBlockType('greenmetrics/badge', {
             type: 'number',
             default: 14,
         },
+        badgeFontFamily: {
+            type: 'string',
+            default: 'inherit',
+        },
+        popoverContentFontFamily: {
+            type: 'string',
+            default: 'inherit',
+        },
+        metricsListFontFamily: {
+            type: 'string',
+            default: 'inherit',
+        },
+        metricsListFontSize: {
+            type: 'number',
+            default: 14,
+        },
+        metricsValueFontFamily: {
+            type: 'string',
+            default: 'inherit',
+        },
+        metricsValueFontSize: {
+            type: 'number',
+            default: 14,
+        },
     },
 
     edit: ({ attributes, setAttributes }) => {
@@ -258,6 +282,12 @@ registerBlockType('greenmetrics/badge', {
             animationDuration,
             showText,
             textFontSize,
+            badgeFontFamily,
+            popoverContentFontFamily,
+            metricsListFontFamily,
+            metricsListFontSize,
+            metricsValueFontFamily,
+            metricsValueFontSize,
         } = attributes;
 
         // Handler for selecting a custom icon
@@ -517,6 +547,122 @@ registerBlockType('greenmetrics/badge', {
                             },
                         ].filter(Boolean)}
                     />
+                    <PanelBody title={__('Typography Settings', 'greenmetrics')}>
+                        <SelectControl
+                            label={__('Badge Font Family', 'greenmetrics')}
+                            value={badgeFontFamily || 'inherit'}
+                            options={[
+                                { label: __('Theme Default', 'greenmetrics'), value: 'inherit' },
+                                { label: 'Arial', value: 'Arial, sans-serif' },
+                                { label: 'Helvetica', value: 'Helvetica, Arial, sans-serif' },
+                                { label: 'Georgia', value: 'Georgia, serif' },
+                                { label: 'Times New Roman', value: 'Times New Roman, Times, serif' },
+                                { label: 'Verdana', value: 'Verdana, Geneva, sans-serif' },
+                                { label: 'System UI', value: 'system-ui, sans-serif' },
+                                { label: 'Tahoma', value: 'Tahoma, Geneva, sans-serif' },
+                                { label: 'Trebuchet MS', value: 'Trebuchet MS, sans-serif' },
+                                { label: 'Courier New', value: 'Courier New, monospace' },
+                                { label: 'Palatino', value: 'Palatino, serif' },
+                                { label: 'Garamond', value: 'Garamond, serif' },
+                                { label: 'Century Gothic', value: 'Century Gothic, sans-serif' },
+                                { label: 'Generic Sans-serif', value: 'sans-serif' },
+                                { label: 'Generic Serif', value: 'serif' },
+                                { label: 'Generic Monospace', value: 'monospace' },
+                            ]}
+                            onChange={(value) => setAttributes({ badgeFontFamily: value })}
+                            __nextHasNoMarginBottom
+                        />
+                        <SelectControl
+                            label={__('Popover Content Font Family', 'greenmetrics')}
+                            value={popoverContentFontFamily || 'inherit'}
+                            options={[
+                                { label: __('Theme Default', 'greenmetrics'), value: 'inherit' },
+                                { label: 'Arial', value: 'Arial, sans-serif' },
+                                { label: 'Helvetica', value: 'Helvetica, Arial, sans-serif' },
+                                { label: 'Georgia', value: 'Georgia, serif' },
+                                { label: 'Times New Roman', value: 'Times New Roman, Times, serif' },
+                                { label: 'Verdana', value: 'Verdana, Geneva, sans-serif' },
+                                { label: 'System UI', value: 'system-ui, sans-serif' },
+                                { label: 'Tahoma', value: 'Tahoma, Geneva, sans-serif' },
+                                { label: 'Trebuchet MS', value: 'Trebuchet MS, sans-serif' },
+                                { label: 'Courier New', value: 'Courier New, monospace' },
+                                { label: 'Palatino', value: 'Palatino, serif' },
+                                { label: 'Garamond', value: 'Garamond, serif' },
+                                { label: 'Century Gothic', value: 'Century Gothic, sans-serif' },
+                                { label: 'Generic Sans-serif', value: 'sans-serif' },
+                                { label: 'Generic Serif', value: 'serif' },
+                                { label: 'Generic Monospace', value: 'monospace' },
+                            ]}
+                            onChange={(value) => setAttributes({ popoverContentFontFamily: value })}
+                            __nextHasNoMarginBottom
+                        />
+                        <SelectControl
+                            label={__('Metrics List Font Family', 'greenmetrics')}
+                            value={metricsListFontFamily || 'inherit'}
+                            options={[
+                                { label: __('Theme Default', 'greenmetrics'), value: 'inherit' },
+                                { label: 'Arial', value: 'Arial, sans-serif' },
+                                { label: 'Helvetica', value: 'Helvetica, Arial, sans-serif' },
+                                { label: 'Georgia', value: 'Georgia, serif' },
+                                { label: 'Times New Roman', value: 'Times New Roman, Times, serif' },
+                                { label: 'Verdana', value: 'Verdana, Geneva, sans-serif' },
+                                { label: 'System UI', value: 'system-ui, sans-serif' },
+                                { label: 'Tahoma', value: 'Tahoma, Geneva, sans-serif' },
+                                { label: 'Trebuchet MS', value: 'Trebuchet MS, sans-serif' },
+                                { label: 'Courier New', value: 'Courier New, monospace' },
+                                { label: 'Palatino', value: 'Palatino, serif' },
+                                { label: 'Garamond', value: 'Garamond, serif' },
+                                { label: 'Century Gothic', value: 'Century Gothic, sans-serif' },
+                                { label: 'Generic Sans-serif', value: 'sans-serif' },
+                                { label: 'Generic Serif', value: 'serif' },
+                                { label: 'Generic Monospace', value: 'monospace' },
+                            ]}
+                            onChange={(value) => setAttributes({ metricsListFontFamily: value })}
+                            __nextHasNoMarginBottom
+                        />
+                        <RangeControl
+                            label={__('Metrics List Font Size', 'greenmetrics')}
+                            value={metricsListFontSize || 14}
+                            onChange={(value) => setAttributes({ metricsListFontSize: value })}
+                            min={8}
+                            max={24}
+                            __nextHasNoMarginBottom
+                            __next40pxDefaultSize
+                        />
+                        <SelectControl
+                            label={__('Metrics Value Font Family', 'greenmetrics')}
+                            value={metricsValueFontFamily || 'inherit'}
+                            options={[
+                                { label: __('Theme Default', 'greenmetrics'), value: 'inherit' },
+                                { label: 'Arial', value: 'Arial, sans-serif' },
+                                { label: 'Helvetica', value: 'Helvetica, Arial, sans-serif' },
+                                { label: 'Georgia', value: 'Georgia, serif' },
+                                { label: 'Times New Roman', value: 'Times New Roman, Times, serif' },
+                                { label: 'Verdana', value: 'Verdana, Geneva, sans-serif' },
+                                { label: 'System UI', value: 'system-ui, sans-serif' },
+                                { label: 'Tahoma', value: 'Tahoma, Geneva, sans-serif' },
+                                { label: 'Trebuchet MS', value: 'Trebuchet MS, sans-serif' },
+                                { label: 'Courier New', value: 'Courier New, monospace' },
+                                { label: 'Palatino', value: 'Palatino, serif' },
+                                { label: 'Garamond', value: 'Garamond, serif' },
+                                { label: 'Century Gothic', value: 'Century Gothic, sans-serif' },
+                                { label: 'Generic Sans-serif', value: 'sans-serif' },
+                                { label: 'Generic Serif', value: 'serif' },
+                                { label: 'Generic Monospace', value: 'monospace' },
+                            ]}
+                            onChange={(value) => setAttributes({ metricsValueFontFamily: value })}
+                            __nextHasNoMarginBottom
+                        />
+                        <RangeControl
+                            label={__('Metrics Value Font Size', 'greenmetrics')}
+                            value={metricsValueFontSize || 14}
+                            onChange={(value) => setAttributes({ metricsValueFontSize: value })}
+                            min={8}
+                            max={24}
+                            __nextHasNoMarginBottom
+                            __next40pxDefaultSize
+                        />
+                    </PanelBody>
                 </InspectorControls>
                 <BlockControls>
                     <AlignmentToolbar
@@ -534,6 +680,7 @@ registerBlockType('greenmetrics/badge', {
                             borderRadius: `${borderRadius}px`,
                             textAlign: alignment,
                             cursor: showContent ? 'pointer' : 'default',
+                            fontFamily: badgeFontFamily || 'inherit',
                         }}
                     >
                         {showIcon && (
@@ -563,7 +710,8 @@ registerBlockType('greenmetrics/badge', {
                         {showText && (
                             <span style={{ 
                                 color: textColor,
-                                fontSize: `${textFontSize}px`
+                                fontSize: `${textFontSize}px`,
+                                fontFamily: badgeFontFamily || 'inherit',
                             }}>
                                 {text}
                             </span>
@@ -577,15 +725,24 @@ registerBlockType('greenmetrics/badge', {
                                 color: contentTextColor,
                                 padding: `${contentPadding}px`,
                                 transition: `all ${animationDuration}ms ease-in-out`,
+                                fontFamily: popoverContentFontFamily || 'inherit',
                             }}
                         >
-                            <h3>{contentTitle}</h3>
+                            <h3 style={{
+                                fontFamily: popoverContentFontFamily || 'inherit',
+                            }}>{contentTitle}</h3>
                             <div className="wp-block-greenmetrics-metrics">
                                 {selectedMetrics.map((metric) => (
                                     <div key={metric} className="wp-block-greenmetrics-metric">
                                         <div className="metric-label">
-                                            <span>{METRIC_OPTIONS.find((m) => m.value === metric)?.label}</span>
-                                            <span className="metric-value">
+                                            <span style={{
+                                                fontFamily: metricsListFontFamily || 'inherit',
+                                                fontSize: metricsListFontSize ? `${metricsListFontSize}px` : '14px',
+                                            }}>{METRIC_OPTIONS.find(m => m.value === metric)?.label}</span>
+                                            <span className="metric-value" style={{
+                                                fontFamily: metricsValueFontFamily || 'inherit',
+                                                fontSize: metricsValueFontSize ? `${metricsValueFontSize}px` : '14px',
+                                            }}>
                                                 {getMetricValue(metric, metricsData)}
                                             </span>
                                         </div>
@@ -593,7 +750,9 @@ registerBlockType('greenmetrics/badge', {
                                 ))}
                             </div>
                             {customContent && (
-                                <div className="wp-block-greenmetrics-custom-content">
+                                <div className="wp-block-greenmetrics-custom-content" style={{
+                                    fontFamily: popoverContentFontFamily || 'inherit',
+                                }}>
                                     {customContent}
                                 </div>
                             )}
@@ -629,6 +788,12 @@ registerBlockType('greenmetrics/badge', {
             animationDuration,
             showText,
             textFontSize,
+            badgeFontFamily,
+            popoverContentFontFamily,
+            metricsListFontFamily,
+            metricsListFontSize,
+            metricsValueFontFamily,
+            metricsValueFontSize,
         } = attributes;
         
         // Find the icon SVG from the icons array
@@ -646,7 +811,8 @@ registerBlockType('greenmetrics/badge', {
                             padding: `${padding}px`,
                             borderRadius: `${borderRadius}px`,
                             textAlign: alignment,
-                            cursor: showContent ? 'pointer' : 'default'
+                            cursor: showContent ? 'pointer' : 'default',
+                            fontFamily: badgeFontFamily || 'inherit',
                         }}
                     >
                         {showIcon && (
@@ -676,7 +842,8 @@ registerBlockType('greenmetrics/badge', {
                         {showText && (
                             <span style={{ 
                                 color: textColor,
-                                fontSize: `${textFontSize}px`
+                                fontSize: `${textFontSize}px`,
+                                fontFamily: badgeFontFamily || 'inherit',
                             }}>
                                 {text}
                             </span>
@@ -689,16 +856,25 @@ registerBlockType('greenmetrics/badge', {
                                 backgroundColor: contentBackgroundColor,
                                 color: contentTextColor,
                                 padding: `${contentPadding}px`,
-                                transition: `all ${animationDuration}ms ease-in-out`
+                                transition: `all ${animationDuration}ms ease-in-out`,
+                                fontFamily: popoverContentFontFamily || 'inherit',
                             }}
                         >
-                            <h3>{contentTitle}</h3>
+                            <h3 style={{
+                                fontFamily: popoverContentFontFamily || 'inherit',
+                            }}>{contentTitle}</h3>
                             <div className="wp-block-greenmetrics-metrics">
                                 {selectedMetrics.map((metric) => (
                                     <div key={metric} className="wp-block-greenmetrics-metric">
                                         <div className="metric-label">
-                                            <span>{METRIC_OPTIONS.find(m => m.value === metric)?.label}</span>
-                                            <span className="metric-value">
+                                            <span style={{
+                                                fontFamily: metricsListFontFamily || 'inherit',
+                                                fontSize: metricsListFontSize ? `${metricsListFontSize}px` : '14px',
+                                            }}>{METRIC_OPTIONS.find(m => m.value === metric)?.label}</span>
+                                            <span className="metric-value" style={{
+                                                fontFamily: metricsValueFontFamily || 'inherit',
+                                                fontSize: metricsValueFontSize ? `${metricsValueFontSize}px` : '14px',
+                                            }}>
                                                 {getMetricValue(metric)}
                                             </span>
                                         </div>
@@ -706,7 +882,9 @@ registerBlockType('greenmetrics/badge', {
                                 ))}
                             </div>
                             {customContent && (
-                                <div className="wp-block-greenmetrics-custom-content"
+                                <div className="wp-block-greenmetrics-custom-content" style={{
+                                    fontFamily: popoverContentFontFamily || 'inherit',
+                                }}
                                     dangerouslySetInnerHTML={{ __html: customContent }}
                                 />
                             )}

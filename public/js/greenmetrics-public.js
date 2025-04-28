@@ -164,24 +164,64 @@
             });
         });
 
-        // Initialize popover behavior for badges with content
-        $('.wp-block-greenmetrics-badge-wrapper').each(function() {
-            const $wrapper = $(this);
-            const $badge = $wrapper.find('.wp-block-greenmetrics-badge');
-            const $content = $wrapper.find('.wp-block-greenmetrics-content');
-            
-            if ($content.length) {
-                // Initially hide content
-                $content.hide();
+        // Apply hover behavior for badge blocks as well
+        $('.wp-block-greenmetrics-badge-wrapper').hover(
+            function() {
+                // Preserve any custom properties when showing content
+                const $content = $(this).find('.wp-block-greenmetrics-content');
+                const currentStyle = $content.attr('style') || '';
                 
-                // Toggle content on badge click
-                $badge.on('click', function() {
-                    $content.slideToggle({
-                        duration: parseInt($content.css('transition-duration')) || 300
-                    });
+                $content.css({
+                    'opacity': '1',
+                    'visibility': 'visible',
+                    'transform': 'translateY(0)'
+                });
+            },
+            function() {
+                // Preserve any custom properties when hiding content
+                const $content = $(this).find('.wp-block-greenmetrics-content');
+                const currentStyle = $content.attr('style') || '';
+                
+                $content.css({
+                    'opacity': '0',
+                    'visibility': 'hidden',
+                    'transform': 'translateY(-10px)'
                 });
             }
+        );
+        
+        // Ensure font styles are applied
+        ensureFontStyles();
+    }
+    
+    /**
+     * Ensure font styles are applied
+     */
+    function ensureFontStyles() {
+        // No need to process CSS variables since we've switched to direct inline styles
+        // Our approach now uses the class-based and inline font-family approach
+        
+        // Ensure SVG icons are properly styled
+        $('.wp-block-greenmetrics-badge__icon div svg').each(function() {
+            $(this).css({
+                'width': '100%',
+                'height': '100%',
+                'fill': 'currentColor'
+            });
         });
+    }
+    
+    /**
+     * Helper function to extract CSS custom property values from inline style
+     */
+    function getCssVarValue(styleText, varName) {
+        // This function is kept for backward compatibility but isn't actively used anymore
+        if (!styleText) return null;
+        
+        const regex = new RegExp(varName + '\\s*:\\s*([^;]+)');
+        const match = styleText.match(regex);
+        
+        return match ? match[1].trim() : null;
     }
 
     /**

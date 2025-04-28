@@ -1,9 +1,65 @@
 .wp-block-greenmetrics-badge {
     display: inline-block;
     transition: all 0.3s ease;
+    /* Fonts are set via inline styles */
 }
 
 .wp-block-greenmetrics-badge .dashicons {
     display: inline-block;
     line-height: 1;
+}
+
+.wp-block-greenmetrics-badge-wrapper {
+    position: relative;
+    display: inline-block;
+    z-index: 1000;
+}
+
+.wp-block-greenmetrics-badge span {
+    /* Fonts are set via inline styles */
+}
+
+.wp-block-greenmetrics-content {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    min-width: 320px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+    z-index: 1001;
+    /* Fonts are set via inline styles */
+}
+
+.wp-block-greenmetrics-content h3 {
+    /* Fonts are set via inline styles */
+}
+
+.wp-block-greenmetrics-metric .metric-label span:first-child {
+    /* Fonts are set via inline styles */
+}
+
+.wp-block-greenmetrics-metric .metric-value {
+    /* Fonts are set via inline styles */
+}
+
+/* Ensure content is visible on hover without needing JavaScript */
+.wp-block-greenmetrics-badge-wrapper:hover .wp-block-greenmetrics-content {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Responsive design */
+@media screen and (max-width: 600px) {
+    .wp-block-greenmetrics-content {
+        min-width: 250px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .wp-block-greenmetrics-content {
+        min-width: 200px;
+    }
 } 

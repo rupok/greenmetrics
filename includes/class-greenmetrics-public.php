@@ -391,25 +391,27 @@ class GreenMetrics_Public {
 						: $attributes['icon_svg']
 				) : '',
 				$attributes['showText'] ? sprintf(
-					'<span style="color:%1$s;font-size:%2$spx">%3$s</span>',
+					'<span style="color:%1$s;font-size:%2$spx;font-family:%3$s;">%4$s</span>',
 					esc_attr( $attributes['textColor'] ),
 					esc_attr( $attributes['textFontSize'] ),
+					esc_attr( isset($attributes['badgeFontFamily']) ? $attributes['badgeFontFamily'] : 'inherit' ),
 					esc_html( $attributes['text'] )
 				) : '',
 				$attributes['showContent'] ? sprintf(
-					'<div class="wp-block-greenmetrics-content" style="background-color:%1$s;color:%2$s;transition:all %3$sms ease-in-out">
-						<h3>%4$s</h3>
-						<div class="wp-block-greenmetrics-metrics">%5$s</div>
-						%6$s
+					'<div class="wp-block-greenmetrics-content" style="background-color:%1$s;color:%2$s;transition:all %3$sms ease-in-out;font-family:%4$s;">
+						<h3 style="font-family:%4$s;">%5$s</h3>
+						<div class="wp-block-greenmetrics-metrics">%6$s</div>
+						%7$s
 					</div>',
 					esc_attr( $attributes['contentBackgroundColor'] ),
 					esc_attr( $attributes['contentTextColor'] ),
 					esc_attr( $attributes['animationDuration'] ),
+					esc_attr( isset($attributes['popoverContentFontFamily']) ? $attributes['popoverContentFontFamily'] : 'inherit' ),
 					esc_html( $attributes['contentTitle'] ),
 					implode(
 						'',
 						array_map(
-							function ( $metric ) use ( $metrics ) {
+							function ( $metric ) use ( $metrics, $attributes ) {
 								$label = '';
 								$value = '';
 								switch ( $metric ) {
@@ -440,21 +442,26 @@ class GreenMetrics_Public {
 								}
 								return sprintf(
 									'<div class="wp-block-greenmetrics-metric">
-								<div class="metric-label">
+								<div class="metric-label" style="font-family:%3$s;font-size:%4$spx;">
 									<span>%1$s</span>
-									<span class="metric-value">%2$s</span>
+									<span class="metric-value" style="font-family:%5$s;font-size:%6$spx;">%2$s</span>
 								</div>
 								</div>',
 									esc_html( $label ),
-									esc_html( $value )
+									esc_html( $value ),
+									esc_attr( isset($attributes['metricsListFontFamily']) ? $attributes['metricsListFontFamily'] : 'inherit' ),
+									esc_attr( isset($attributes['metricsListFontSize']) ? $attributes['metricsListFontSize'] : '14' ),
+									esc_attr( isset($attributes['metricsValueFontFamily']) ? $attributes['metricsValueFontFamily'] : 'inherit' ),
+									esc_attr( isset($attributes['metricsValueFontSize']) ? $attributes['metricsValueFontSize'] : '14' )
 								);
 							},
 							$attributes['selectedMetrics']
 						)
 					),
 					$attributes['customContent'] ? sprintf(
-						'<div class="wp-block-greenmetrics-custom-content">%s</div>',
-						wp_kses_post( $attributes['customContent'] )
+						'<div class="wp-block-greenmetrics-custom-content" style="font-family:%2$s;">%1$s</div>',
+						wp_kses_post( $attributes['customContent'] ),
+						esc_attr( isset($attributes['popoverContentFontFamily']) ? $attributes['popoverContentFontFamily'] : 'inherit' )
 					) : ''
 				) : ''
 			);

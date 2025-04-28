@@ -433,4 +433,25 @@
     .greenmetrics-global-badge-metric-value {
         font-size: 14px;
     }
-} 
+}
+
+/* Additional styles for the Gutenberg block */
+/* Remove CSS variable approach since we're now using direct inline styles */
+
+/* Simple font family classes that can be used directly */
+.font-arial { font-family: Arial, sans-serif; }
+.font-helvetica { font-family: Helvetica, Arial, sans-serif; }
+.font-georgia { font-family: Georgia, serif; }
+.font-times { font-family: "Times New Roman", Times, serif; }
+.font-verdana { font-family: Verdana, Geneva, sans-serif; }
+.font-system { font-family: system-ui, sans-serif; }
+.font-tahoma { font-family: Tahoma, Geneva, sans-serif; }
+.font-trebuchet { font-family: "Trebuchet MS", sans-serif; }
+.font-courier { font-family: "Courier New", monospace; }
+.font-palatino { font-family: Palatino, serif; }
+.font-garamond { font-family: Garamond, serif; }
+.font-century { font-family: "Century Gothic", sans-serif; }
+.font-sans { font-family: sans-serif; }
+.font-serif { font-family: serif; }
+.font-mono { font-family: monospace; }
+
