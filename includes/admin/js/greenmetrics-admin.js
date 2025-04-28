@@ -55,7 +55,7 @@
     // Enable submit button and update badge preview
     function markDirty() {
       $submitBtn.prop('disabled', false).removeClass('button-disabled');
-      updateBadgePreview();
+      // Don't call updateBadgePreview here as it's already called from events
     }
 
     // Define default colors
@@ -525,7 +525,7 @@
     $('#enable_badge, #badge_position, #badge_size, #badge_text, #badge_background_color, #badge_text_color, #badge_icon_color, ' +
       '#popover_title, #popover_custom_content, #popover_bg_color, #popover_text_color, #popover_metrics_color, #popover_metrics_bg_color, ' +
       '#popover_content_font, #popover_content_font_size, #popover_metrics_font, #popover_metrics_font_size, #popover_metrics_list_bg_color, ' +
-      '#popover_metrics_list_hover_bg_color, #badge_icon_size')
+      '#popover_metrics_list_hover_bg_color, #badge_icon_size, #badge_icon_type')
     .on('change input', function() {
       updateBadgePreview();
     });
@@ -588,7 +588,7 @@
     }
     
     // Main preview update function
-    function updateBadgePreview() {
+    function updateBadgePreview(force_update) {
       // Get current badge settings
       const position = $('#badge_position').val();
       const size = $('#badge_size').val();
@@ -632,38 +632,92 @@
           $badge.find('.icon-container').show().css('color', iconColor);
         }
         
-        // Update icon based on selected type
-        let iconSvg = '';
-        switch(iconType) {
-          case 'leaf':
-            iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>leaf</title><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z" /></svg>';
-            break;
-          case 'tree':
-            iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c4.97 0 9-4.03 9-9-4.97 0-9 4.03-9 9zm2.44-9.43h-.44v2h.44c2.32 0 2.49 3.23 2.49 3.23 1.52-1.84 2.63-4.43 1.73-7C17.56 8.37 15.5 7 15.5 7S14.8 9.1 13 9.42v.36c1.32-.18 2.44.11 2.44.11s-1.22 1.91-1 3.68z"/><path d="M12.28 10h-.56v2h.56c2.33 0 2.51 3.45 2.51 3.45 1.55-1.89 2.67-4.63 1.77-7.24-.51-1.46-2.18-3.02-2.18-3.02s-.99 2.18-2.1 2.48V8c1.34-.2 2.55.07 2.55.07s-1.34 1.66-1.14 3.44z"/><path d="M12.63 5.33c-.28.47-1.04 1.68-2 1.87V8.8c1.35-.19 2.97.31 2.97.31S12.69 10.3 12.22 12h.33v-2h-.16c.06-.32.2-.65.44-.97.19.38.39.75.58 1.09l.66-.42c-.18-.28-.33-.57-.46-.85 0 0 .99.17 2.22.5-.27-.5-2.47-4.02-3.2-4.02z"/><path d="M10.45 12h-.43v8.17c.34-.14.66-.34.95-.55L10.45 12zm1.66 4.62c.1.21.19.42.27.63-.16-.19-.31-.39-.46-.57.07-.02.12-.04.19-.06zm1.14-4.62L12.1 17.1c.45-.11.88-.29 1.29-.51l-.14-4.59z"/><path d="M9.3 14.13l-.24 7.14c.24.11.48.19.73.26l-.42-7.8c-.02.14-.05.27-.07.4zm3.33 1.7c-.04-.04-.08-.09-.12-.14.03.05.06.09.09.13.01 0 .02.01.03.01zm-.83-3.83l-.32 7.46c.29.05.58.08.88.08.12 0 .24-.01.36-.02L12 12l-.2 0z"/></svg>';
-            break;
-          case 'globe':
-            iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>';
-            break;
-          case 'recycle':
-            iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M5.77 7.15L7.2 4.78l1.03-1.71c.39-.65 1.33-.65 1.72 0l1.48 2.46-1.23 2.06-1 1.34-2.43-4.78zm15.95 5.82l-1.6-2.66-3.46 2L18.87 16H21v2l-3.87-7.03zM16 21h1.5l2.05-3.42-3.46-2-1.09 1.84L16 21zm-3.24-3.71l-1.03-1.71-1.43 2.43-2.43 4.78 1.6 2.66 3.46-2 1.03-1.71-1.43-2.45zM13.42 8.5l-1.48-2.46c-.39-.65-1.33-.65-1.72 0L9.22 7.15l-1 1.34 2.43 4.78 1.6-2.66 1.17-2.11zM10.5 14.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>';
-            break;
-          case 'custom':
-            if (customIcon) {
-              iconSvg = '<img src="' + customIcon + '" alt="Custom Icon" style="width: ' + iconSize + '; height: ' + iconSize + ';">';
-            } else {
-              iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';
-            }
-            break;
-          default:
-            iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>leaf</title><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z" /></svg>';
-        }
-        $badge.find('.icon-container').html(iconSvg);
+        // Only update the icon if it doesn't exist yet or if explicitly changing icon type
+        // This ensures we don't reset to default when other settings change
+        const $iconContainer = $badge.find('.icon-container');
+        const needsIconUpdate = 
+          $iconContainer.is(':empty') || 
+          ($iconContainer.find('svg').length === 0 && $iconContainer.find('img').length === 0) ||
+          (iconType === 'custom' && customIcon && $iconContainer.find('img').attr('src') !== customIcon) ||
+          force_update === true;
         
-        // Apply icon size to all SVG and image icons
-        $badge.find('.icon-container svg, .icon-container img').css({
-          'width': iconSize,
-          'height': iconSize
-        });
+        if (needsIconUpdate) {
+          // Update icon based on selected type
+          let iconSvg = '';
+          switch(iconType) {
+            case 'leaf':
+              iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><title>leaf</title><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z" /></svg>';
+              break;
+            case 'tree':
+              iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><title>sprout-outline</title><path d="M23,4.1V2.3L21.2,2.1C21.1,2.1 20.5,2 19.5,2C15.4,2 12.4,3.2 10.7,5.3C9.4,4.5 7.6,4 5.5,4C4.5,4 3.8,4.1 3.8,4.1L1.9,4.4L2,6.1C2.1,9.1 3.6,14.8 8.8,14.8C8.9,14.8 8.9,14.8 9,14.8V18.2C5.2,18.7 2,20 2,20V22H22V20C22,20 18.8,18.7 15,18.2V15C21.3,14.9 23,7.8 23,4.1M12,18C11.7,18 11.3,18 11,18V12.4C11,12.4 10.8,9 8,9C8,9 9.5,9.8 9.9,12.7C9.5,12.8 9.1,12.8 8.8,12.8C4.2,12.8 4,6.1 4,6.1C4,6.1 4.6,6 5.5,6C7.4,6 10.5,6.4 11.4,9.1C11.9,4.6 17,4 19.5,4C20.4,4 21,4.1 21,4.1C21,4.1 21,13.1 14.7,13.1C14.5,13.1 14.2,13.1 14,13.1C14,11.1 16,8.1 16,8.1C13,9.1 13,13 13,13V18C12.7,18 12.3,18 12,18Z" /></svg>';
+              break;
+            case 'globe':
+              iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>';
+              break;
+            case 'recycle':
+              iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><title>recycle</title><path d="M21.82,15.42L19.32,19.75C18.83,20.61 17.92,21.06 17,21H15V23L12.5,18.5L15,14V16H17.82L15.6,12.15L19.93,9.65L21.73,12.77C22.25,13.54 22.32,14.57 21.82,15.42M9.21,3.06H14.21C15.19,3.06 16.04,3.63 16.45,4.45L17.45,6.19L19.18,5.19L16.54,9.6L11.39,9.69L13.12,8.69L11.71,6.24L9.5,10.09L5.16,7.59L6.96,4.47C7.37,3.64 8.22,3.06 9.21,3.06M5.05,19.76L2.55,15.43C2.06,14.58 2.13,13.56 2.64,12.79L3.64,11.06L1.91,10.06L7.05,10.14L9.7,14.56L7.97,13.56L6.56,16H11V21H7.4C6.47,21.07 5.55,20.61 5.05,19.76Z" /></svg>';
+              break;
+            case 'custom':
+              if (customIcon) {
+                iconSvg = '<img src="' + customIcon + '" alt="Custom Icon" style="width: ' + iconSize + '; height: ' + iconSize + ';">';
+              } else {
+                // Use a pencil icon as placeholder for custom icon
+                iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';
+              }
+              break;
+            default:
+              // Using AJAX to get the icon SVG
+              $.ajax({
+                url: ajaxurl,
+                method: 'POST',
+                data: {
+                  action: 'greenmetrics_get_icon',
+                  icon_type: iconType,
+                  nonce: greenmetricsAdmin.nonce
+                },
+                success: function(response) {
+                  if (response.success && response.data) {
+                    // Replace fill attribute if present
+                    let svg = response.data;
+                    if (!svg.includes('fill="currentColor"')) {
+                      svg = svg.replace(/<svg/, '<svg fill="currentColor"');
+                    }
+                    $iconContainer.html(svg);
+                    // Apply icon size
+                    $iconContainer.find('svg, img').css({
+                      'width': iconSize,
+                      'height': iconSize
+                    });
+                  }
+                },
+                error: function() {
+                  // Fallback to leaf icon using same SVG as in PHP class
+                  $iconContainer.html('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><title>leaf</title><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z" /></svg>');
+                }
+              });
+              // Skip the rest of the icon update
+              iconSvg = null;
+          }
+          
+          if (iconSvg !== null) {
+            $iconContainer.html(iconSvg);
+            
+            // Apply icon size to all SVG and image icons
+            $iconContainer.find('svg, img').css({
+              'width': iconSize,
+              'height': iconSize
+            });
+          }
+        } else {
+          // Just update the icon size for existing icons and ensure the color is applied
+          $iconContainer.find('svg, img').css({
+            'width': iconSize,
+            'height': iconSize
+          });
+          
+          // Make sure the SVG fill is set to currentColor for proper color inheritance
+          $iconContainer.find('svg').attr('fill', 'currentColor');
+        }
       } else {
         // Hide icon if display icon is unchecked
         $badge.find('.icon-container').hide();
@@ -765,8 +819,9 @@
             $('#custom-icon-field-wrapper').hide();
         }
         
-        // Mark as changed and update preview
+        // Mark as changed and update preview with force update
         markDirty();
+        updateBadgePreview(true);
     });
     
     // Badge icon type selection
@@ -789,8 +844,9 @@
             $('#custom-icon-field-wrapper').hide();
         }
         
-        // Mark as changed and update preview
+        // Mark as changed and update preview with force update
         markDirty();
+        updateBadgePreview(true);
     });
     
     // Custom icon selection

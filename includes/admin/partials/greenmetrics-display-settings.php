@@ -511,13 +511,32 @@ jQuery(document).ready(function($) {
 			
 			$iconContainer.show().css('color', iconColor);
 			
-			if (iconType === 'custom' && customIcon) {
-				// For custom icons, use the uploaded image
-				$iconContainer.html('<img src="' + customIcon + '" alt="Custom Icon" style="width: ' + iconSize + '; height: ' + iconSize + ';">');
+			// Only update the icon if it doesn't exist yet or if explicitly changing icon type
+			// This ensures we don't reset to default when other settings change
+			const needsIconUpdate = 
+				$iconContainer.is(':empty') || 
+				($iconContainer.find('svg').length === 0 && $iconContainer.find('img').length === 0) ||
+				(iconType === 'custom' && customIcon && $iconContainer.find('img').attr('src') !== customIcon);
+			
+			if (needsIconUpdate) {
+				if (iconType === 'custom' && customIcon) {
+					// For custom icons, use the uploaded image
+					$iconContainer.html('<img src="' + customIcon + '" alt="Custom Icon" style="width: ' + iconSize + '; height: ' + iconSize + ';">');
+				} else {
+					// For predefined icons, get them from the server
+					getIconSvg(iconType, function(svgContent) {
+						// Make sure SVG uses currentColor for proper color inheritance
+						if (!svgContent.includes('fill="currentColor"')) {
+							svgContent = svgContent.replace(/<svg/, '<svg fill="currentColor"');
+						}
+						$iconContainer.html('<div style="width: ' + iconSize + '; height: ' + iconSize + ';">' + svgContent + '</div>');
+					});
+				}
 			} else {
-				// For predefined icons, get them from the server
-				getIconSvg(iconType, function(svgContent) {
-					$iconContainer.html('<div style="width: ' + iconSize + '; height: ' + iconSize + ';">' + svgContent + '</div>');
+				// Just update the size of existing icons
+				$iconContainer.find('div, img').css({
+					'width': iconSize,
+					'height': iconSize
 				});
 			}
 		} else {
