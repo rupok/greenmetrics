@@ -149,6 +149,10 @@ registerBlockType('greenmetrics/badge', {
             type: 'string',
             default: 'rgba(0, 0, 0, 0.04)',
         },
+        metricsValueColor: {
+            type: 'string',
+            default: '#333333',
+        },
         position: {
             type: 'string', 
             default: '',

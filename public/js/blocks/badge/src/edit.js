@@ -123,6 +123,7 @@ const Edit = ({ attributes, setAttributes }) => {
         metricsListBgColor,
         metricsListHoverBgColor,
         metricsValueBgColor,
+        metricsValueColor,
     } = attributes;
 
     // Handler for selecting a custom icon
@@ -441,6 +442,11 @@ const Edit = ({ attributes, setAttributes }) => {
                             onChange: (value) => setAttributes({ metricsValueBgColor: value }),
                             label: __('Metrics Value Background Color', 'greenmetrics'),
                         },
+                        showContent && {
+                            value: metricsValueColor || '#333333',
+                            onChange: (value) => setAttributes({ metricsValueColor: value }),
+                            label: __('Metrics Value Text Color', 'greenmetrics'),
+                        },
                     ].filter(Boolean)}
                 />
             </InspectorControls>
@@ -536,6 +542,7 @@ const Edit = ({ attributes, setAttributes }) => {
                                                 fontFamily: metricsValueFontFamily,
                                                 fontSize: `${metricsValueFontSize}px`,
                                                 background: metricsValueBgColor || "rgba(0, 0, 0, 0.04)",
+                                                color: metricsValueColor || "#333333",
                                                 padding: "4px 8px",
                                                 borderRadius: "4px",
                                             }}

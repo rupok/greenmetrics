@@ -449,7 +449,7 @@ class GreenMetrics_Public {
 									'<div class="wp-block-greenmetrics-metric" style="background-color:%7$s;">
 								<div class="metric-label" style="font-family:%3$s;font-size:%4$spx;">
 									<span>%1$s</span>
-									<span class="metric-value" style="font-family:%5$s;font-size:%6$spx;background:%8$s;padding:4px 8px;border-radius:4px;">%2$s</span>
+									<span class="metric-value" style="font-family:%5$s;font-size:%6$spx;background:%8$s;color:%9$s;padding:4px 8px;border-radius:4px;">%2$s</span>
 								</div>
 								</div>',
 									esc_html( $label ),
@@ -459,7 +459,8 @@ class GreenMetrics_Public {
 									esc_attr( isset($attributes['metricsValueFontFamily']) ? $attributes['metricsValueFontFamily'] : 'inherit' ),
 									esc_attr( isset($attributes['metricsValueFontSize']) ? $attributes['metricsValueFontSize'] : '14' ),
 									esc_attr( isset($attributes['metricsListBgColor']) ? $attributes['metricsListBgColor'] : '#f8f9fa' ),
-									esc_attr( isset($attributes['metricsValueBgColor']) ? $attributes['metricsValueBgColor'] : 'rgba(0, 0, 0, 0.04)' )
+									esc_attr( isset($attributes['metricsValueBgColor']) ? $attributes['metricsValueBgColor'] : 'rgba(0, 0, 0, 0.04)' ),
+									esc_attr( isset($attributes['metricsValueColor']) ? $attributes['metricsValueColor'] : '#333333' )
 								);
 							},
 							$attributes['selectedMetrics']
@@ -718,6 +719,7 @@ class GreenMetrics_Public {
 		$popover_metrics_bg_color = $settings_manager->get( 'popover_metrics_bg_color', 'rgba(0, 0, 0, 0.05)' );
 		$popover_metrics_list_bg_color = $settings_manager->get( 'popover_metrics_list_bg_color', '#f8f9fa' );
 		$popover_metrics_list_hover_bg_color = $settings_manager->get( 'popover_metrics_list_hover_bg_color', '#f3f4f6' );
+		$popover_metrics_value_color = $settings_manager->get( 'popover_metrics_value_color', '#333333' );
 		$popover_content_font = $settings_manager->get( 'popover_content_font', 'inherit' );
 		$popover_content_font_size = $settings_manager->get( 'popover_content_font_size', '16px' );
 		$popover_metrics_font = $settings_manager->get( 'popover_metrics_font', 'inherit' );
@@ -752,7 +754,7 @@ class GreenMetrics_Public {
 		// Build inline styles for the badge and popover
 		$button_style = 'background-color: ' . esc_attr( $background_color ) . '; color: ' . esc_attr( $text_color ) . ';';
 		$popover_content_style = 'background-color: ' . esc_attr( $popover_bg_color ) . '; color: ' . esc_attr( $popover_text_color ) . '; font-family: ' . esc_attr( $popover_content_font ) . '; font-size: ' . esc_attr( $popover_content_font_size ) . ';';
-		$popover_metrics_style = 'color: ' . esc_attr( $popover_metrics_color ) . '; font-family: ' . esc_attr( $popover_metrics_font ) . '; font-size: ' . esc_attr( $popover_metrics_font_size ) . '; background-color: ' . esc_attr( $popover_metrics_bg_color ) . ';';
+		$popover_metrics_style = 'color: ' . esc_attr( $popover_metrics_value_color ) . '; font-family: ' . esc_attr( $popover_metrics_font ) . '; font-size: ' . esc_attr( $popover_metrics_font_size ) . '; background-color: ' . esc_attr( $popover_metrics_bg_color ) . ';';
 		$popover_metrics_label_style = 'font-size: ' . esc_attr( $popover_metrics_label_font_size ) . ';';
 		$popover_metrics_list_style = 'background-color: ' . esc_attr( $popover_metrics_list_bg_color ) . ';';
 		
