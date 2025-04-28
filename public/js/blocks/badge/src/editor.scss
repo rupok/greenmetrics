@@ -3,6 +3,22 @@
     display: inline-block;
     margin: 0;
     padding: 0;
+
+    .wp-block-greenmetrics-content {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: translateY(0) !important;
+        position: static;
+        margin-top: 15px;
+        display: block;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .wp-block-greenmetrics-metric {
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.05) !important;
+        }
+    }
 }
 
 .wp-block-greenmetrics-badge {
@@ -183,5 +199,11 @@
         width: 100%;
         height: 100%;
         color: inherit;
+    }
+}
+
+.components-panel__body {
+    .wp-block-greenmetrics-badge-controls {
+        margin-bottom: 16px;
     }
 } 

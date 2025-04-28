@@ -400,7 +400,12 @@ class GreenMetrics_Public {
 				$attributes['showContent'] ? sprintf(
 					'<div class="wp-block-greenmetrics-content" style="background-color:%1$s;color:%2$s;transition:all %3$sms ease-in-out;font-family:%4$s;">
 						<h3 style="font-family:%4$s;">%5$s</h3>
-						<div class="wp-block-greenmetrics-metrics">%6$s</div>
+						<style>
+							#greenmetrics-metrics-%8$s .wp-block-greenmetrics-metric:hover {
+								background-color: %9$s !important;
+							}
+						</style>
+						<div id="greenmetrics-metrics-%8$s" class="wp-block-greenmetrics-metrics">%6$s</div>
 						%7$s
 					</div>',
 					esc_attr( $attributes['contentBackgroundColor'] ),
@@ -441,10 +446,10 @@ class GreenMetrics_Public {
 										break;
 								}
 								return sprintf(
-									'<div class="wp-block-greenmetrics-metric">
+									'<div class="wp-block-greenmetrics-metric" style="background-color:%7$s;">
 								<div class="metric-label" style="font-family:%3$s;font-size:%4$spx;">
 									<span>%1$s</span>
-									<span class="metric-value" style="font-family:%5$s;font-size:%6$spx;">%2$s</span>
+									<span class="metric-value" style="font-family:%5$s;font-size:%6$spx;background:%8$s;padding:4px 8px;border-radius:4px;">%2$s</span>
 								</div>
 								</div>',
 									esc_html( $label ),
@@ -452,7 +457,9 @@ class GreenMetrics_Public {
 									esc_attr( isset($attributes['metricsListFontFamily']) ? $attributes['metricsListFontFamily'] : 'inherit' ),
 									esc_attr( isset($attributes['metricsListFontSize']) ? $attributes['metricsListFontSize'] : '14' ),
 									esc_attr( isset($attributes['metricsValueFontFamily']) ? $attributes['metricsValueFontFamily'] : 'inherit' ),
-									esc_attr( isset($attributes['metricsValueFontSize']) ? $attributes['metricsValueFontSize'] : '14' )
+									esc_attr( isset($attributes['metricsValueFontSize']) ? $attributes['metricsValueFontSize'] : '14' ),
+									esc_attr( isset($attributes['metricsListBgColor']) ? $attributes['metricsListBgColor'] : '#f8f9fa' ),
+									esc_attr( isset($attributes['metricsValueBgColor']) ? $attributes['metricsValueBgColor'] : 'rgba(0, 0, 0, 0.04)' )
 								);
 							},
 							$attributes['selectedMetrics']
@@ -462,7 +469,9 @@ class GreenMetrics_Public {
 						'<div class="wp-block-greenmetrics-custom-content" style="font-family:%2$s;">%1$s</div>',
 						wp_kses_post( $attributes['customContent'] ),
 						esc_attr( isset($attributes['popoverContentFontFamily']) ? $attributes['popoverContentFontFamily'] : 'inherit' )
-					) : ''
+					) : '',
+					uniqid('metrics-'),
+					esc_attr( isset($attributes['metricsListHoverBgColor']) ? $attributes['metricsListHoverBgColor'] : '#f3f4f6' )
 				) : ''
 			);
 		}
@@ -776,6 +785,7 @@ class GreenMetrics_Public {
 				<style>
 					.greenmetrics-global-badge-wrapper .greenmetrics-global-badge-content .greenmetrics-global-badge-metrics .greenmetrics-global-badge-metric:hover {
 						background-color: <?php echo esc_attr( $popover_metrics_list_hover_bg_color ); ?> !important;
+						transition: background-color 0.2s ease !important;
 					}
 					.greenmetrics-global-badge-button .icon-container svg {
 						width: <?php echo esc_attr( $icon_size ); ?>;

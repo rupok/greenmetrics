@@ -36,6 +36,23 @@
     /* Fonts are set via inline styles */
 }
 
+.wp-block-greenmetrics-metric {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+    /* Background color is set via inline styles */
+}
+
+.wp-block-greenmetrics-metric .metric-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
 .wp-block-greenmetrics-metric .metric-label span:first-child {
     /* Fonts are set via inline styles */
 }
@@ -43,6 +60,9 @@
 .wp-block-greenmetrics-metric .metric-value {
     /* Fonts are set via inline styles */
 }
+
+/* The metric list hover background color is applied via inline styles 
+   in the PHP render_badge function using the metricsListHoverBgColor attribute */
 
 /* Ensure content is visible on hover without needing JavaScript */
 .wp-block-greenmetrics-badge-wrapper:hover .wp-block-greenmetrics-content {
