@@ -642,70 +642,51 @@
           force_update === true;
         
         if (needsIconUpdate) {
-          // Update icon based on selected type
-          let iconSvg = '';
-          switch(iconType) {
-            case 'leaf':
-              iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><title>leaf</title><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z" /></svg>';
-              break;
-            case 'tree':
-              iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><title>sprout-outline</title><path d="M23,4.1V2.3L21.2,2.1C21.1,2.1 20.5,2 19.5,2C15.4,2 12.4,3.2 10.7,5.3C9.4,4.5 7.6,4 5.5,4C4.5,4 3.8,4.1 3.8,4.1L1.9,4.4L2,6.1C2.1,9.1 3.6,14.8 8.8,14.8C8.9,14.8 8.9,14.8 9,14.8V18.2C5.2,18.7 2,20 2,20V22H22V20C22,20 18.8,18.7 15,18.2V15C21.3,14.9 23,7.8 23,4.1M12,18C11.7,18 11.3,18 11,18V12.4C11,12.4 10.8,9 8,9C8,9 9.5,9.8 9.9,12.7C9.5,12.8 9.1,12.8 8.8,12.8C4.2,12.8 4,6.1 4,6.1C4,6.1 4.6,6 5.5,6C7.4,6 10.5,6.4 11.4,9.1C11.9,4.6 17,4 19.5,4C20.4,4 21,4.1 21,4.1C21,4.1 21,13.1 14.7,13.1C14.5,13.1 14.2,13.1 14,13.1C14,11.1 16,8.1 16,8.1C13,9.1 13,13 13,13V18C12.7,18 12.3,18 12,18Z" /></svg>';
-              break;
-            case 'globe':
-              iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>';
-              break;
-            case 'recycle':
-              iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><title>recycle</title><path d="M21.82,15.42L19.32,19.75C18.83,20.61 17.92,21.06 17,21H15V23L12.5,18.5L15,14V16H17.82L15.6,12.15L19.93,9.65L21.73,12.77C22.25,13.54 22.32,14.57 21.82,15.42M9.21,3.06H14.21C15.19,3.06 16.04,3.63 16.45,4.45L17.45,6.19L19.18,5.19L16.54,9.6L11.39,9.69L13.12,8.69L11.71,6.24L9.5,10.09L5.16,7.59L6.96,4.47C7.37,3.64 8.22,3.06 9.21,3.06M5.05,19.76L2.55,15.43C2.06,14.58 2.13,13.56 2.64,12.79L3.64,11.06L1.91,10.06L7.05,10.14L9.7,14.56L7.97,13.56L6.56,16H11V21H7.4C6.47,21.07 5.55,20.61 5.05,19.76Z" /></svg>';
-              break;
-            case 'custom':
-              if (customIcon) {
-                iconSvg = '<img src="' + customIcon + '" alt="Custom Icon" style="width: ' + iconSize + '; height: ' + iconSize + ';">';
-              } else {
-                // Use a pencil icon as placeholder for custom icon
-                iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';
-              }
-              break;
-            default:
-              // Using AJAX to get the icon SVG
-              $.ajax({
-                url: ajaxurl,
-                method: 'POST',
-                data: {
-                  action: 'greenmetrics_get_icon',
-                  icon_type: iconType,
-                  nonce: greenmetricsAdmin.nonce
-                },
-                success: function(response) {
-                  if (response.success && response.data) {
-                    // Replace fill attribute if present
-                    let svg = response.data;
-                    if (!svg.includes('fill="currentColor"')) {
-                      svg = svg.replace(/<svg/, '<svg fill="currentColor"');
-                    }
-                    $iconContainer.html(svg);
-                    // Apply icon size
-                    $iconContainer.find('svg, img').css({
-                      'width': iconSize,
-                      'height': iconSize
-                    });
-                  }
-                },
-                error: function() {
-                  // Fallback to leaf icon using same SVG as in PHP class
-                  $iconContainer.html('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><title>leaf</title><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z" /></svg>');
-                }
-              });
-              // Skip the rest of the icon update
-              iconSvg = null;
-          }
-          
-          if (iconSvg !== null) {
-            $iconContainer.html(iconSvg);
+          // Special case for custom image uploads
+          if (iconType === 'custom' && customIcon) {
+            $iconContainer.html('<img src="' + customIcon + '" alt="Custom Icon" style="width: ' + iconSize + '; height: ' + iconSize + ';">');
             
-            // Apply icon size to all SVG and image icons
-            $iconContainer.find('svg, img').css({
+            // Apply icon size
+            $iconContainer.find('img').css({
               'width': iconSize,
               'height': iconSize
+            });
+          } else {
+            // Use AJAX to fetch all icons from the server for consistency
+            $.ajax({
+              url: ajaxurl,
+              method: 'POST',
+              data: {
+                action: 'greenmetrics_get_icon',
+                icon_type: iconType,
+                nonce: greenmetricsAdmin.nonce
+              },
+              success: function(response) {
+                if (response.success && response.data) {
+                  // Replace fill attribute if present to ensure proper color inheritance
+                  let svg = response.data;
+                  if (!svg.includes('fill="currentColor"')) {
+                    svg = svg.replace(/<svg/, '<svg fill="currentColor"');
+                  }
+                  $iconContainer.html(svg);
+                  
+                  // Apply icon size
+                  $iconContainer.find('svg, img').css({
+                    'width': iconSize,
+                    'height': iconSize
+                  });
+                }
+              },
+              error: function() {
+                // Fallback to leaf icon as a default
+                $iconContainer.html('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><title>leaf</title><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z" /></svg>');
+                
+                // Apply icon size to fallback
+                $iconContainer.find('svg').css({
+                  'width': iconSize,
+                  'height': iconSize
+                });
+              }
             });
           }
         } else {
