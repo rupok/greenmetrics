@@ -37,7 +37,7 @@ $wpdb->query(
 
 // Drop the stats table
 $table_name = $wpdb->prefix . 'greenmetrics_stats';
-$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}greenmetrics_stats" );
+$wpdb->query( "DROP TABLE IF EXISTS {$table_name}" );
 
 // Clear any scheduled events
 $events = array(
