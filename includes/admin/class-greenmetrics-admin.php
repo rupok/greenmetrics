@@ -1046,10 +1046,26 @@ class GreenMetrics_Admin {
 	 * Register the stylesheets for the admin area.
 	 */
 	public function enqueue_styles() {
+		// Get current screen to determine which page we're on
+		$screen = get_current_screen();
+		
+		// Early return if not on admin page or can't determine screen
+		if ( ! $screen ) {
+			return;
+		}
+		
+		// Only load our styles on GreenMetrics plugin pages
+		// This includes our plugin settings pages and any page with greenmetrics in the ID
+		if ( strpos( $screen->id, 'greenmetrics' ) === false && 
+			 ! isset( $_GET['page'] ) && 
+			 ( ! isset( $_GET['page'] ) || strpos( $_GET['page'], 'greenmetrics' ) === false ) ) {
+			return;
+		}
+		
 		wp_enqueue_style(
 			'greenmetrics-admin',
 			GREENMETRICS_PLUGIN_URL . 'includes/admin/css/greenmetrics-admin.css',
-			array(),
+			array( 'wp-color-picker' ),
 			GREENMETRICS_VERSION,
 			'all'
 		);
@@ -1257,15 +1273,6 @@ class GreenMetrics_Admin {
 			$main_dependencies,
 			GREENMETRICS_VERSION,
 			true
-		);
-
-		// Admin styles
-		wp_enqueue_style(
-			'greenmetrics-admin',
-			GREENMETRICS_PLUGIN_URL . 'includes/admin/css/greenmetrics-admin.css',
-			array( 'wp-color-picker' ),
-			GREENMETRICS_VERSION,
-			'all'
 		);
 	}
 
