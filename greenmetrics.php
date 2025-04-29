@@ -111,28 +111,9 @@ function greenmetrics_init() {
 	// Explicitly load the Icons class to avoid autoloading issues
 	require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-icons.php';
 
-	// TEMPORARY DEBUG - Reset settings to default
-	if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
-		// Clear any potentially cached version of the settings
-		wp_cache_delete( 'greenmetrics_settings', 'options' );
-
-		// Get current settings
-		$settings = get_option( 'greenmetrics_settings', array() );
-		greenmetrics_log( 'Plugin Initialization - Current settings (before reset)', $settings );
-
-		// Force deletion and recreation of option (TEMPORARY for debugging)
-		// Uncomment this block to force reset the option
-		/*
-		delete_option('greenmetrics_settings');
-		$default_settings = array(
-			'tracking_enabled' => 1,
-			'enable_badge' => 1
-		);
-		update_option('greenmetrics_settings', $default_settings);
-		greenmetrics_log('Plugin Initialization - Settings reset to defaults', $default_settings);
-		*/
-
-		// Check settings again
+	// Debug and development settings should never run in production
+	if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+		// Log current settings in development environments only
 		$settings = get_option( 'greenmetrics_settings', array() );
 		greenmetrics_log( 'Plugin Initialization - Current settings', $settings );
 	}
