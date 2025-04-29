@@ -42,25 +42,12 @@
                 requests += 1;
             }
             
-            console.log('Sending metrics data:', {
-                data_transfer: totalTransferSize,
-                load_time: loadTimeSeconds, // In seconds for the server
-                load_time_ms: loadTimeMs, // Original value in ms for reference
-                requests: requests,
-                page_id: greenmetricsPublic.page_id
-            });
-
-            console.log('REST URL:', greenmetricsPublic.rest_url);
-            console.log('REST nonce:', greenmetricsPublic.rest_nonce ? 'Available' : 'Missing');
-            
             const data = {
                 page_id: greenmetricsPublic.page_id,
                 data_transfer: totalTransferSize,
                 load_time: loadTimeSeconds, // Send in seconds
                 requests: requests
             };
-            
-            console.log('Request payload:', JSON.stringify(data));
             
             // Use the REST API endpoint instead of AJAX
             fetch(greenmetricsPublic.rest_url + '/track', {
@@ -72,34 +59,16 @@
                 body: JSON.stringify(data)
             })
             .then(response => {
-                console.log('Response status:', response.status);
-                console.log('Response headers:', 
-                    Array.from(response.headers.entries())
-                        .map(pair => pair[0] + ': ' + pair[1])
-                        .join(', ')
-                );
-                
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
                 return response.json();
             })
             .then(data => {
-                console.log('Response data:', data);
-                if (data.success) {
-                    console.log('Page metrics tracked successfully');
-                } else {
-                    console.error('Failed to track page metrics:', data.message);
-                }
+                // Success handling without console logs
             })
             .catch(error => {
-                console.error('Error tracking page metrics:', error);
-                // Try to log more details about the error
-                if (error instanceof TypeError) {
-                    console.error('Network error - check if the server is reachable');
-                } else if (error instanceof SyntaxError) {
-                    console.error('Invalid JSON response from server');
-                }
+                // Error handling without console logs
             });
         });
     }
@@ -139,8 +108,6 @@
             const $icon = $(this);
             const iconName = $icon.data('icon-name') || 'leaf';
             
-            console.log('Found icon to load via AJAX:', iconName);
-            
             // Load SVG icons through AJAX
             $.ajax({
                 url: greenmetricsPublic.ajax_url,
@@ -151,15 +118,12 @@
                     icon_type: iconName
                 },
                 success: function(response) {
-                    console.log('Icon loaded successfully:', iconName, response);
                     if (response.success && response.data) {
                         $icon.html(response.data);
-                    } else {
-                        console.error('Invalid response format:', response);
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.error('Failed to load icon:', iconName, error, xhr.responseText);
+                    // Error handling without console logs
                 }
             });
         });

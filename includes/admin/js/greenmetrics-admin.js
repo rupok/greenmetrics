@@ -234,7 +234,7 @@
           updateChart(response);
         },
         error: function(xhr, status, error) {
-          console.error('Error loading metrics data:', error);
+          // Error handling without console logs
           if (metricsChart) {
             metricsChart.data.labels = [];
             metricsChart.data.datasets = [];
@@ -782,7 +782,6 @@
     // Icon option selection
     $('.icon-option').on('click', function() {
         const iconType = $(this).data('value');
-        console.log('Icon clicked:', iconType);
         
         // Update select value
         $('#badge_icon_type').val(iconType).trigger('change');
@@ -808,7 +807,6 @@
     // Badge icon type selection
     $('#badge_icon_type').on('change', function() {
         const iconType = $(this).val();
-        console.log('Icon type changed to:', iconType);
         
         // Update visual selection of icon options if they exist
         if ($('.icon-option').length) {
@@ -917,7 +915,7 @@
               updateStatsDisplay(response);
             },
             error: function(xhr, status, error) {
-              console.error('Error getting stats:', error);
+              // Error handling without console logs
               $('#greenmetrics-stats').html('<p class="error">Error loading stats. Please try again.</p>');
             }
           });

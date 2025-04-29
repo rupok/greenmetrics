@@ -36,25 +36,14 @@
                 const navTiming = performance.getEntriesByType('navigation')[0];
                 rawLoadTime = navTiming.loadEventEnd - navTiming.startTime;
                 loadSource = __('Navigation API', 'greenmetrics');
-                console.log(__('GreenMetrics Debug - Navigation API Timing:', 'greenmetrics'), {
-                    startTime: navTiming.startTime,
-                    loadEventEnd: navTiming.loadEventEnd,
-                    rawDifference: rawLoadTime
-                });
             } else if (performance.timing) {
                 // Fallback to older Navigation Timing API
                 rawLoadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
                 loadSource = __('Legacy Timing API', 'greenmetrics');
-                console.log(__('GreenMetrics Debug - Legacy Timing API:', 'greenmetrics'), {
-                    navigationStart: performance.timing.navigationStart,
-                    loadEventEnd: performance.timing.loadEventEnd,
-                    rawDifference: rawLoadTime
-                });
             }
             
             // Also try to measure with more direct methods
             const pageLoadTime = performance.now();
-            console.log(__('GreenMetrics Debug - performance.now():', 'greenmetrics'), pageLoadTime);
             
             // Ensure loadTime is positive and convert to seconds
             loadTime = Math.max(0, rawLoadTime) / 1000;
@@ -65,7 +54,6 @@
                 // try to use performance.now() as a fallback
                 if (performance.now && typeof performance.now === 'function') {
                     loadTime = performance.now() / 1000; // Convert ms to seconds
-                    console.log(__('GreenMetrics Debug - Using performance.now() as fallback:', 'greenmetrics'), loadTime);
                 } else {
                     loadTime = 0.1; // Default minimal value if all else fails
                 }
@@ -88,14 +76,7 @@
             const carbonFootprint = dataTransfer * window.greenmetricsTracking.energyPerByte * window.greenmetricsTracking.carbonIntensity;
             const energyConsumption = dataTransfer * window.greenmetricsTracking.energyPerByte;
 
-            // Log for debugging
-            console.log(__('GreenMetrics tracking:', 'greenmetrics'), {
-                data_transfer: dataTransfer,
-                load_time: loadTime,
-                requests: requests
-            });
-
-            // Send data to server using REST API
+            // Post the data to the server endpoint
             fetch(window.greenmetricsTracking.rest_url + '/track', {
                 method: 'POST',
                 headers: {
@@ -107,23 +88,19 @@
                     data_transfer: dataTransfer,
                     load_time: loadTime,
                     requests: requests
-                })
+                }),
+                credentials: 'same-origin'
             })
             .then(response => {
-                console.log(__('GreenMetrics tracking response status:', 'greenmetrics'), response.status);
-                if (!response.ok) {
-                    throw new Error(__('Network response was not ok', 'greenmetrics'));
-                }
+                // Debug logs removed
                 return response.json();
             })
             .then(data => {
-                console.log(__('GreenMetrics tracking response data:', 'greenmetrics'), data);
-                if (data.success) {
-                    console.log(__('Metrics tracked successfully via REST API', 'greenmetrics'));
-                }
+                // Debug logs removed
+                // Success tracking via REST API
             })
             .catch(error => {
-                console.error(__('Error tracking metrics:', 'greenmetrics'), error);
+                // Handle error silently - don't affect user experience
             });
         }, 500); // Small delay to ensure everything is fully measured
     });
