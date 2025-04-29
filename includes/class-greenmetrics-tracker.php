@@ -38,8 +38,6 @@ class GreenMetrics_Tracker {
 		global $wpdb;
 		$this->table_name = $wpdb->prefix . 'greenmetrics_stats';
 
-		add_action( 'wp_footer', array( $this, 'inject_tracking_script' ) );
-
 		greenmetrics_log( 'Tracker initialized', $this->table_name );
 	}
 
@@ -53,40 +51,6 @@ class GreenMetrics_Tracker {
 			self::$instance = new self();
 		}
 		return self::$instance;
-	}
-
-	/**
-	 * Inject the tracking script into the page footer.
-	 */
-	public function inject_tracking_script() {
-		if ( ! $this->is_tracking_enabled() ) {
-			greenmetrics_log( 'Tracking disabled, not injecting script' );
-			return;
-		}
-
-		// If we're using public.js for tracking, don't inject the tracking script
-		if ( defined( 'GREENMETRICS_USE_PUBLIC_JS' ) && GREENMETRICS_USE_PUBLIC_JS ) {
-			greenmetrics_log( 'Using public.js for tracking instead of tracking.js' );
-			return;
-		}
-
-		$settings   = GreenMetrics_Settings_Manager::get_instance()->get();
-		$plugin_url = plugins_url( '', dirname( __DIR__ ) );
-
-		greenmetrics_log( 'Injecting tracking script', get_the_ID() );
-		?>
-		<script>
-			window.greenmetricsTracking = {
-				enabled: true,
-				carbonIntensity: <?php echo esc_js( $settings['carbon_intensity'] ); ?>,
-				energyPerByte: <?php echo esc_js( $settings['energy_per_byte'] ); ?>,
-				rest_nonce: '<?php echo wp_create_nonce( 'wp_rest' ); ?>',
-				rest_url: '<?php echo esc_js( get_rest_url( null, 'greenmetrics/v1' ) ); ?>',
-				page_id: <?php echo get_the_ID(); ?>
-			};
-		</script>
-		<script src="<?php echo esc_url( $plugin_url . '/greenmetrics/public/js/greenmetrics-tracking.js' ); ?>"></script>
-		<?php
 	}
 
 	/**

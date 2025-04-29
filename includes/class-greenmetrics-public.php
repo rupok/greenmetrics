@@ -27,6 +27,9 @@ class GreenMetrics_Public {
 		add_shortcode( 'greenmetrics_badge', array( $this, 'render_badge_shortcode' ) );
 		add_action( 'init', array( $this, 'register_blocks' ) );
 		
+		// Add tracking script to footer
+		add_action( 'wp_footer', array( $this, 'inject_tracking_script' ) );
+		
 		// Add global badge to footer if enabled in settings
 		add_action( 'wp_footer', array( $this, 'display_global_badge' ) );
 		
@@ -50,63 +53,22 @@ class GreenMetrics_Public {
 
 	/**
 	 * Register the JavaScript for the public-facing side of the site.
+	 * Note: Tracking script is loaded separately in inject_tracking_script() method.
 	 */
 	public function enqueue_scripts() {
+		// Enqueue styles and non-tracking related scripts here
+		// Tracking-specific code is now handled in inject_tracking_script()
+		
 		// Get settings
-		$options          = get_option( 'greenmetrics_settings' );
-		$tracking_enabled = isset( $options['tracking_enabled'] ) ? $options['tracking_enabled'] : 0;
-
+		$options = get_option( 'greenmetrics_settings' );
+		
 		greenmetrics_log(
 			'Enqueuing public scripts with settings',
 			array(
-				'tracking_enabled' => $tracking_enabled,
-				'options'          => $options,
+				'tracking_enabled' => isset( $options['tracking_enabled'] ) ? $options['tracking_enabled'] : 0,
+				'options' => $options,
 			)
 		);
-
-		// Get the current page ID
-		$page_id = get_queried_object_id();
-		if ( ! $page_id ) {
-			$page_id = get_the_ID();
-		}
-
-		// Ensure we have a valid REST URL
-		$rest_url = get_rest_url( null, 'greenmetrics/v1' );
-		if ( ! $rest_url ) {
-			greenmetrics_log( 'Failed to get REST URL', null, 'error' );
-			return;
-		}
-
-		// Create nonce for REST API
-		$rest_nonce = wp_create_nonce( 'wp_rest' );
-
-		// Get plugin base URL
-		$plugin_url = plugins_url( '', dirname( __DIR__ ) );
-
-		// Enqueue public script
-		wp_enqueue_script(
-			'greenmetrics-public',
-			$plugin_url . '/greenmetrics/public/js/greenmetrics-public.js',
-			array( 'jquery' ),
-			GREENMETRICS_VERSION,
-			true
-		);
-
-		// Localize script with essential data - use consistent parameter names
-		wp_localize_script(
-			'greenmetrics-public',
-			'greenmetricsPublic',
-			array(
-				'ajax_url'         => admin_url( 'admin-ajax.php' ), // Keep for backward compatibility
-				'rest_url'         => $rest_url,
-				'rest_nonce'       => $rest_nonce, // Use only one parameter name
-				'tracking_enabled' => $tracking_enabled ? true : false,
-				'page_id'          => $page_id,
-				'nonce'            => wp_create_nonce( 'greenmetrics_get_icon' ),
-			)
-		);
-
-		greenmetrics_log( 'Public scripts enqueued successfully with REST nonce', $rest_nonce );
 	}
 
 	/**
@@ -641,27 +603,39 @@ class GreenMetrics_Public {
 		
 		// Properly enqueue the script with translations support
 		wp_enqueue_script(
-			'greenmetrics-tracking',
-			$plugin_url . '/greenmetrics/public/js/greenmetrics-tracking.js',
-			array( 'wp-i18n' ),
+			'greenmetrics-public',
+			$plugin_url . '/greenmetrics/public/js/greenmetrics-public.js',
+			array( 'jquery', 'wp-i18n' ),
 			GREENMETRICS_VERSION,
 			true
 		);
 		
 		// Set up translations for the script
-		wp_set_script_translations( 'greenmetrics-tracking', 'greenmetrics', GREENMETRICS_PLUGIN_DIR . 'languages' );
+		wp_set_script_translations( 'greenmetrics-public', 'greenmetrics', GREENMETRICS_PLUGIN_DIR . 'languages' );
 		
-		// Localize script with essential data
+		// Get the current page ID
+		$page_id = get_queried_object_id();
+		if ( ! $page_id ) {
+			$page_id = get_the_ID();
+		}
+		
+		// Create nonce for REST API
+		$rest_nonce = wp_create_nonce( 'wp_rest' );
+		$rest_url = get_rest_url( null, 'greenmetrics/v1' );
+		
+		// Localize script with essential data - keep the original object name to match JS expectations
 		wp_localize_script(
-			'greenmetrics-tracking',
-			'greenmetricsTracking',
+			'greenmetrics-public',
+			'greenmetricsPublic',
 			array(
-				'enabled' => true,
-				'carbonIntensity' => $settings['carbon_intensity'],
-				'energyPerByte' => $settings['energy_per_byte'],
-				'rest_nonce' => wp_create_nonce( 'wp_rest' ),
-				'rest_url' => get_rest_url( null, 'greenmetrics/v1' ),
-				'page_id' => get_the_ID()
+				'ajax_url'         => admin_url( 'admin-ajax.php' ),
+				'rest_url'         => $rest_url,
+				'rest_nonce'       => $rest_nonce,
+				'tracking_enabled' => true,
+				'page_id'          => $page_id,
+				'nonce'            => wp_create_nonce( 'greenmetrics_get_icon' ),
+				'carbonIntensity'  => $settings['carbon_intensity'],
+				'energyPerByte'    => $settings['energy_per_byte'],
 			)
 		);
 	}

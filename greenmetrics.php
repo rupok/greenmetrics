@@ -22,7 +22,6 @@ define( 'GREENMETRICS_VERSION', '1.0.0' );
 define( 'GREENMETRICS_PLUGIN_FILE', __FILE__ );
 define( 'GREENMETRICS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'GREENMETRICS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'GREENMETRICS_USE_PUBLIC_JS', true ); // Use only public.js for tracking to prevent duplicate tracking
 define( 'GREENMETRICS_DEBUG', false ); // Disabled by default for production environments
 
 /**
