@@ -228,32 +228,26 @@ class GreenMetrics_Tracker {
 
 		// Format the query with WHERE clause if needed
 		$table_name_escaped = esc_sql( $this->table_name );
-		$sql                = "SELECT 
-            COUNT(*) as total_views,
-            SUM(data_transfer) as total_data_transfer,
-            AVG(load_time) as avg_load_time,
-            SUM(requests) as total_requests,
-            /* Calculate valid performance scores directly in SQL */
-            AVG(CASE 
-                WHEN performance_score BETWEEN 0 AND 100 THEN performance_score 
-                ELSE NULL 
-            END) as avg_performance_score,
-            MIN(CASE 
-                WHEN performance_score BETWEEN 0 AND 100 THEN performance_score 
-                ELSE NULL 
-            END) as min_performance_score,
-            MAX(CASE 
-                WHEN performance_score BETWEEN 0 AND 100 THEN performance_score 
-                ELSE NULL 
-            END) as max_performance_score,
-            /* Calculate total energy consumption directly in SQL */
-            SUM(energy_consumption) as total_energy_consumption,
-            /* Calculate total carbon footprint directly in SQL */
-            SUM(carbon_footprint) as total_carbon_footprint
-        FROM $table_name_escaped";
-
+		
+		// Base query without the WHERE clause
+		$base_query = "SELECT
+			COUNT(*) as total_views,
+			SUM(data_transfer) as total_data_transfer,
+			AVG(load_time) as avg_load_time,
+			AVG(performance_score) as avg_performance_score,
+			SUM(requests) as total_requests,
+			SUM(energy_consumption) as total_energy_consumption,
+			SUM(carbon_footprint) as total_carbon_footprint
+		FROM " . $table_name_escaped;
+		
+		// Add WHERE clause if needed
 		if ( $page_id ) {
-			$sql .= $wpdb->prepare( ' WHERE page_id = %d', $page_id );
+			$sql = $wpdb->prepare(
+				$base_query . " WHERE page_id = %d",
+				$page_id
+			);
+		} else {
+			$sql = $base_query;
 		}
 
 		$stats = $wpdb->get_row( $sql, ARRAY_A );
@@ -339,8 +333,17 @@ class GreenMetrics_Tracker {
 		// Where clause if filtering by page_id
 		$where_clause = $page_id ? $wpdb->prepare( ' WHERE page_id = %d', $page_id ) : '';
 
-		// Get count of rows
-		$count_sql  = "SELECT COUNT(*) FROM $table_name_escaped $where_clause";
+		// Get count of rows using a properly prepared statement
+		if ( $page_id ) {
+			// If we have a page_id, use a fully prepared statement
+			$count_sql = $wpdb->prepare(
+				"SELECT COUNT(*) FROM " . $table_name_escaped . " WHERE page_id = %d",
+				$page_id
+			);
+		} else {
+			// If no page_id, we don't need placeholders but still need to protect the table name
+			$count_sql = "SELECT COUNT(*) FROM " . $table_name_escaped;
+		}
 		$total_rows = $wpdb->get_var( $count_sql );
 
 		if ( ! $total_rows ) {
@@ -351,11 +354,29 @@ class GreenMetrics_Tracker {
 		$middle_low  = floor( $total_rows / 2 );
 		$middle_high = ceil( $total_rows / 2 );
 
-		// Get the value(s) at the middle position(s)
-		$median_sql = "SELECT AVG(load_time) FROM (
-			SELECT load_time FROM $table_name_escaped $where_clause ORDER BY load_time
-			LIMIT $middle_low, " . ( $middle_high - $middle_low + 1 ) . '
-		) as t';
+		// Get the value(s) at the middle position(s) - with fully prepared queries
+		if ( $page_id ) {
+			// If we have a page_id, use a fully prepared statement with the page filter
+			$median_sql = $wpdb->prepare(
+				"SELECT AVG(load_time) FROM (
+					SELECT load_time FROM " . $table_name_escaped . " WHERE page_id = %d ORDER BY load_time
+					LIMIT %d, %d
+				) as t",
+				$page_id,
+				$middle_low,
+				($middle_high - $middle_low + 1)
+			);
+		} else {
+			// If no page_id filter is needed
+			$median_sql = $wpdb->prepare(
+				"SELECT AVG(load_time) FROM (
+					SELECT load_time FROM " . $table_name_escaped . " ORDER BY load_time
+					LIMIT %d, %d
+				) as t",
+				$middle_low,
+				($middle_high - $middle_low + 1)
+			);
+		}
 
 		$median = $wpdb->get_var( $median_sql );
 
@@ -544,16 +565,16 @@ class GreenMetrics_Tracker {
 
 		// Set default date range if not provided (last 7 days)
 		if ( empty( $start_date ) ) {
-			$start_date = date( 'Y-m-d', strtotime( '-7 days' ) );
+			$start_date = gmdate( 'Y-m-d', strtotime( '-7 days' ) );
 		}
 
 		if ( empty( $end_date ) ) {
-			$end_date = date( 'Y-m-d' );
+			$end_date = gmdate( 'Y-m-d' );
 		}
 
 		// Format dates for SQL query
-		$start_date_sql = date( 'Y-m-d 00:00:00', strtotime( $start_date ) );
-		$end_date_sql   = date( 'Y-m-d 23:59:59', strtotime( $end_date ) );
+		$start_date_sql = gmdate( 'Y-m-d 00:00:00', strtotime( $start_date ) );
+		$end_date_sql   = gmdate( 'Y-m-d 23:59:59', strtotime( $end_date ) );
 
 		// Group by interval
 		$group_by    = 'DATE(created_at)';
@@ -567,24 +588,24 @@ class GreenMetrics_Tracker {
 			$select_date = "DATE_FORMAT(created_at, '%Y-%m-01') as date";
 		}
 
-		// Prepare the SQL query
+		// Prepare the SQL query - handle the SQL components safely
+		$base_query = "SELECT " . $select_date . ", COUNT(*) as views, 
+			SUM(data_transfer) as data_transfer,
+			SUM(carbon_footprint) as carbon_footprint, 
+			SUM(energy_consumption) as energy_consumption,
+			SUM(requests) as requests, 
+			AVG(load_time) as avg_load_time
+		FROM " . $table_name_escaped;
+		
+		$end_query = " GROUP BY " . $group_by . " ORDER BY date ASC";
+		
+		// Create the complete prepared query with date placeholders
 		$sql = $wpdb->prepare(
-			"SELECT 
-				$select_date,
-				COUNT(*) as views,
-				SUM(data_transfer) as data_transfer,
-				SUM(carbon_footprint) as carbon_footprint,
-				SUM(energy_consumption) as energy_consumption,
-				SUM(requests) as requests,
-				AVG(load_time) as avg_load_time
-			FROM $table_name_escaped
-			WHERE created_at BETWEEN %s AND %s
-			GROUP BY $group_by
-			ORDER BY date ASC",
+			$base_query . " WHERE created_at BETWEEN %s AND %s" . $end_query,
 			$start_date_sql,
 			$end_date_sql
 		);
-
+		
 		// Execute the query
 		$results = $wpdb->get_results( $sql, ARRAY_A );
 
@@ -613,7 +634,7 @@ class GreenMetrics_Tracker {
 
 		foreach ( $results as $row ) {
 			// Format date for display
-			$formatted_date = date( 'M j', strtotime( $row['date'] ) );
+			$formatted_date = gmdate( 'M j', strtotime( $row['date'] ) );
 
 			// Add data to the formatted results
 			$formatted_results['dates'][]              = $formatted_date;

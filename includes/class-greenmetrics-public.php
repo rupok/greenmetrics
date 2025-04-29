@@ -21,11 +21,12 @@ class GreenMetrics_Public {
 	 * Initialize the class and set its properties.
 	 */
 	public function __construct() {
-		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+		// Enqueue styles and scripts for the frontend
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_styles' ) );
-		add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_editor_assets' ) );
-		add_shortcode( 'greenmetrics_badge', array( $this, 'render_badge_shortcode' ) );
-		add_action( 'init', array( $this, 'register_blocks' ) );
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+
+		// Add SVG elements to allowed HTML tags
+		add_filter( 'wp_kses_allowed_html', array( $this, 'add_svg_to_allowed_tags' ), 10, 2 );
 
 		// Add tracking script to footer
 		add_action( 'wp_footer', array( $this, 'inject_tracking_script' ) );
@@ -33,9 +34,105 @@ class GreenMetrics_Public {
 		// Add global badge to footer if enabled in settings
 		add_action( 'wp_footer', array( $this, 'display_global_badge' ) );
 
-		// AJAX handler for getting icons
+		// Register shortcodes
+		add_shortcode( 'greenmetrics_badge', array( $this, 'render_badge_shortcode' ) );
+
+		// Register Gutenberg blocks
+		add_action( 'init', array( $this, 'register_blocks' ) );
+
+		// AJAX handler for getting icon
 		add_action( 'wp_ajax_greenmetrics_get_icon', array( $this, 'handle_get_icon' ) );
 		add_action( 'wp_ajax_nopriv_greenmetrics_get_icon', array( $this, 'handle_get_icon' ) );
+	}
+
+	/**
+	 * Allow SVG tags and attributes in wp_kses
+	 *
+	 * @param array  $tags    Allowed tags, attributes, and/or entities.
+	 * @param string $context Context to judge allowed tags by.
+	 * 
+	 * @return array Modified allowed tags
+	 */
+	public function add_svg_to_allowed_tags( $tags, $context ) {
+		if ( 'post' === $context ) {
+			// Add SVG elements
+			$tags['svg'] = array(
+				'xmlns'              => true,
+				'fill'               => true,
+				'viewbox'            => true,
+				'role'               => true,
+				'aria-hidden'        => true,
+				'focusable'          => true,
+				'class'              => true,
+				'width'              => true,
+				'height'             => true,
+				'stroke'             => true,
+				'stroke-width'       => true,
+				'stroke-linecap'     => true,
+				'stroke-linejoin'    => true,
+				'preserveaspectratio' => true,
+				'shape-rendering'    => true,
+				'text-rendering'     => true,
+				'image-rendering'    => true,
+				'fill-rule'          => true,
+				'clip-rule'          => true,
+			);
+			$tags['path'] = array(
+				'd'             => true,
+				'fill'          => true,
+				'class'         => true,
+				'fill-rule'     => true,
+				'clip-rule'     => true,
+				'stroke'        => true,
+				'stroke-width'  => true,
+				'fill-opacity'  => true,
+			);
+			$tags['style'] = array(
+				'type' => true,
+			);
+			$tags['defs'] = array();
+			$tags['g'] = array(
+				'fill'        => true,
+				'class'       => true,
+				'id'          => true,
+				'transform'   => true,
+			);
+			$tags['circle'] = array(
+				'cx'           => true,
+				'cy'           => true,
+				'r'            => true,
+				'fill'         => true,
+				'class'        => true,
+			);
+			$tags['rect'] = array(
+				'x'            => true,
+				'y'            => true,
+				'width'        => true,
+				'height'       => true,
+				'rx'           => true,
+				'ry'           => true,
+				'fill'         => true,
+				'class'        => true,
+			);
+			$tags['lineargradient'] = array(
+				'id'                 => true,
+				'gradientunits'      => true,
+				'gradienttransform'  => true,
+				'x1'                 => true,
+				'y1'                 => true,
+				'x2'                 => true,
+				'y2'                 => true,
+			);
+			$tags['stop'] = array(
+				'offset'       => true,
+				'stop-color'   => true,
+				'stop-opacity' => true,
+			);
+			$tags['title'] = array(
+				'class' => true,
+			);
+		}
+		return $tags;
 	}
 
 	/**
@@ -69,6 +166,30 @@ class GreenMetrics_Public {
 				'options'          => $options,
 			)
 		);
+		
+		// Localize script with REST URL
+		wp_localize_script(
+			'greenmetrics-public',
+			'greenmetrics_data',
+			$this->get_script_data()
+		);
+	}
+
+	/**
+	 * Get data for script localization
+	 *
+	 * @return array Script data
+	 */
+	private function get_script_data() {
+		$data = array(
+			'rest_url' => get_rest_url( null, 'greenmetrics/v1' ),
+		);
+		
+		if ( ! $data['rest_url'] ) {
+			greenmetrics_log( 'Failed to get REST URL', null, 'error' );
+		}
+		
+		return $data;
 	}
 
 	/**
@@ -82,11 +203,16 @@ class GreenMetrics_Public {
 
 	/**
 	 * Add REST URL to script localization
-	 *
+	 * 
+	 * @deprecated Use get_script_data() instead
 	 * @param array $data The existing data.
 	 * @return array The data with REST URL added.
 	 */
 	public function add_rest_url( $data ) {
+		if ( ! is_array( $data ) ) {
+			$data = array();
+		}
+		
 		$data['rest_url'] = get_rest_url( null, 'greenmetrics/v1' );
 
 		if ( ! $data['rest_url'] ) {
@@ -759,18 +885,8 @@ class GreenMetrics_Public {
 			if ( $icon_type === 'custom' && $custom_icon ) {
 				$icon_html = '<img src="' . esc_url( $custom_icon ) . '" alt="Icon" class="leaf-icon" style="width: ' . esc_attr( $icon_size ) . '; height: ' . esc_attr( $icon_size ) . '; fill: ' . esc_attr( $icon_color ) . ';">';
 			} else {
-				// Try to get the icon using GreenMetrics_Icons class directly
+				// Get the icon SVG directly from the GreenMetrics_Icons class
 				$icon_svg = \GreenMetrics\GreenMetrics_Icons::get_icon( $icon_type );
-
-				// If we couldn't get an icon, try again with the fallback
-				if ( empty( $icon_svg ) || $icon_svg === \GreenMetrics\GreenMetrics_Icons::get_icon( 'leaf' ) ) {
-					// Log the fallback for debugging
-					if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
-						greenmetrics_log( 'Using fallback icon method for type', $icon_type );
-					}
-					$icon_svg = $this->get_icon_svg( $icon_type );
-				}
-
 				$icon_html = '<div class="icon-container" style="color: ' . esc_attr( $icon_color ) . '; display: flex; align-items: center; justify-content: center; width: ' . esc_attr( $icon_size ) . '; height: ' . esc_attr( $icon_size ) . ';">' . $icon_svg . '</div>';
 			}
 		}
