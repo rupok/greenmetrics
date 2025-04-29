@@ -354,12 +354,14 @@ class GreenMetrics_Public {
 					esc_attr( $attributes['iconSize'] ),
 					esc_attr( $attributes['iconColor'] ),
 					isset($attributes['useCustomIcon']) && $attributes['useCustomIcon'] && isset($attributes['customIconUrl']) && !empty($attributes['customIconUrl']) 
+						/* translators: %1$s: icon URL, %2$s: alt text */
 						? sprintf('<img src="%s" alt="%s" style="width:100%%;height:100%%;object-fit:contain;">', 
 						  esc_url($attributes['customIconUrl']),
 						  esc_attr__('Custom Icon', 'greenmetrics'))
 						: $attributes['icon_svg']
 				) : '',
 				$attributes['showText'] ? sprintf(
+					/* translators: %1$s: text color, %2$s: font size, %3$s: font family, %4$s: badge text */
 					'<span style="color:%1$s;font-size:%2$spx;font-family:%3$s;">%4$s</span>',
 					esc_attr( $attributes['textColor'] ),
 					esc_attr( $attributes['textFontSize'] ),
@@ -367,6 +369,7 @@ class GreenMetrics_Public {
 					esc_html( $attributes['text'] )
 				) : '',
 				$attributes['showContent'] ? sprintf(
+					/* translators: %1$s: background color, %2$s: text color, %3$s: animation duration, %4$s: font family, %5$s: title text, %6$s: metrics HTML, %7$s: custom content, %8$s: unique ID, %9$s: hover background color */
 					'<div class="wp-block-greenmetrics-content" style="background-color:%1$s;color:%2$s;transition:all %3$sms ease-in-out;font-family:%4$s;">
 						<h3 style="font-family:%4$s;">%5$s</h3>
 						<style>
@@ -414,6 +417,7 @@ class GreenMetrics_Public {
 										$value = number_format( $metrics['performance_score'], 2 ) . '%';
 										break;
 								}
+								/* translators: %1$s: metric label, %2$s: metric value, %3$s: font family, %4$s: font size, %5$s: value font family, %6$s: value font size, %7$s: background color, %8$s: value background color, %9$s: value text color */
 								return sprintf(
 									'<div class="wp-block-greenmetrics-metric" style="background-color:%7$s;">
 								<div class="metric-label" style="font-family:%3$s;font-size:%4$spx;">
@@ -435,6 +439,7 @@ class GreenMetrics_Public {
 							$attributes['selectedMetrics']
 						)
 					),
+					/* translators: %1$s: custom content HTML, %2$s: font family */
 					$attributes['customContent'] ? sprintf(
 						'<div class="wp-block-greenmetrics-custom-content" style="font-family:%2$s;">%1$s</div>',
 						wp_kses_post( $attributes['customContent'] ),

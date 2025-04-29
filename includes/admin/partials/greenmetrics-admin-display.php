@@ -32,8 +32,10 @@ $settings = get_option(
 				<img src="<?php echo esc_url( GREENMETRICS_PLUGIN_URL . 'includes/admin/img/greenmetrics-icon.png' ); ?>" alt="<?php esc_attr_e( 'GreenMetrics Icon', 'greenmetrics' ); ?>" />
 				<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 			</div>
-			<!-- translators: %s: Plugin version number -->
-			<span class="version"><?php echo esc_html( sprintf( __( 'GreenMetrics v%s', 'greenmetrics' ), GREENMETRICS_VERSION ) ); ?></span>
+			<span class="version"><?php 
+			/* translators: %s: Plugin version number */
+			echo esc_html( sprintf( __( 'GreenMetrics v%s', 'greenmetrics' ), GREENMETRICS_VERSION ) ); 
+			?></span>
 		</div>
 
 		<div class="greenmetrics-admin-content">
@@ -78,8 +80,8 @@ $settings = get_option(
 									$tree_time = number_format( $tree_days, 1 ) . ' ' . esc_html__( 'days', 'greenmetrics' );
 								}
 
-									// translators: %1$s: Amount of CO2 produced, %2$s: Time it takes a tree to absorb
 									printf(
+										/* translators: %1$s: Amount of CO2 produced, %2$s: Time it takes a tree to absorb */
 										esc_html__( 'Your website has produced %1$s g of CO2, which would take a tree approximately %2$s to absorb.', 'greenmetrics' ),
 										'<strong>' . \GreenMetrics\GreenMetrics_Calculator::format_carbon_emissions( $total_carbon ) . '</strong>',
 										'<strong>' . $tree_time . '</strong>'
@@ -112,12 +114,11 @@ $settings = get_option(
 									$lightbulb_minutes = $lightbulb_hours * 60;
 									$lightbulb_time    = number_format( $lightbulb_minutes, 1 ) . ' ' . esc_html__( 'minutes', 'greenmetrics' );
 								} else {
-									// Show hours
 									$lightbulb_time = number_format( $lightbulb_hours, 1 ) . ' ' . esc_html__( 'hours', 'greenmetrics' );
 								}
 
-									// translators: %1$s: Amount of energy consumed, %2$s: Time a light bulb can run
 									printf(
+										/* translators: %1$s: Amount of energy consumed, %2$s: Time a light bulb can run */
 										esc_html__( 'Your website has consumed %1$s of energy, equivalent to running a 10W LED light bulb for %2$s.', 'greenmetrics' ),
 										'<strong>' . \GreenMetrics\GreenMetrics_Calculator::format_energy_consumption( $energy_kwh ) . '</strong>',
 										'<strong>' . $lightbulb_time . '</strong>'
@@ -401,8 +402,8 @@ $settings = get_option(
 							<?php if ( $avg_data_per_page > 500 * 1024 ) : ?>
 							<p>
 								<?php
-								// translators: %s: Average page size
 								printf(
+									/* translators: %s: Average page size */
 									esc_html__( 'Your average page size is %s which is quite large. Consider these optimizations:', 'greenmetrics' ),
 									'<strong>' . \GreenMetrics\GreenMetrics_Calculator::format_data_transfer( $avg_data_per_page ) . '</strong>'
 								);
@@ -417,8 +418,8 @@ $settings = get_option(
 							<?php else : ?>
 							<p>
 								<?php
-								// translators: %s: Average page size
 								printf(
+									/* translators: %s: Average page size */
 									esc_html__( 'Your average page size is %s which is excellent! Small page sizes reduce energy consumption and carbon footprint.', 'greenmetrics' ),
 									'<strong>' . \GreenMetrics\GreenMetrics_Calculator::format_data_transfer( $avg_data_per_page ) . '</strong>'
 								);
@@ -439,8 +440,8 @@ $settings = get_option(
 							<?php if ( $avg_requests_per_page > 30 ) : ?>
 							<p>
 								<?php
-								// translators: %s: Average number of HTTP requests
 								printf(
+									/* translators: %s: Average number of HTTP requests */
 									esc_html__( 'Your pages make an average of %s HTTP requests, which is high. Try these tips:', 'greenmetrics' ),
 									'<strong>' . number_format( $avg_requests_per_page, 1 ) . '</strong>'
 								);
@@ -455,8 +456,8 @@ $settings = get_option(
 							<?php else : ?>
 							<p>
 								<?php
-								// translators: %s: Average number of HTTP requests
 								printf(
+									/* translators: %s: Average number of HTTP requests */
 									esc_html__( 'Your pages make an average of %s HTTP requests, which is very good! Fewer HTTP requests means faster loading times and less energy usage.', 'greenmetrics' ),
 									'<strong>' . number_format( $avg_requests_per_page, 1 ) . '</strong>'
 								);
@@ -477,8 +478,8 @@ $settings = get_option(
 							<?php if ( $performance_score < 90 ) : ?>
 							<p>
 								<?php
-								// translators: %s: Performance score percentage
 								printf(
+									/* translators: %s: Performance score percentage */
 									esc_html__( 'Your performance score is %s which could be improved. Try these optimizations:', 'greenmetrics' ),
 									'<strong>' . number_format( $performance_score, 2 ) . '%</strong>'
 								);
@@ -493,8 +494,8 @@ $settings = get_option(
 							<?php else : ?>
 							<p>
 								<?php
-								// translators: %s: Performance score percentage
 								printf(
+									/* translators: %s: Performance score percentage */
 									esc_html__( 'Your performance score is %s which is excellent! High performance means better user experience and less energy consumption.', 'greenmetrics' ),
 									'<strong>' . number_format( $performance_score, 2 ) . '%</strong>'
 								);

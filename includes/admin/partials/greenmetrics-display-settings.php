@@ -59,8 +59,11 @@ $settings = get_option(
 				<img src="<?php echo esc_url( GREENMETRICS_PLUGIN_URL . 'includes/admin/img/greenmetrics-icon.png' ); ?>" alt="<?php esc_attr_e( 'GreenMetrics Icon', 'greenmetrics' ); ?>" />
 				<h1><?php esc_html_e( 'GreenMetrics - Display Settings', 'greenmetrics' ); ?></h1>
 			</div>
-			<!-- translators: %s: Plugin version number -->
-			<span class="version"><?php echo esc_html( sprintf( __( 'GreenMetrics v%s', 'greenmetrics' ), GREENMETRICS_VERSION ) ); ?></span>
+			
+			<span class="version"><?php 
+			/* translators: %s: Plugin version number */
+			echo esc_html( sprintf( __( 'GreenMetrics v%s', 'greenmetrics' ), GREENMETRICS_VERSION ) ); 
+			?></span>
 		</div>
 
 		<div class="greenmetrics-admin-content-wrapper">
