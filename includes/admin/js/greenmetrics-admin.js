@@ -4,30 +4,31 @@
  * 
  * The actual implementation is split into modules for better maintainability:
  * - core.js: Core functionality and namespace initialization
- * - preview.js: Badge and popover preview functionality
- * - chart.js: Chart visualization functionality
- * - dashboard.js: Dashboard statistics functionality
+ * - preview.js: Badge and popover preview functionality (loaded only on plugin settings pages)
+ * - chart.js: Chart visualization functionality (loaded only on dashboard pages)
+ * - dashboard.js: Dashboard statistics functionality (loaded only on dashboard pages)
  * 
  * The GreenMetricsAdmin namespace is used to organize all functionality
  */
 
-// Initialize all modules when document is ready
+// Initialize modules when document is ready
 jQuery(document).ready(function($) {
-  // First initialize core
+  // Always initialize core module
   if (typeof GreenMetricsAdmin.core !== 'undefined') {
     GreenMetricsAdmin.core.init();
   }
   
-  // Then initialize feature modules
-  if (typeof GreenMetricsAdmin.Preview !== 'undefined') {
+  // Initialize Preview module only on plugin pages
+  if (typeof GreenMetricsAdmin.Preview !== 'undefined' && greenmetricsAdmin.is_plugin_page) {
     GreenMetricsAdmin.Preview.init();
   }
   
-  if (typeof GreenMetricsAdmin.Chart !== 'undefined') {
+  // Initialize Chart and Dashboard modules only on dashboard pages
+  if (typeof GreenMetricsAdmin.Chart !== 'undefined' && greenmetricsAdmin.is_dashboard_page) {
     GreenMetricsAdmin.Chart.init();
   }
   
-  if (typeof GreenMetricsAdmin.Dashboard !== 'undefined') {
+  if (typeof GreenMetricsAdmin.Dashboard !== 'undefined' && greenmetricsAdmin.is_dashboard_page) {
     GreenMetricsAdmin.Dashboard.init();
   }
 });

@@ -15,6 +15,16 @@ GreenMetricsAdmin.Preview = (function($) {
   
   // Initialize the preview functionality
   function init() {
+    // Only proceed if we're on a plugin settings page
+    if (!greenmetricsAdmin.is_plugin_page) {
+      return;
+    }
+    
+    // Check if badge preview elements exist
+    if (!$('#badge-preview-container, #popover-preview-container').length) {
+      return;
+    }
+    
     // Setup debounced preview update
     debouncedUpdateBadgePreview = GreenMetricsAdmin.Utils.debounce(updateBadgePreview, 300);
     

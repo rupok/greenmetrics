@@ -39,6 +39,11 @@ GreenMetricsAdmin.Chart = (function($) {
   
   // Initialize the chart module
   function init() {
+    // Only proceed if we're on a dashboard page
+    if (!greenmetricsAdmin.is_dashboard_page) {
+      return;
+    }
+    
     // Get chart canvas
     chartCanvas = document.getElementById('greenmetrics-chart');
     

@@ -11,6 +11,11 @@ GreenMetricsAdmin.Dashboard = (function($) {
   
   // Initialize the dashboard module
   function init() {
+    // Only proceed if we're on a dashboard page
+    if (!greenmetricsAdmin.is_dashboard_page) {
+      return;
+    }
+    
     // Only initialize if we're on the dashboard page
     if ($('#greenmetrics-stats').length) {
       initDashboard();
