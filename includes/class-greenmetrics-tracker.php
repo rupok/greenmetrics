@@ -6,6 +6,11 @@
  * @subpackage GreenMetrics/includes
  */
 
+// If this file is called directly, abort.
+if ( ! defined( 'WPINC' ) ) {
+	die;
+}
+
 namespace GreenMetrics;
 
 // Include required classes

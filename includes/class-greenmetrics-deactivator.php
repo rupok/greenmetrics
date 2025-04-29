@@ -19,6 +19,12 @@
  * @subpackage GreenMetrics/includes
  * @author     Your Name <email@example.com>
  */
+
+ // If this file is called directly, abort.
+if ( ! defined( 'WPINC' ) ) {
+	die;
+}
+
 namespace GreenMetrics;
 
 class GreenMetrics_Deactivator {

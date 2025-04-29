@@ -1,10 +1,15 @@
 <?php
 /**
- * Centralized settings manager for the GreenMetrics plugin.
+ * Settings manager class.
  *
  * @package    GreenMetrics
  * @subpackage GreenMetrics/includes
  */
+
+// If this file is called directly, abort.
+if ( ! defined( 'WPINC' ) ) {
+	die;
+}
 
 namespace GreenMetrics;
 
