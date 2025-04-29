@@ -54,6 +54,10 @@ class GreenMetrics_Activator {
 			greenmetrics_log( 'Activator - Options already exist, not overwriting' );
 		}
 
+		// Schedule the daily cache refresh
+		GreenMetrics_Tracker::schedule_daily_cache_refresh();
+		greenmetrics_log( 'Activator - Scheduled daily cache refresh' );
+
 		// Store the current version in the database
 		update_option( 'greenmetrics_version', GREENMETRICS_VERSION );
 		greenmetrics_log( 'Activator - Version recorded', GREENMETRICS_VERSION );
