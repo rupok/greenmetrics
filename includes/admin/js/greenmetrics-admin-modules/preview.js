@@ -13,6 +13,9 @@ GreenMetricsAdmin.Preview = (function($) {
   var mediaFrame;
   var debouncedUpdateBadgePreview;
   
+  // Cache DOM elements
+  var $cache = {};
+  
   // Initialize the preview functionality
   function init() {
     // Only proceed if we're on a plugin settings page
@@ -20,8 +23,11 @@ GreenMetricsAdmin.Preview = (function($) {
       return;
     }
     
+    // Cache core DOM elements
+    cacheElements();
+    
     // Check if badge preview elements exist
-    if (!$('#badge-preview-container, #popover-preview-container').length) {
+    if (!$cache.badgePreviewContainer.length) {
       return;
     }
     
@@ -34,134 +40,187 @@ GreenMetricsAdmin.Preview = (function($) {
     // Initialize icon options
     toggleIconOptions();
     
-    // Run initial preview update
-    updateBadgePreview();
-    
-    // Setup event listeners
+    // Setup event listeners using delegation where possible
     setupEventListeners();
     
     // Initialize color pickers
     setupColorPickers();
+    
+    // Run initial preview update
+    updateBadgePreview();
+  }
+  
+  // Cache DOM elements for better performance
+  function cacheElements() {
+    $cache = {
+      // Containers
+      badgePreviewContainer: $('#badge-preview-container'),
+      popoverPreviewContainer: $('#popover-preview-container'),
+      badge: $('#badge-preview-container .greenmetrics-badge'),
+      
+      // Form elements
+      displayIcon: $('#display_icon'),
+      badgeIconType: $('#badge_icon_type'),
+      badgeCustomIcon: $('#badge_custom_icon'),
+      customIconField: $('#custom-icon-field-wrapper'),
+      
+      // Badge fields
+      badgePosition: $('#badge_position'),
+      badgeSize: $('#badge_size'),
+      badgeText: $('#badge_text'),
+      badgeBgColor: $('#badge_background_color'),
+      badgeTextColor: $('#badge_text_color'),
+      badgeIconColor: $('#badge_icon_color'),
+      badgeIconSize: $('#badge_icon_size'),
+      
+      // Popover fields
+      popoverTitle: $('#popover_title'),
+      popoverBgColor: $('#popover_bg_color'),
+      popoverTextColor: $('#popover_text_color'),
+      popoverMetricsColor: $('#popover_metrics_color'),
+      popoverMetricsBgColor: $('#popover_metrics_bg_color'),
+      popoverContentFont: $('#popover_content_font'),
+      popoverContentFontSize: $('#popover_content_font_size'),
+      popoverMetricsFont: $('#popover_metrics_font'),
+      popoverMetricsFontSize: $('#popover_metrics_font_size'),
+      popoverMetricsLabelFontSize: $('#popover_metrics_label_font_size'),
+      popoverMetricsListBgColor: $('#popover_metrics_list_bg_color'),
+      popoverMetricsListHoverBgColor: $('#popover_metrics_list_hover_bg_color'),
+      popoverCustomContent: $('#popover_custom_content'),
+      
+      // Font size controls
+      fontSizeControls: $('#popover_content_font_size_number, #popover_metrics_font_size_number, #popover_metrics_label_font_size_number, #badge_icon_size_number'),
+      
+      // Misc elements
+      iconOptions: $('.icon-option'),
+      metricsCheckboxes: $('input[name="greenmetrics_settings[popover_metrics][]"]')
+    };
+    
+    // Make sure badge element is correctly cached even if it's added dynamically
+    if (!$cache.badge.length && $cache.badgePreviewContainer.length) {
+      $cache.badge = $cache.badgePreviewContainer.find('.greenmetrics-badge');
+    }
   }
   
   // Setup all preview-related event listeners
   function setupEventListeners() {
-    // Text inputs for debounced preview update
-    $('input[type="text"]').on('keyup', debouncedUpdateBadgePreview);
-    
-    // Icon options click handler
-    $('.icon-option').on('click', function() {
-      $('.icon-option').removeClass('selected');
-      $(this).addClass('selected');
-      $('#badge_icon_type').val($(this).data('icon'));
-      GreenMetricsAdmin.Utils.markDirty();
+    // Use event delegation for all form inputs
+    $('.form-table').on('input change', 'input[type="text"], select, input[type="checkbox"]', function(e) {
+      // Skip the font size controls that have special handling
+      if (!$(this).hasClass('font-size-number')) {
+        debouncedUpdateBadgePreview();
+      }
     });
     
-    // Update badge and popover preview when settings change
-    $('#enable_badge, #badge_position, #badge_size, #badge_text, #badge_background_color, #badge_text_color, #badge_icon_color, ' +
-      '#popover_title, #popover_custom_content, #popover_bg_color, #popover_text_color, #popover_metrics_color, #popover_metrics_bg_color, ' +
-      '#popover_content_font, #popover_content_font_size, #popover_metrics_font, #popover_metrics_font_size, #popover_metrics_list_bg_color, ' +
-      '#popover_metrics_list_hover_bg_color, #badge_icon_size, #badge_icon_type')
-    .on('change input', function() {
-      updateBadgePreview();
-    });
+    // Direct event for color picker changes (can't use delegation for these)
+    $('.greenmetrics-color-picker').on('change', debouncedUpdateBadgePreview);
     
-    // Handle font size number input changes
-    $('#popover_content_font_size_number, #popover_metrics_font_size_number, #popover_metrics_label_font_size_number, #badge_icon_size_number').on('change input', function() {
+    // Handle font size number input changes with delegation
+    $('.form-table').on('change input', '.font-size-number', function() {
       // Update hidden field value
       var targetId = $(this).attr('id').replace('_number', '');
       $('#' + targetId).val($(this).val() + 'px');
-      updateBadgePreview();
-    });
-    
-    // Listen for checkbox changes in metrics
-    $('input[name="greenmetrics_settings[popover_metrics][]"]').on('change', function() {
-      updateBadgePreview();
-    });
-    
-    // Handle display icon changes
-    $('#display_icon').on('change', function() {
-      toggleIconOptions();
-      updateBadgePreview();
-    });
-    
-    // Icon option selection
-    $('.icon-option').on('click', function() {
-      const iconType = $(this).data('value');
       
-      // Update select value
-      $('#badge_icon_type').val(iconType).trigger('change');
+      // Update the cached value immediately
+      if ($cache[targetId]) {
+        $cache[targetId] = $('#' + targetId);
+      }
+      
+      // Force an immediate update when changing size
+      updateBadgePreview(true);
+    });
+    
+    // Add direct event for badge icon size changes to ensure it works
+    $('#badge_icon_size_number').on('change input', function() {
+      const size = $(this).val() + 'px';
+      $('#badge_icon_size').val(size);
+      updateBadgePreview(true);
+    });
+    
+    // Use event delegation for icon options
+    $('.icon-options').on('click', '.icon-option', function() {
+      const iconType = $(this).data('value');
       
       // Update visual selection
       $('.icon-option').removeClass('selected');
       $(this).addClass('selected');
       
-      // If custom is selected, show custom icon field
-      if (iconType === 'custom') {
-        $('#badge_custom_icon').closest('tr').show();
-        $('#custom-icon-field-wrapper').show();
-      } else {
-        $('#badge_custom_icon').closest('tr').hide();
-        $('#custom-icon-field-wrapper').hide();
-      }
-      
-      // Mark as changed and update preview with force update
-      GreenMetricsAdmin.Utils.markDirty();
-      updateBadgePreview(true);
-    });
-    
-    // Badge icon type selection
-    $('#badge_icon_type').on('change', function() {
-      const iconType = $(this).val();
-      
-      // Update visual selection of icon options if they exist
-      if ($('.icon-option').length) {
-        $('.icon-option').removeClass('selected');
-        $('.icon-option[data-value="' + iconType + '"]').addClass('selected');
-      }
+      // Update select value
+      $cache.badgeIconType.val(iconType).trigger('change');
       
       // Show/hide custom icon field
-      if (iconType === 'custom') {
-        $('#badge_custom_icon').closest('tr').show();
-        $('#custom-icon-field-wrapper').show();
-      } else {
-        $('#badge_custom_icon').closest('tr').hide();
-        $('#custom-icon-field-wrapper').hide();
-      }
+      toggleCustomIconField(iconType);
       
-      // Mark as changed and update preview with force update
+      // Mark as changed and update preview
       GreenMetricsAdmin.Utils.markDirty();
       updateBadgePreview(true);
     });
     
-    // Custom icon selection
+    // Handle select change for badge icon type
+    $cache.badgeIconType.on('change', function() {
+      const iconType = $(this).val();
+      
+      // Update visual selection
+      $('.icon-option').removeClass('selected');
+      $('.icon-option[data-value="' + iconType + '"]').addClass('selected');
+      
+      // Show/hide custom icon field
+      toggleCustomIconField(iconType);
+      
+      // Mark as changed and update preview
+      GreenMetricsAdmin.Utils.markDirty();
+      updateBadgePreview(true);
+    });
+    
+    // Handle display icon changes
+    $cache.displayIcon.on('change', function() {
+      toggleIconOptions();
+      updateBadgePreview();
+    });
+    
+    // Media uploader for custom icon
     $('.upload-custom-icon').on('click', function(e) {
       e.preventDefault();
-      
-      // Create media frame
-      if (!mediaFrame) {
-        mediaFrame = wp.media({
-          title: greenmetricsAdmin.selectIconText || 'Select or Upload Icon',
-          button: {
-            text: greenmetricsAdmin.selectIconBtnText || 'Use this Icon'
-          },
-          multiple: false,
-          library: {
-            type: 'image'
-          }
-        });
-        
-        // When image selected, run callback
-        mediaFrame.on('select', function() {
-          const attachment = mediaFrame.state().get('selection').first().toJSON();
-          $('#badge_custom_icon').val(attachment.url);
-          updateBadgePreview();
-        });
-      }
-      
-      // Open frame
-      mediaFrame.open();
+      openMediaUploader();
     });
+  }
+  
+  // Open WordPress media uploader
+  function openMediaUploader() {
+    // Create media frame if it doesn't exist
+    if (!mediaFrame) {
+      mediaFrame = wp.media({
+        title: greenmetricsAdmin.selectIconText || 'Select or Upload Icon',
+        button: {
+          text: greenmetricsAdmin.selectIconBtnText || 'Use this Icon'
+        },
+        multiple: false,
+        library: {
+          type: 'image'
+        }
+      });
+      
+      // When image selected, run callback
+      mediaFrame.on('select', function() {
+        const attachment = mediaFrame.state().get('selection').first().toJSON();
+        $cache.badgeCustomIcon.val(attachment.url);
+        updateBadgePreview();
+      });
+    }
+    
+    // Open frame
+    mediaFrame.open();
+  }
+  
+  // Toggle custom icon field visibility
+  function toggleCustomIconField(iconType) {
+    if (iconType === 'custom') {
+      $cache.badgeCustomIcon.closest('tr').show();
+      $cache.customIconField.show();
+    } else {
+      $cache.badgeCustomIcon.closest('tr').hide();
+      $cache.customIconField.hide();
+    }
   }
   
   // Initialize color pickers
@@ -176,6 +235,11 @@ GreenMetricsAdmin.Preview = (function($) {
         change: function(event, ui) {
           // Update preview when color changes
           updateBadgePreview();
+          
+          // Special handling for hover color
+          if (fieldId === 'popover_metrics_list_hover_bg_color') {
+            updateHoverStyles(ui.color.toString());
+          }
         },
         clear: function() {
           // Set to default color when clear is clicked
@@ -187,21 +251,6 @@ GreenMetricsAdmin.Preview = (function($) {
           }, 50);
         }
       });
-    });
-    
-    // Special handler for the hover background color
-    $('#popover_metrics_list_hover_bg_color').wpColorPicker({
-      change: function(event, ui) {
-        // Get the color from the UI
-        const color = ui.color.toString();
-        
-        // Directly update the hover style
-        const styleId = 'greenmetrics-preview-hover-style';
-        if ($('#' + styleId).length === 0) {
-          $('head').append('<style id="' + styleId + '"></style>');
-        }
-        $('#' + styleId).html('#popover-preview-container .greenmetrics-global-badge-metric:hover { background-color: ' + color + ' !important; }');
-      }
     });
     
     // Replace all "Clear" buttons with "Set to Default" buttons
@@ -227,6 +276,15 @@ GreenMetricsAdmin.Preview = (function($) {
     }, 100);
   }
   
+  // Update hover styles for metrics items
+  function updateHoverStyles(color) {
+    const styleId = 'greenmetrics-preview-hover-style';
+    if ($('#' + styleId).length === 0) {
+      $('head').append('<style id="' + styleId + '"></style>');
+    }
+    $('#' + styleId).html('#popover-preview-container .greenmetrics-global-badge-metric:hover { background-color: ' + color + ' !important; }');
+  }
+  
   // Function to initialize font size fields
   function initFontSizeFields() {
     // Set the number input value from the hidden field
@@ -238,52 +296,96 @@ GreenMetricsAdmin.Preview = (function($) {
   
   // Function to toggle icon options based on display_icon checkbox
   function toggleIconOptions() {
-    var displayIcon = $('#display_icon').is(':checked');
-    var iconType = $('#badge_icon_type').val();
+    var displayIcon = $cache.displayIcon.is(':checked');
+    var iconType = $cache.badgeIconType.val();
 
     if (displayIcon) {
       // Show icon type selection and icon color
-      $('#badge_icon_type').closest('tr').show();
-      $('#badge_icon_color').closest('tr').show();
+      $cache.badgeIconType.closest('tr').show();
+      $cache.badgeIconColor.closest('tr').show();
       $('.icon-options').closest('tr').show();
 
       // Show custom icon field only if custom is selected
-      if (iconType === 'custom') {
-        $('#badge_custom_icon').closest('tr').show();
-        $('#custom-icon-field-wrapper').show();
-      } else {
-        $('#badge_custom_icon').closest('tr').hide();
-        $('#custom-icon-field-wrapper').hide();
-      }
+      toggleCustomIconField(iconType);
     } else {
       // Hide all icon-related fields
-      $('#badge_icon_type').closest('tr').hide();
-      $('#badge_icon_color').closest('tr').hide();
+      $cache.badgeIconType.closest('tr').hide();
+      $cache.badgeIconColor.closest('tr').hide();
       $('.icon-options').closest('tr').hide();
-      $('#badge_custom_icon').closest('tr').hide();
-      $('#custom-icon-field-wrapper').hide();
+      $cache.badgeCustomIcon.closest('tr').hide();
+      $cache.customIconField.hide();
     }
+  }
+  
+  // Get or update icon HTML (reused for consistency)
+  function getIconHtml(iconType, callback) {
+    // If custom icon, just return the HTML directly
+    if (iconType === 'custom' && $cache.badgeCustomIcon.val()) {
+      const customIcon = $cache.badgeCustomIcon.val();
+      const iconSize = $cache.badgeIconSize.val();
+      const html = '<img src="' + customIcon + '" alt="Custom Icon" style="width: ' + iconSize + '; height: ' + iconSize + ';">';
+      if (callback) callback(html);
+      return html;
+    }
+    
+    // Use AJAX to fetch icon from server
+    $.ajax({
+      url: ajaxurl,
+      method: 'POST',
+      data: {
+        action: 'greenmetrics_get_icon',
+        icon_type: iconType,
+        nonce: greenmetricsAdmin.nonce
+      },
+      success: function(response) {
+        if (response.success && response.data) {
+          // Ensure proper color inheritance for SVG
+          let svg = response.data;
+          if (!svg.includes('fill="currentColor"')) {
+            svg = svg.replace(/<svg/, '<svg fill="currentColor"');
+          }
+          if (callback) callback(svg);
+        } else {
+          // Fallback icon on error
+          const fallback = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><title>leaf</title><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z" /></svg>';
+          if (callback) callback(fallback);
+        }
+      },
+      error: function() {
+        // Fallback icon on error
+        const fallback = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><title>leaf</title><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z" /></svg>';
+        if (callback) callback(fallback);
+      }
+    });
   }
   
   // Main preview update function
   function updateBadgePreview(force_update) {
-    // Get current badge settings
-    const position = $('#badge_position').val();
-    const size = $('#badge_size').val();
-    const text = $('#badge_text').val();
-    const bgColor = $('#badge_background_color').val();
-    const textColor = $('#badge_text_color').val();
-    const iconColor = $('#badge_icon_color').val();
-    const displayIcon = $('#display_icon').is(':checked');
-    const iconType = $('#badge_icon_type').val();
-    const customIcon = $('#badge_custom_icon').val();
+    // Refresh cached DOM elements to ensure we're working with current state
+    // This is important for dynamically created elements
+    if (!$cache.badge.length) {
+      $cache.badge = $cache.badgePreviewContainer.find('.greenmetrics-badge');
+    }
+    
+    // Always refresh icon size from DOM since it's critical for this function
     const iconSize = $('#badge_icon_size').val();
     
+    // Get current badge settings
+    const position = $cache.badgePosition.val();
+    const size = $cache.badgeSize.val();
+    const text = $cache.badgeText.val();
+    const bgColor = $cache.badgeBgColor.val();
+    const textColor = $cache.badgeTextColor.val();
+    const iconColor = $cache.badgeIconColor.val();
+    const displayIcon = $cache.displayIcon.is(':checked');
+    const iconType = $cache.badgeIconType.val();
+    const customIcon = $cache.badgeCustomIcon.val();
+    
     // Update badge position
-    $('#badge-preview-container').attr('class', position);
+    $cache.badgePreviewContainer.attr('class', position);
     
     // Update badge appearance
-    const $badge = $('#badge-preview-container .greenmetrics-badge');
+    const $badge = $cache.badge;
     
     // Make sure to properly apply the size class
     $badge.removeClass('small medium large').addClass(size);
@@ -302,16 +404,26 @@ GreenMetricsAdmin.Preview = (function($) {
     $badge.find('span').text(text);
     
     // Update icon visibility and appearance
+    updateBadgeIcon($badge, displayIcon, iconType, iconColor, iconSize, customIcon, force_update);
+    
+    // Update popover styling
+    updatePopoverPreview();
+  }
+  
+  // Update badge icon - extract for cleaner code
+  function updateBadgeIcon($badge, displayIcon, iconType, iconColor, iconSize, customIcon, force_update) {
     if (displayIcon) {
       // Show icon container
-      if ($badge.find('.icon-container').length === 0) {
+      let $iconContainer = $badge.find('.icon-container');
+      
+      if ($iconContainer.length === 0) {
         $badge.prepend('<div class="icon-container" style="color:' + iconColor + ';"></div>');
+        $iconContainer = $badge.find('.icon-container');
       } else {
-        $badge.find('.icon-container').show().css('color', iconColor);
+        $iconContainer.show().css('color', iconColor);
       }
       
-      // Only update the icon if it doesn't exist yet or if explicitly changing icon type
-      const $iconContainer = $badge.find('.icon-container');
+      // Determine if icon needs to be updated
       const needsIconUpdate = 
         $iconContainer.is(':empty') || 
         ($iconContainer.find('svg').length === 0 && $iconContainer.find('img').length === 0) ||
@@ -319,88 +431,64 @@ GreenMetricsAdmin.Preview = (function($) {
         force_update === true;
       
       if (needsIconUpdate) {
-        // Special case for custom image uploads
-        if (iconType === 'custom' && customIcon) {
-          $iconContainer.html('<img src="' + customIcon + '" alt="Custom Icon" style="width: ' + iconSize + '; height: ' + iconSize + ';">');
+        getIconHtml(iconType, function(iconHtml) {
+          $iconContainer.html(iconHtml);
           
-          // Apply icon size
-          $iconContainer.find('img').css({
+          // Apply icon size - use !important to override any inline styles
+          $iconContainer.find('svg, img').css({
+            'width': iconSize + ' !important',
+            'height': iconSize + ' !important'
+          });
+          
+          // For SVGs, also set the width/height attributes
+          $iconContainer.find('svg').attr({
             'width': iconSize,
-            'height': iconSize
+            'height': iconSize,
+            'fill': 'currentColor'
           });
-        } else {
-          // Use AJAX to fetch all icons from the server for consistency
-          $.ajax({
-            url: ajaxurl,
-            method: 'POST',
-            data: {
-              action: 'greenmetrics_get_icon',
-              icon_type: iconType,
-              nonce: greenmetricsAdmin.nonce
-            },
-            success: function(response) {
-              if (response.success && response.data) {
-                // Replace fill attribute if present to ensure proper color inheritance
-                let svg = response.data;
-                if (!svg.includes('fill="currentColor"')) {
-                  svg = svg.replace(/<svg/, '<svg fill="currentColor"');
-                }
-                $iconContainer.html(svg);
-                
-                // Apply icon size
-                $iconContainer.find('svg, img').css({
-                  'width': iconSize,
-                  'height': iconSize
-                });
-              }
-            },
-            error: function() {
-              // Fallback to leaf icon as a default
-              $iconContainer.html('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><title>leaf</title><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z" /></svg>');
-              
-              // Apply icon size to fallback
-              $iconContainer.find('svg').css({
-                'width': iconSize,
-                'height': iconSize
-              });
-            }
-          });
-        }
+        });
       } else {
-        // Just update the icon size for existing icons and ensure the color is applied
+        // Just update the icon size for existing icons
         $iconContainer.find('svg, img').css({
-          'width': iconSize,
-          'height': iconSize
+          'width': iconSize + ' !important',
+          'height': iconSize + ' !important'
         });
         
-        // Make sure the SVG fill is set to currentColor for proper color inheritance
-        $iconContainer.find('svg').attr('fill', 'currentColor');
+        // For SVGs, also set the width/height attributes
+        $iconContainer.find('svg').attr({
+          'width': iconSize,
+          'height': iconSize,
+          'fill': 'currentColor'
+        });
       }
     } else {
       // Hide icon if display icon is unchecked
       $badge.find('.icon-container').hide();
     }
-    
+  }
+  
+  // Update popover preview - extract for cleaner code
+  function updatePopoverPreview() {
     // Get popover settings
-    const popoverTitle = $('#popover_title').val();
-    const popoverBgColor = $('#popover_bg_color').val();
-    const popoverTextColor = $('#popover_text_color').val();
-    const popoverMetricsColor = $('#popover_metrics_color').val();
-    const popoverMetricsBgColor = $('#popover_metrics_bg_color').val();
-    const popoverContentFont = $('#popover_content_font').val();
-    const popoverContentFontSize = $('#popover_content_font_size').val();
-    const popoverMetricsFont = $('#popover_metrics_font').val();
-    const popoverMetricsFontSize = $('#popover_metrics_font_size').val();
-    const popoverMetricsLabelFontSize = $('#popover_metrics_label_font_size').val();
-    const popoverMetricsListBgColor = $('#popover_metrics_list_bg_color').val();
-    const popoverMetricsListHoverBgColor = $('#popover_metrics_list_hover_bg_color').val();
-    const popoverCustomContent = $('#popover_custom_content').val();
+    const popoverTitle = $cache.popoverTitle.val();
+    const popoverBgColor = $cache.popoverBgColor.val();
+    const popoverTextColor = $cache.popoverTextColor.val();
+    const popoverMetricsColor = $cache.popoverMetricsColor.val();
+    const popoverMetricsBgColor = $cache.popoverMetricsBgColor.val();
+    const popoverContentFont = $cache.popoverContentFont.val();
+    const popoverContentFontSize = $cache.popoverContentFontSize.val();
+    const popoverMetricsFont = $cache.popoverMetricsFont.val();
+    const popoverMetricsFontSize = $cache.popoverMetricsFontSize.val();
+    const popoverMetricsLabelFontSize = $cache.popoverMetricsLabelFontSize.val();
+    const popoverMetricsListBgColor = $cache.popoverMetricsListBgColor.val();
+    const popoverMetricsListHoverBgColor = $cache.popoverMetricsListHoverBgColor.val();
+    const popoverCustomContent = $cache.popoverCustomContent.val();
     
     // Update popover title
-    $('#popover-preview-container h3').text(popoverTitle);
+    $cache.popoverPreviewContainer.find('h3').text(popoverTitle);
     
     // Update popover container styling
-    $('#popover-preview-container').css({
+    $cache.popoverPreviewContainer.css({
       'background-color': popoverBgColor,
       'color': popoverTextColor,
       'font-family': popoverContentFont,
@@ -427,7 +515,7 @@ GreenMetricsAdmin.Preview = (function($) {
     
     // Get selected metrics
     const selectedMetrics = [];
-    $('input[name="greenmetrics_settings[popover_metrics][]"]:checked').each(function() {
+    $cache.metricsCheckboxes.filter(':checked').each(function() {
       selectedMetrics.push($(this).val());
     });
     
@@ -438,17 +526,12 @@ GreenMetricsAdmin.Preview = (function($) {
     });
     
     // Apply hover styles
-    // Add hover style dynamically for better preview
-    const styleId = 'greenmetrics-preview-hover-style';
-    if ($('#' + styleId).length === 0) {
-      $('head').append('<style id="' + styleId + '"></style>');
-    }
-    $('#' + styleId).html('.greenmetrics-global-badge-metric:hover { background-color: ' + popoverMetricsListHoverBgColor + ' !important; }');
+    updateHoverStyles(popoverMetricsListHoverBgColor);
     
     // Update popover custom content
     if (popoverCustomContent) {
       if ($('.greenmetrics-global-badge-custom-content').length === 0) {
-        $('#popover-preview-container').append('<div class="greenmetrics-global-badge-custom-content" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1);"></div>');
+        $cache.popoverPreviewContainer.append('<div class="greenmetrics-global-badge-custom-content" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1);"></div>');
       }
       $('.greenmetrics-global-badge-custom-content').html(popoverCustomContent);
     } else {
