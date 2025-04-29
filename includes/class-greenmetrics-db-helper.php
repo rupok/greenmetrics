@@ -1,10 +1,9 @@
 <?php
-// If this file is called directly, abort.
+namespace GreenMetrics;
+
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
-
-namespace GreenMetrics;
 
 /**
  * Helper class for database schema checks and caching.

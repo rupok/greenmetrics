@@ -9,6 +9,8 @@
  * @subpackage GreenMetrics/includes
  */
 
+namespace GreenMetrics;
+
 /**
  * Fired during plugin deactivation.
  *
@@ -24,8 +26,6 @@
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
-
-namespace GreenMetrics;
 
 class GreenMetrics_Deactivator {
 	/**

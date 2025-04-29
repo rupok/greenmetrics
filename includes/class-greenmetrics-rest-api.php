@@ -6,12 +6,12 @@
  * @subpackage GreenMetrics/includes
  */
 
+namespace GreenMetrics;
+
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
-
-namespace GreenMetrics;
 
 /**
  * The REST API functionality of the plugin.

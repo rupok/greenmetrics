@@ -2,16 +2,19 @@
 /**
  * Fired during plugin activation.
  *
+ * @link       https://example.com/greenmetrics
+ * @since      1.0.0
+ *
  * @package    GreenMetrics
  * @subpackage GreenMetrics/includes
  */
+
+namespace GreenMetrics;
 
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
-
-namespace GreenMetrics;
 
 use GreenMetrics\GreenMetrics_DB_Helper;
 

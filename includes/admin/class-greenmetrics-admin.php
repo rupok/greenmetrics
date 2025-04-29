@@ -6,12 +6,12 @@
  * @subpackage GreenMetrics/admin
  */
 
+namespace GreenMetrics\Admin;
+
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
-
-namespace GreenMetrics\Admin;
 
 /**
  * The admin-specific functionality of the plugin.

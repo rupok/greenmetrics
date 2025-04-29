@@ -6,12 +6,12 @@
  * @subpackage GreenMetrics/includes
  */
 
+namespace GreenMetrics;
+
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
-
-namespace GreenMetrics;
 
 /**
  * The public-facing functionality of the plugin.
@@ -29,11 +29,10 @@ class GreenMetrics_Public {
 		
 		// Add global badge to footer if enabled in settings
 		add_action( 'wp_footer', array( $this, 'display_global_badge' ) );
-
-		// Forward AJAX tracking requests to the tracker
-		// This is deprecated and will be removed in a future version
-		add_action( 'wp_ajax_greenmetrics_tracking', array( $this, 'forward_tracking_request' ) );
-		add_action( 'wp_ajax_nopriv_greenmetrics_tracking', array( $this, 'forward_tracking_request' ) );
+		
+		// AJAX handler for getting icons
+		add_action( 'wp_ajax_greenmetrics_get_icon', array( $this, 'handle_get_icon' ) );
+		add_action( 'wp_ajax_nopriv_greenmetrics_get_icon', array( $this, 'handle_get_icon' ) );
 	}
 
 	/**
@@ -532,25 +531,6 @@ class GreenMetrics_Public {
 	}
 
 	/**
-	 * Forward tracking requests to the tracker class to avoid duplicate code
-	 * This maintains backward compatibility with existing JavaScript files
-	 *
-	 * @deprecated 1.1.0 Use the REST API endpoint /greenmetrics/v1/track instead.
-	 */
-	public function forward_tracking_request() {
-		greenmetrics_log( 'Forwarding tracking request to tracker class' );
-
-		// Get the tracker instance
-		$tracker = GreenMetrics_Tracker::get_instance();
-
-		// Forward the request to the tracker's handler
-		$tracker->handle_tracking_request_from_post();
-
-		// The tracker will handle the response, so we don't need to do anything else
-		exit;
-	}
-
-	/**
 	 * Get metrics data for the current page
 	 *
 	 * @return array Metrics data
@@ -891,5 +871,25 @@ class GreenMetrics_Public {
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Handle AJAX request to get an icon SVG
+	 */
+	public function handle_get_icon() {
+		// Verify nonce
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'greenmetrics_get_icon' ) ) {
+			wp_send_json_error( 'Invalid nonce' );
+			return;
+		}
+		
+		// Get the icon type from the request
+		$icon_type = isset( $_POST['icon_type'] ) ? sanitize_text_field( $_POST['icon_type'] ) : 'leaf';
+		
+		// Get the icon SVG
+		$icon_svg = $this->get_icon_svg( $icon_type );
+		
+		// Return the icon SVG
+		wp_send_json_success( $icon_svg );
 	}
 }

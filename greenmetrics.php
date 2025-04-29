@@ -101,7 +101,6 @@ spl_autoload_register(
 );
 
 // The custom autoloader above handles these, so manual requires are redundant.
-// require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-db-helper.php';
 
 // Initialize the plugin
 function greenmetrics_init() {
@@ -120,23 +119,11 @@ function greenmetrics_init() {
 
 	// Initialize components
 	try {
-		// The custom autoloader handles these requires
-		// require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-error-handler.php';
-		// require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-settings-manager.php';
-		// require_once GREENMETRICS_PLUGIN_DIR . 'includes/admin/class-greenmetrics-admin.php'; // Autoloader handles subdirs
-		// require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-public.php';
-		// require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-tracker.php';
-		// require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-rest-api.php';
-
 		// Initialize components
 		$admin    = new \GreenMetrics\Admin\GreenMetrics_Admin();
 		$public   = new \GreenMetrics\GreenMetrics_Public();
 		$tracker  = \GreenMetrics\GreenMetrics_Tracker::get_instance();
 		$rest_api = new \GreenMetrics\GreenMetrics_Rest_API();
-
-		// Register REST API routes
-		// Note: The rest_api_init hook is inside the GreenMetrics_Rest_API constructor
-		// add_action( 'rest_api_init', array( $rest_api, 'register_routes' ) ); // This is redundant
 
 		greenmetrics_log( 'All components initialized successfully' );
 	} catch ( Exception $e ) {
@@ -160,8 +147,6 @@ add_action( 'plugins_loaded', 'greenmetrics_init' );
 register_activation_hook(
 	__FILE__,
 	function () {
-		// Autoloader handles this require
-		// require_once plugin_dir_path( __FILE__ ) . 'includes/class-greenmetrics-activator.php';
 		GreenMetrics\GreenMetrics_Activator::activate();
 	}
 );
@@ -170,9 +155,6 @@ register_activation_hook(
 add_action(
 	'plugins_loaded',
 	function () {
-		// Run version check and upgrade if needed
-		// Autoloader handles this require
-		// require_once plugin_dir_path( __FILE__ ) . 'includes/class-greenmetrics-upgrader.php';
 		\GreenMetrics\GreenMetrics_Upgrader::check_for_upgrades();
 	}
 );
@@ -181,8 +163,6 @@ add_action(
 register_deactivation_hook(
 	__FILE__,
 	function () {
-		// Autoloader handles this require
-		// require_once plugin_dir_path( __FILE__ ) . 'includes/class-greenmetrics-deactivator.php';
 		GreenMetrics\GreenMetrics_Deactivator::deactivate();
 	}
 );

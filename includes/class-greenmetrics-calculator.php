@@ -11,12 +11,12 @@
  * @subpackage GreenMetrics/includes
  */
 
+namespace GreenMetrics;
+
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
-
-namespace GreenMetrics;
 
 class GreenMetrics_Calculator {
 	/**

@@ -1,17 +1,17 @@
 <?php
 /**
- * Handles version upgrades for the plugin.
+ * Upgrader class.
  *
  * @package    GreenMetrics
  * @subpackage GreenMetrics/includes
  */
 
+namespace GreenMetrics;
+
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
-
-namespace GreenMetrics;
 
 use GreenMetrics\GreenMetrics_DB_Helper;
 
