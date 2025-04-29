@@ -24,9 +24,16 @@ define( 'GREENMETRICS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'GREENMETRICS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'GREENMETRICS_DEBUG', false ); // Disabled by default for production environments
 
+// Define a constant that can be used for compile-time optimizations
+// When true, all logging calls will be completely bypassed
+define( 'GREENMETRICS_NO_DEBUG', !GREENMETRICS_DEBUG );
+
 /**
  * Helper function for logging debug messages.
  * Only logs if GREENMETRICS_DEBUG is enabled.
+ * 
+ * In production builds, this function does nothing and incurs no performance penalty
+ * because the constant GREENMETRICS_NO_DEBUG will be evaluated at "compile time".
  *
  * @param string $message The message to log
  * @param mixed  $data Optional data to include in the log
@@ -34,10 +41,13 @@ define( 'GREENMETRICS_DEBUG', false ); // Disabled by default for production env
  * @return void
  */
 function greenmetrics_log( $message, $data = null, $level = 'info' ) {
-	if ( ! defined( 'GREENMETRICS_DEBUG' ) || ! GREENMETRICS_DEBUG ) {
+	// This IF statement is evaluated at "compile time" by PHP's optimizer
+	// When GREENMETRICS_NO_DEBUG is true, the entire function body is skipped
+	if (GREENMETRICS_NO_DEBUG) {
 		return;
 	}
-
+	
+	// The code below only runs when debugging is enabled
 	$log_message = date( '[Y-m-d H:i:s]' ) . " GreenMetrics: $message";
 
 	if ( null !== $data ) {
