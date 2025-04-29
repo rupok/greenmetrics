@@ -8,6 +8,11 @@
 
 namespace GreenMetrics;
 
+// If this file is called directly, abort.
+if ( ! defined( 'WPINC' ) ) {
+	die;
+}
+
 /**
  * The public-facing functionality of the plugin.
  */
@@ -22,13 +27,15 @@ class GreenMetrics_Public {
 		add_shortcode( 'greenmetrics_badge', array( $this, 'render_badge_shortcode' ) );
 		add_action( 'init', array( $this, 'register_blocks' ) );
 		
+		// Add tracking script to footer
+		add_action( 'wp_footer', array( $this, 'inject_tracking_script' ) );
+		
 		// Add global badge to footer if enabled in settings
 		add_action( 'wp_footer', array( $this, 'display_global_badge' ) );
-
-		// Forward AJAX tracking requests to the tracker
-		// This is deprecated and will be removed in a future version
-		add_action( 'wp_ajax_greenmetrics_tracking', array( $this, 'forward_tracking_request' ) );
-		add_action( 'wp_ajax_nopriv_greenmetrics_tracking', array( $this, 'forward_tracking_request' ) );
+		
+		// AJAX handler for getting icons
+		add_action( 'wp_ajax_greenmetrics_get_icon', array( $this, 'handle_get_icon' ) );
+		add_action( 'wp_ajax_nopriv_greenmetrics_get_icon', array( $this, 'handle_get_icon' ) );
 	}
 
 	/**
@@ -46,63 +53,22 @@ class GreenMetrics_Public {
 
 	/**
 	 * Register the JavaScript for the public-facing side of the site.
+	 * Note: Tracking script is loaded separately in inject_tracking_script() method.
 	 */
 	public function enqueue_scripts() {
+		// Enqueue styles and non-tracking related scripts here
+		// Tracking-specific code is now handled in inject_tracking_script()
+		
 		// Get settings
-		$options          = get_option( 'greenmetrics_settings' );
-		$tracking_enabled = isset( $options['tracking_enabled'] ) ? $options['tracking_enabled'] : 0;
-
+		$options = get_option( 'greenmetrics_settings' );
+		
 		greenmetrics_log(
 			'Enqueuing public scripts with settings',
 			array(
-				'tracking_enabled' => $tracking_enabled,
-				'options'          => $options,
+				'tracking_enabled' => isset( $options['tracking_enabled'] ) ? $options['tracking_enabled'] : 0,
+				'options' => $options,
 			)
 		);
-
-		// Get the current page ID
-		$page_id = get_queried_object_id();
-		if ( ! $page_id ) {
-			$page_id = get_the_ID();
-		}
-
-		// Ensure we have a valid REST URL
-		$rest_url = get_rest_url( null, 'greenmetrics/v1' );
-		if ( ! $rest_url ) {
-			greenmetrics_log( 'Failed to get REST URL', null, 'error' );
-			return;
-		}
-
-		// Create nonce for REST API
-		$rest_nonce = wp_create_nonce( 'wp_rest' );
-
-		// Get plugin base URL
-		$plugin_url = plugins_url( '', dirname( __DIR__ ) );
-
-		// Enqueue public script
-		wp_enqueue_script(
-			'greenmetrics-public',
-			$plugin_url . '/greenmetrics/public/js/greenmetrics-public.js',
-			array( 'jquery' ),
-			GREENMETRICS_VERSION,
-			true
-		);
-
-		// Localize script with essential data - use consistent parameter names
-		wp_localize_script(
-			'greenmetrics-public',
-			'greenmetricsPublic',
-			array(
-				'ajax_url'         => admin_url( 'admin-ajax.php' ), // Keep for backward compatibility
-				'rest_url'         => $rest_url,
-				'rest_nonce'       => $rest_nonce, // Use only one parameter name
-				'tracking_enabled' => $tracking_enabled ? true : false,
-				'page_id'          => $page_id,
-				'nonce'            => wp_create_nonce( 'greenmetrics_get_icon' ),
-			)
-		);
-
-		greenmetrics_log( 'Public scripts enqueued successfully with REST nonce', $rest_nonce );
 	}
 
 	/**
@@ -481,7 +447,7 @@ class GreenMetrics_Public {
 	}
 
 	/**
-	 * Enqueue block editor assets
+	 * Enqueue scripts and styles for the block editor.
 	 */
 	public function enqueue_editor_assets() {
 		$asset_file = include GREENMETRICS_PLUGIN_DIR . 'public/js/blocks/badge/build/index.asset.php';
@@ -492,6 +458,13 @@ class GreenMetrics_Public {
 			array_merge( $asset_file['dependencies'], array( 'wp-blocks', 'wp-element', 'wp-editor' ) ),
 			$asset_file['version'],
 			true
+		);
+		
+		// Set up translations for the block editor script
+		wp_set_script_translations(
+			'greenmetrics-badge-editor',
+			'greenmetrics',
+			GREENMETRICS_PLUGIN_DIR . 'languages'
 		);
 
 		wp_enqueue_style(
@@ -517,25 +490,6 @@ class GreenMetrics_Public {
 				'action'     => 'greenmetrics_tracking', // Keep for backward compatibility
 			)
 		);
-	}
-
-	/**
-	 * Forward tracking requests to the tracker class to avoid duplicate code
-	 * This maintains backward compatibility with existing JavaScript files
-	 *
-	 * @deprecated 1.1.0 Use the REST API endpoint /greenmetrics/v1/track instead.
-	 */
-	public function forward_tracking_request() {
-		greenmetrics_log( 'Forwarding tracking request to tracker class' );
-
-		// Get the tracker instance
-		$tracker = GreenMetrics_Tracker::get_instance();
-
-		// Forward the request to the tracker's handler
-		$tracker->handle_tracking_request_from_post();
-
-		// The tracker will handle the response, so we don't need to do anything else
-		exit;
 	}
 
 	/**
@@ -646,19 +600,44 @@ class GreenMetrics_Public {
 		$plugin_url = plugins_url( '', dirname( __DIR__ ) );
 
 		greenmetrics_log( 'Injecting tracking script', get_the_ID() );
-		?>
-		<script>
-			window.greenmetricsTracking = {
-				enabled: true,
-				carbonIntensity: <?php echo esc_js( $settings['carbon_intensity'] ); ?>,
-				energyPerByte: <?php echo esc_js( $settings['energy_per_byte'] ); ?>,
-				rest_nonce: '<?php echo wp_create_nonce( 'wp_rest' ); ?>',
-				rest_url: '<?php echo esc_js( get_rest_url( null, 'greenmetrics/v1' ) ); ?>',
-				page_id: <?php echo get_the_ID(); ?>
-			};
-		</script>
-		<script src="<?php echo esc_url( $plugin_url . '/greenmetrics/public/js/greenmetrics-tracking.js' ); ?>"></script>
-		<?php
+		
+		// Properly enqueue the script with translations support
+		wp_enqueue_script(
+			'greenmetrics-public',
+			$plugin_url . '/greenmetrics/public/js/greenmetrics-public.js',
+			array( 'jquery', 'wp-i18n' ),
+			GREENMETRICS_VERSION,
+			true
+		);
+		
+		// Set up translations for the script
+		wp_set_script_translations( 'greenmetrics-public', 'greenmetrics', GREENMETRICS_PLUGIN_DIR . 'languages' );
+		
+		// Get the current page ID
+		$page_id = get_queried_object_id();
+		if ( ! $page_id ) {
+			$page_id = get_the_ID();
+		}
+		
+		// Create nonce for REST API
+		$rest_nonce = wp_create_nonce( 'wp_rest' );
+		$rest_url = get_rest_url( null, 'greenmetrics/v1' );
+		
+		// Localize script with essential data - keep the original object name to match JS expectations
+		wp_localize_script(
+			'greenmetrics-public',
+			'greenmetricsPublic',
+			array(
+				'ajax_url'         => admin_url( 'admin-ajax.php' ),
+				'rest_url'         => $rest_url,
+				'rest_nonce'       => $rest_nonce,
+				'tracking_enabled' => true,
+				'page_id'          => $page_id,
+				'nonce'            => wp_create_nonce( 'greenmetrics_get_icon' ),
+				'carbonIntensity'  => $settings['carbon_intensity'],
+				'energyPerByte'    => $settings['energy_per_byte'],
+			)
+		);
 	}
 
 	/**
@@ -866,5 +845,25 @@ class GreenMetrics_Public {
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Handle AJAX request to get an icon SVG
+	 */
+	public function handle_get_icon() {
+		// Verify nonce
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'greenmetrics_get_icon' ) ) {
+			wp_send_json_error( 'Invalid nonce' );
+			return;
+		}
+		
+		// Get the icon type from the request
+		$icon_type = isset( $_POST['icon_type'] ) ? sanitize_text_field( $_POST['icon_type'] ) : 'leaf';
+		
+		// Get the icon SVG
+		$icon_svg = $this->get_icon_svg( $icon_type );
+		
+		// Return the icon SVG
+		wp_send_json_success( $icon_svg );
 	}
 }

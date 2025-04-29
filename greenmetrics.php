@@ -22,12 +22,18 @@ define( 'GREENMETRICS_VERSION', '1.0.0' );
 define( 'GREENMETRICS_PLUGIN_FILE', __FILE__ );
 define( 'GREENMETRICS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'GREENMETRICS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'GREENMETRICS_USE_PUBLIC_JS', true ); // Use only one tracking script to prevent double counting
-define( 'GREENMETRICS_DEBUG', true ); // Enable debug logging for development
+define( 'GREENMETRICS_DEBUG', false ); // Disabled by default for production environments
+
+// Define a constant that can be used for compile-time optimizations
+// When true, all logging calls will be completely bypassed
+define( 'GREENMETRICS_NO_DEBUG', !GREENMETRICS_DEBUG );
 
 /**
  * Helper function for logging debug messages.
  * Only logs if GREENMETRICS_DEBUG is enabled.
+ * 
+ * In production builds, this function does nothing and incurs no performance penalty
+ * because the constant GREENMETRICS_NO_DEBUG will be evaluated at "compile time".
  *
  * @param string $message The message to log
  * @param mixed  $data Optional data to include in the log
@@ -35,10 +41,13 @@ define( 'GREENMETRICS_DEBUG', true ); // Enable debug logging for development
  * @return void
  */
 function greenmetrics_log( $message, $data = null, $level = 'info' ) {
-	if ( ! defined( 'GREENMETRICS_DEBUG' ) || ! GREENMETRICS_DEBUG ) {
+	// This IF statement is evaluated at "compile time" by PHP's optimizer
+	// When GREENMETRICS_NO_DEBUG is true, the entire function body is skipped
+	if (GREENMETRICS_NO_DEBUG) {
 		return;
 	}
-
+	
+	// The code below only runs when debugging is enabled
 	$log_message = date( '[Y-m-d H:i:s]' ) . " GreenMetrics: $message";
 
 	if ( null !== $data ) {
@@ -50,8 +59,8 @@ function greenmetrics_log( $message, $data = null, $level = 'info' ) {
 		}
 	}
 
-	// Write to plugin's own log file that's easily accessible
-	$log_file = GREENMETRICS_PLUGIN_DIR . 'debug.log';
+	// Write to a log file in wp-content directory which is typically writable
+	$log_file = WP_CONTENT_DIR . '/greenmetrics-debug.log';
 	file_put_contents( $log_file, $log_message . PHP_EOL, FILE_APPEND );
 
 	// Also use error_log for standard WordPress logging
@@ -101,7 +110,6 @@ spl_autoload_register(
 );
 
 // The custom autoloader above handles these, so manual requires are redundant.
-// require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-db-helper.php';
 
 // Initialize the plugin
 function greenmetrics_init() {
@@ -111,51 +119,20 @@ function greenmetrics_init() {
 	// Explicitly load the Icons class to avoid autoloading issues
 	require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-icons.php';
 
-	// TEMPORARY DEBUG - Reset settings to default
-	if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
-		// Clear any potentially cached version of the settings
-		wp_cache_delete( 'greenmetrics_settings', 'options' );
-
-		// Get current settings
-		$settings = get_option( 'greenmetrics_settings', array() );
-		greenmetrics_log( 'Plugin Initialization - Current settings (before reset)', $settings );
-
-		// Force deletion and recreation of option (TEMPORARY for debugging)
-		// Uncomment this block to force reset the option
-		/*
-		delete_option('greenmetrics_settings');
-		$default_settings = array(
-			'tracking_enabled' => 1,
-			'enable_badge' => 1
-		);
-		update_option('greenmetrics_settings', $default_settings);
-		greenmetrics_log('Plugin Initialization - Settings reset to defaults', $default_settings);
-		*/
-
-		// Check settings again
+	// Debug and development settings should never run in production
+	if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+		// Log current settings in development environments only
 		$settings = get_option( 'greenmetrics_settings', array() );
 		greenmetrics_log( 'Plugin Initialization - Current settings', $settings );
 	}
 
 	// Initialize components
 	try {
-		// The custom autoloader handles these requires
-		// require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-error-handler.php';
-		// require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-settings-manager.php';
-		// require_once GREENMETRICS_PLUGIN_DIR . 'includes/admin/class-greenmetrics-admin.php'; // Autoloader handles subdirs
-		// require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-public.php';
-		// require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-tracker.php';
-		// require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-rest-api.php';
-
 		// Initialize components
 		$admin    = new \GreenMetrics\Admin\GreenMetrics_Admin();
 		$public   = new \GreenMetrics\GreenMetrics_Public();
 		$tracker  = \GreenMetrics\GreenMetrics_Tracker::get_instance();
 		$rest_api = new \GreenMetrics\GreenMetrics_Rest_API();
-
-		// Register REST API routes
-		// Note: The rest_api_init hook is inside the GreenMetrics_Rest_API constructor
-		// add_action( 'rest_api_init', array( $rest_api, 'register_routes' ) ); // This is redundant
 
 		greenmetrics_log( 'All components initialized successfully' );
 	} catch ( Exception $e ) {
@@ -179,8 +156,6 @@ add_action( 'plugins_loaded', 'greenmetrics_init' );
 register_activation_hook(
 	__FILE__,
 	function () {
-		// Autoloader handles this require
-		// require_once plugin_dir_path( __FILE__ ) . 'includes/class-greenmetrics-activator.php';
 		GreenMetrics\GreenMetrics_Activator::activate();
 	}
 );
@@ -189,9 +164,6 @@ register_activation_hook(
 add_action(
 	'plugins_loaded',
 	function () {
-		// Run version check and upgrade if needed
-		// Autoloader handles this require
-		// require_once plugin_dir_path( __FILE__ ) . 'includes/class-greenmetrics-upgrader.php';
 		\GreenMetrics\GreenMetrics_Upgrader::check_for_upgrades();
 	}
 );
@@ -200,8 +172,6 @@ add_action(
 register_deactivation_hook(
 	__FILE__,
 	function () {
-		// Autoloader handles this require
-		// require_once plugin_dir_path( __FILE__ ) . 'includes/class-greenmetrics-deactivator.php';
 		GreenMetrics\GreenMetrics_Deactivator::deactivate();
 	}
 );

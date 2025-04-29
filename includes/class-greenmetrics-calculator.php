@@ -13,6 +13,11 @@
 
 namespace GreenMetrics;
 
+// If this file is called directly, abort.
+if ( ! defined( 'WPINC' ) ) {
+	die;
+}
+
 class GreenMetrics_Calculator {
 	/**
 	 * Carbon intensity in kg CO2/kWh.

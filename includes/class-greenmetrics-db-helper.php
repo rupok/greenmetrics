@@ -1,6 +1,10 @@
 <?php
 namespace GreenMetrics;
 
+if ( ! defined( 'WPINC' ) ) {
+	die;
+}
+
 /**
  * Helper class for database schema checks and caching.
  *

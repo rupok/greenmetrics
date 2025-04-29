@@ -8,6 +8,11 @@
 
 namespace GreenMetrics;
 
+// If this file is called directly, abort.
+if ( ! defined( 'WPINC' ) ) {
+	die;
+}
+
 /**
  * The error handler for the plugin.
  * This class provides standardized error handling functions to be used throughout the plugin.

@@ -2,11 +2,19 @@
 /**
  * Fired during plugin activation.
  *
+ * @link       https://example.com/greenmetrics
+ * @since      1.0.0
+ *
  * @package    GreenMetrics
  * @subpackage GreenMetrics/includes
  */
 
 namespace GreenMetrics;
+
+// If this file is called directly, abort.
+if ( ! defined( 'WPINC' ) ) {
+	die;
+}
 
 use GreenMetrics\GreenMetrics_DB_Helper;
 
@@ -53,6 +61,10 @@ class GreenMetrics_Activator {
 		} else {
 			greenmetrics_log( 'Activator - Options already exist, not overwriting' );
 		}
+
+		// Schedule the daily cache refresh
+		GreenMetrics_Tracker::schedule_daily_cache_refresh();
+		greenmetrics_log( 'Activator - Scheduled daily cache refresh' );
 
 		// Store the current version in the database
 		update_option( 'greenmetrics_version', GREENMETRICS_VERSION );

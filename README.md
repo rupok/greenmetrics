@@ -102,20 +102,106 @@ Yes, the Display Settings page offers extensive customization options for the ba
 
 ```
 greenmetrics/
-├── admin/              # Admin-specific files
-├── includes/           # Core plugin files
-├── languages/          # Translation files
-├── public/             # Public-facing files
-└── greenmetrics.php    # Main plugin file
+├── admin/                # Admin-specific functionality
+│   ├── css/              # Admin styles
+│   ├── js/               # Admin scripts
+│   └── partials/         # Admin templates
+├── build/                # Compiled assets
+├── includes/             # Core plugin functionality
+│   ├── admin/            # Admin class files
+│   ├── class-*.php       # Core classes
+├── languages/            # Translation files
+├── public/               # Public-facing functionality
+│   ├── css/              # Public styles
+│   ├── js/               # Public scripts
+│   │   └── blocks/       # Gutenberg blocks
+│   └── partials/         # Public templates
+├── vendor/               # Composer dependencies
+├── .editorconfig         # Editor configuration
+├── .gitignore            # Git ignore rules
+├── composer.json         # Composer dependencies
+├── LICENSE               # License file
+├── phpcs.xml             # PHP Code Sniffer config
+├── README.md             # This file
+├── readme.txt            # WordPress.org readme
+├── uninstall.php         # Uninstall logic
+└── greenmetrics.php      # Main plugin file
 ```
+
+### Development Setup
+
+1. Clone the repository
+   ```bash
+   git clone https://github.com/yourusername/greenmetrics.git
+   cd greenmetrics
+   ```
+
+2. Install dependencies
+   ```bash
+   composer install
+   ```
+
+3. Run code formatting
+   ```bash
+   ./format-code.sh
+   ```
+
+4. Fix coding standard issues
+   ```bash
+   ./lint-fix.sh
+   ```
+
+### Coding Standards
+
+GreenMetrics follows the [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/). We use PHP_CodeSniffer to ensure code quality:
+
+- Run `composer run lint` to check for violations
+- Run `composer run fix` to automatically fix violations where possible
+
+### Testing
+
+Run the PHPUnit tests:
+
+```bash
+composer run test
+```
+
+### Building Assets
+
+The JavaScript and CSS assets need to be built for production use:
+
+1. Install Node.js dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Build for development (with source maps):
+   ```bash
+   npm run dev
+   ```
+
+3. Build for production (minified):
+   ```bash
+   npm run build
+   ```
+
+### Environment Configuration
+
+GreenMetrics supports different environments:
+
+- **Development**: Enable debugging and developer tools by adding `define('GREENMETRICS_DEBUG', true);` to your wp-config.php
+- **Testing**: Special test mode for running tests
+- **Production**: Optimized performance with caching enabled
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+Please make sure your code follows our coding standards and includes appropriate tests.
 
 ## License
 
