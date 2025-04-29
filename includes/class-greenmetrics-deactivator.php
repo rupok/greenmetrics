@@ -22,7 +22,7 @@ namespace GreenMetrics;
  * @author     Your Name <email@example.com>
  */
 
- // If this file is called directly, abort.
+// If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
@@ -59,7 +59,7 @@ class GreenMetrics_Deactivator {
 	private static function clear_scheduled_events() {
 		// Only clear the events that are actually scheduled by the plugin
 		$event_hook = 'greenmetrics_daily_cache_refresh';
-		$timestamp = wp_next_scheduled( $event_hook );
+		$timestamp  = wp_next_scheduled( $event_hook );
 
 		if ( $timestamp ) {
 			wp_unschedule_event( $timestamp, $event_hook );

@@ -27,7 +27,7 @@ class GreenMetrics_Admin {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_styles' ) );
 		add_action( 'admin_notices', array( $this, 'show_settings_update_notice' ) );
 		add_action( 'admin_init', array( $this, 'handle_refresh_stats' ) );
-		
+
 		// AJAX handlers
 		add_action( 'wp_ajax_greenmetrics_refresh_stats', array( $this, 'handle_refresh_stats' ) );
 		add_action( 'wp_ajax_greenmetrics_get_icon', array( $this, 'handle_get_icon' ) );
@@ -48,7 +48,7 @@ class GreenMetrics_Admin {
 
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved successfully!', 'greenmetrics' ) . '</p></div>';
 		}
-		
+
 		// Display notice for stats refresh
 		if ( isset( $_GET['stats-refreshed'] ) && $_GET['stats-refreshed'] === 'true' ) {
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Statistics refreshed successfully!', 'greenmetrics' ) . '</p></div>';
@@ -68,7 +68,7 @@ class GreenMetrics_Admin {
 			'dashicons-chart-area',
 			30
 		);
-		
+
 		// Add submenu that points to the main page (Dashboard)
 		add_submenu_page(
 			'greenmetrics',
@@ -78,7 +78,7 @@ class GreenMetrics_Admin {
 			'greenmetrics',
 			array( $this, 'render_admin_page' )
 		);
-		
+
 		// Add submenu for Display Settings
 		add_submenu_page(
 			'greenmetrics',
@@ -120,7 +120,7 @@ class GreenMetrics_Admin {
 			'greenmetrics_tracking',
 			array( 'label_for' => 'tracking_enabled' )
 		);
-		
+
 		// Add Statistics Cache to Settings section (this doesn't have actual settings fields)
 
 		// Display Settings Section - register under a different page
@@ -193,7 +193,7 @@ class GreenMetrics_Admin {
 			'greenmetrics_display',
 			array( 'label_for' => 'badge_position' )
 		);
-		
+
 		add_settings_field(
 			'badge_size',
 			__( 'Badge Size', 'greenmetrics' ),
@@ -431,7 +431,7 @@ class GreenMetrics_Admin {
 	public function render_badge_icon_type_field() {
 		$options = get_option( 'greenmetrics_settings' );
 		$value   = isset( $options['badge_icon_type'] ) ? $options['badge_icon_type'] : 'leaf';
-		
+
 		// Log the current value for debugging
 		if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
 			greenmetrics_log( 'Current badge icon type setting', $value );
@@ -459,85 +459,85 @@ class GreenMetrics_Admin {
 			<div class="icon-options">
 				<div class="icon-option <?php echo $value === 'leaf' ? 'selected' : ''; ?>" data-value="leaf">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('leaf'); ?>
+						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'leaf' ); ?>
 					</div>
 					<span><?php esc_html_e( 'Leaf', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'tree' ? 'selected' : ''; ?>" data-value="tree">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('tree'); ?>
+						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'tree' ); ?>
 					</div>
 					<span><?php esc_html_e( 'Tree', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'globe' ? 'selected' : ''; ?>" data-value="globe">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('globe'); ?>
+						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'globe' ); ?>
 					</div>
 					<span><?php esc_html_e( 'Globe', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'recycle' ? 'selected' : ''; ?>" data-value="recycle">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('recycle'); ?>
+						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'recycle' ); ?>
 					</div>
 					<span><?php esc_html_e( 'Recycle', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'chart-bar' ? 'selected' : ''; ?>" data-value="chart-bar">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('chart-bar'); ?>
+						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'chart-bar' ); ?>
 					</div>
 					<span><?php esc_html_e( 'Chart Bar', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'chart-line' ? 'selected' : ''; ?>" data-value="chart-line">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('chart-line'); ?>
+						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'chart-line' ); ?>
 					</div>
 					<span><?php esc_html_e( 'Chart Line', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'chart-pie' ? 'selected' : ''; ?>" data-value="chart-pie">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('chart-pie'); ?>
+						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'chart-pie' ); ?>
 					</div>
 					<span><?php esc_html_e( 'Chart Pie', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'analytics' ? 'selected' : ''; ?>" data-value="analytics">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('analytics'); ?>
+						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'analytics' ); ?>
 					</div>
 					<span><?php esc_html_e( 'Analytics', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'performance' ? 'selected' : ''; ?>" data-value="performance">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('performance'); ?>
+						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'performance' ); ?>
 					</div>
 					<span><?php esc_html_e( 'Performance', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'energy' ? 'selected' : ''; ?>" data-value="energy">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('energy'); ?>
+						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'energy' ); ?>
 					</div>
 					<span><?php esc_html_e( 'Energy', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'water' ? 'selected' : ''; ?>" data-value="water">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('water'); ?>
+						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'water' ); ?>
 					</div>
 					<span><?php esc_html_e( 'Water', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'eco' ? 'selected' : ''; ?>" data-value="eco">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('eco'); ?>
+						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'eco' ); ?>
 					</div>
 					<span><?php esc_html_e( 'Eco', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'nature' ? 'selected' : ''; ?>" data-value="nature">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('nature'); ?>
+						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'nature' ); ?>
 					</div>
 					<span><?php esc_html_e( 'Nature', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'sustainability' ? 'selected' : ''; ?>" data-value="sustainability">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon('sustainability'); ?>
+						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'sustainability' ); ?>
 					</div>
 					<span><?php esc_html_e( 'Sustainability', 'greenmetrics' ); ?></span>
 				</div>
@@ -585,8 +585,8 @@ class GreenMetrics_Admin {
 	 * Render badge icon size field.
 	 */
 	public function render_badge_icon_size_field() {
-		$options = get_option( 'greenmetrics_settings' );
-		$value   = isset( $options['badge_icon_size'] ) ? $options['badge_icon_size'] : '16px';
+		$options       = get_option( 'greenmetrics_settings' );
+		$value         = isset( $options['badge_icon_size'] ) ? $options['badge_icon_size'] : '16px';
 		$numeric_value = intval( $value );
 		?>
 		<div class="greenmetrics-font-size-wrapper">
@@ -634,7 +634,7 @@ class GreenMetrics_Admin {
 		<p class="description"><?php esc_html_e( 'Choose where the badge appears on your website.', 'greenmetrics' ); ?></p>
 		<?php
 	}
-	
+
 	/**
 	 * Render badge size field.
 	 */
@@ -656,7 +656,7 @@ class GreenMetrics_Admin {
 	 */
 	public function render_badge_text_field() {
 		$options = get_option( 'greenmetrics_settings' );
-		$value   = isset( $options['badge_text'] ) ? $options['badge_text'] : __('Eco-Friendly Site', 'greenmetrics');
+		$value   = isset( $options['badge_text'] ) ? $options['badge_text'] : __( 'Eco-Friendly Site', 'greenmetrics' );
 		?>
 		<input type="text" id="badge_text" name="greenmetrics_settings[badge_text]" value="<?php echo esc_attr( $value ); ?>" class="regular-text">
 		<p class="description"><?php esc_html_e( 'Text displayed on the badge.', 'greenmetrics' ); ?></p>
@@ -717,17 +717,17 @@ class GreenMetrics_Admin {
 			'data_transfer',
 			'total_views',
 			'requests',
-			'performance_score'
+			'performance_score',
 		);
 
 		// Available metrics with display names
 		$available_metrics = array(
-			'carbon_footprint'    => __( 'Carbon Footprint', 'greenmetrics' ),
-			'energy_consumption'  => __( 'Energy Consumption', 'greenmetrics' ),
-			'data_transfer'       => __( 'Data Transfer', 'greenmetrics' ),
-			'total_views'         => __( 'Page Views', 'greenmetrics' ),
-			'requests'            => __( 'HTTP Requests', 'greenmetrics' ),
-			'performance_score'   => __( 'Performance Score', 'greenmetrics' ),
+			'carbon_footprint'   => __( 'Carbon Footprint', 'greenmetrics' ),
+			'energy_consumption' => __( 'Energy Consumption', 'greenmetrics' ),
+			'data_transfer'      => __( 'Data Transfer', 'greenmetrics' ),
+			'total_views'        => __( 'Page Views', 'greenmetrics' ),
+			'requests'           => __( 'HTTP Requests', 'greenmetrics' ),
+			'performance_score'  => __( 'Performance Score', 'greenmetrics' ),
 		);
 		?>
 		<div class="metrics-checkboxes">
@@ -835,26 +835,26 @@ class GreenMetrics_Admin {
 	public function render_popover_content_font_field() {
 		$options = get_option( 'greenmetrics_settings' );
 		$value   = isset( $options['popover_content_font'] ) ? $options['popover_content_font'] : 'inherit';
-		
+
 		$font_options = array(
-			'inherit' => __( 'Theme Default', 'greenmetrics' ),
-			'Arial, sans-serif' => 'Arial',
-			'Helvetica, Arial, sans-serif' => 'Helvetica',
-			'Georgia, serif' => 'Georgia',
+			'inherit'                       => __( 'Theme Default', 'greenmetrics' ),
+			'Arial, sans-serif'             => 'Arial',
+			'Helvetica, Arial, sans-serif'  => 'Helvetica',
+			'Georgia, serif'                => 'Georgia',
 			'Times New Roman, Times, serif' => 'Times New Roman',
-			'Verdana, Geneva, sans-serif' => 'Verdana',
-			'system-ui, sans-serif' => 'System UI',
-			'Tahoma, Geneva, sans-serif' => 'Tahoma',
-			'Trebuchet MS, sans-serif' => 'Trebuchet MS',
-			'Courier New, monospace' => 'Courier New',
-			'Palatino, serif' => 'Palatino',
-			'Garamond, serif' => 'Garamond',
-			'Century Gothic, sans-serif' => 'Century Gothic',
-			'sans-serif' => 'Generic Sans-serif',
-			'serif' => 'Generic Serif',
-			'monospace' => 'Generic Monospace',
+			'Verdana, Geneva, sans-serif'   => 'Verdana',
+			'system-ui, sans-serif'         => 'System UI',
+			'Tahoma, Geneva, sans-serif'    => 'Tahoma',
+			'Trebuchet MS, sans-serif'      => 'Trebuchet MS',
+			'Courier New, monospace'        => 'Courier New',
+			'Palatino, serif'               => 'Palatino',
+			'Garamond, serif'               => 'Garamond',
+			'Century Gothic, sans-serif'    => 'Century Gothic',
+			'sans-serif'                    => 'Generic Sans-serif',
+			'serif'                         => 'Generic Serif',
+			'monospace'                     => 'Generic Monospace',
 		);
-		
+
 		?>
 		<select id="popover_content_font" name="greenmetrics_settings[popover_content_font]" class="regular-text">
 			<?php foreach ( $font_options as $font_value => $font_name ) : ?>
@@ -936,26 +936,26 @@ class GreenMetrics_Admin {
 	public function render_popover_metrics_font_field() {
 		$options = get_option( 'greenmetrics_settings' );
 		$value   = isset( $options['popover_metrics_font'] ) ? $options['popover_metrics_font'] : 'inherit';
-		
+
 		$font_options = array(
-			'inherit' => __( 'Theme Default', 'greenmetrics' ),
-			'Arial, sans-serif' => 'Arial',
-			'Helvetica, Arial, sans-serif' => 'Helvetica',
-			'Georgia, serif' => 'Georgia',
+			'inherit'                       => __( 'Theme Default', 'greenmetrics' ),
+			'Arial, sans-serif'             => 'Arial',
+			'Helvetica, Arial, sans-serif'  => 'Helvetica',
+			'Georgia, serif'                => 'Georgia',
 			'Times New Roman, Times, serif' => 'Times New Roman',
-			'Verdana, Geneva, sans-serif' => 'Verdana',
-			'system-ui, sans-serif' => 'System UI',
-			'Tahoma, Geneva, sans-serif' => 'Tahoma',
-			'Trebuchet MS, sans-serif' => 'Trebuchet MS',
-			'Courier New, monospace' => 'Courier New',
-			'Palatino, serif' => 'Palatino',
-			'Garamond, serif' => 'Garamond',
-			'Century Gothic, sans-serif' => 'Century Gothic',
-			'sans-serif' => 'Generic Sans-serif',
-			'serif' => 'Generic Serif',
-			'monospace' => 'Generic Monospace',
+			'Verdana, Geneva, sans-serif'   => 'Verdana',
+			'system-ui, sans-serif'         => 'System UI',
+			'Tahoma, Geneva, sans-serif'    => 'Tahoma',
+			'Trebuchet MS, sans-serif'      => 'Trebuchet MS',
+			'Courier New, monospace'        => 'Courier New',
+			'Palatino, serif'               => 'Palatino',
+			'Garamond, serif'               => 'Garamond',
+			'Century Gothic, sans-serif'    => 'Century Gothic',
+			'sans-serif'                    => 'Generic Sans-serif',
+			'serif'                         => 'Generic Serif',
+			'monospace'                     => 'Generic Monospace',
 		);
-		
+
 		?>
 		<select id="popover_metrics_font" name="greenmetrics_settings[popover_metrics_font]" class="regular-text">
 			<?php foreach ( $font_options as $font_value => $font_name ) : ?>
@@ -1048,20 +1048,20 @@ class GreenMetrics_Admin {
 	public function enqueue_styles() {
 		// Get current screen to determine which page we're on
 		$screen = get_current_screen();
-		
+
 		// Early return if not on admin page or can't determine screen
 		if ( ! $screen ) {
 			return;
 		}
-		
+
 		// Only load our styles on GreenMetrics plugin pages
 		// This includes our plugin settings pages and any page with greenmetrics in the ID
-		if ( strpos( $screen->id, 'greenmetrics' ) === false && 
-			 ! isset( $_GET['page'] ) && 
-			 ( ! isset( $_GET['page'] ) || strpos( $_GET['page'], 'greenmetrics' ) === false ) ) {
+		if ( strpos( $screen->id, 'greenmetrics' ) === false &&
+			! isset( $_GET['page'] ) &&
+			( ! isset( $_GET['page'] ) || strpos( $_GET['page'], 'greenmetrics' ) === false ) ) {
 			return;
 		}
-		
+
 		wp_enqueue_style(
 			'greenmetrics-admin',
 			GREENMETRICS_PLUGIN_URL . 'includes/admin/css/greenmetrics-admin.css',
@@ -1069,7 +1069,7 @@ class GreenMetrics_Admin {
 			GREENMETRICS_VERSION,
 			'all'
 		);
-		
+
 		// Add inline styles for the font size inputs
 		$font_size_styles = '
 		.greenmetrics-font-size-wrapper {
@@ -1147,35 +1147,35 @@ class GreenMetrics_Admin {
 	public function enqueue_scripts() {
 		// Get current screen to determine which page we're on
 		$screen = get_current_screen();
-		
+
 		// Early return if not on admin page or can't determine screen
 		if ( ! $screen ) {
 			return;
 		}
-		
+
 		// Only load our scripts on GreenMetrics plugin pages
 		// This includes our plugin settings pages and any page with greenmetrics in the ID
-		if ( strpos( $screen->id, 'greenmetrics' ) === false && 
-			 ! isset( $_GET['page'] ) && 
-			 ( ! isset( $_GET['page'] ) || strpos( $_GET['page'], 'greenmetrics' ) === false ) ) {
+		if ( strpos( $screen->id, 'greenmetrics' ) === false &&
+			! isset( $_GET['page'] ) &&
+			( ! isset( $_GET['page'] ) || strpos( $_GET['page'], 'greenmetrics' ) === false ) ) {
 			return;
 		}
-		
+
 		// We're on a GreenMetrics page - set flags
-		$is_plugin_page = true;
+		$is_plugin_page    = true;
 		$is_dashboard_page = false;
-		
+
 		// Check specifically if we're on the dashboard/stats page
-		if ( strpos( $screen->id, 'greenmetrics-dashboard' ) !== false || 
-			 ( isset( $_GET['page'] ) && $_GET['page'] === 'greenmetrics' ) ) {
+		if ( strpos( $screen->id, 'greenmetrics-dashboard' ) !== false ||
+			( isset( $_GET['page'] ) && $_GET['page'] === 'greenmetrics' ) ) {
 			$is_dashboard_page = true;
 		}
-		
+
 		// Always load WordPress dependencies on our pages
 		wp_enqueue_style( 'wp-color-picker' );
 		wp_enqueue_script( 'wp-color-picker' );
 		wp_enqueue_media(); // Add media uploader scripts
-		
+
 		// First create a common namespace and utility functions - always needed
 		wp_enqueue_script(
 			'greenmetrics-admin-utils',
@@ -1184,7 +1184,7 @@ class GreenMetrics_Admin {
 			GREENMETRICS_VERSION,
 			true
 		);
-		
+
 		// Localize script with necessary data
 		wp_localize_script(
 			'greenmetrics-admin-utils',
@@ -1205,7 +1205,7 @@ class GreenMetrics_Admin {
 				'is_plugin_page'    => $is_plugin_page,
 			)
 		);
-		
+
 		// Load core module - always needed on our pages
 		wp_enqueue_script(
 			'greenmetrics-admin-core',
@@ -1214,7 +1214,7 @@ class GreenMetrics_Admin {
 			GREENMETRICS_VERSION,
 			true
 		);
-		
+
 		// Load preview module - only needed on plugin settings pages
 		// (which we are always on if we got this far and it's not the dashboard)
 		if ( ! $is_dashboard_page ) {
@@ -1226,7 +1226,7 @@ class GreenMetrics_Admin {
 				true
 			);
 		}
-		
+
 		// Load Chart.js and Chart module - only needed on dashboard/stats page
 		if ( $is_dashboard_page ) {
 			wp_enqueue_script(
@@ -1236,7 +1236,7 @@ class GreenMetrics_Admin {
 				GREENMETRICS_VERSION,
 				true
 			);
-			
+
 			wp_enqueue_script(
 				'greenmetrics-admin-chart',
 				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/chart.js',
@@ -1244,7 +1244,7 @@ class GreenMetrics_Admin {
 				GREENMETRICS_VERSION,
 				true
 			);
-			
+
 			wp_enqueue_script(
 				'greenmetrics-admin-dashboard',
 				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/dashboard.js',
@@ -1253,20 +1253,20 @@ class GreenMetrics_Admin {
 				true
 			);
 		}
-		
+
 		// Main entry point file - always needed
 		$main_dependencies = array( 'greenmetrics-admin-core' );
-		
+
 		// Add module dependencies based on what's loaded
 		if ( ! $is_dashboard_page ) {
 			$main_dependencies[] = 'greenmetrics-admin-preview';
 		}
-		
+
 		if ( $is_dashboard_page ) {
 			$main_dependencies[] = 'greenmetrics-admin-chart';
 			$main_dependencies[] = 'greenmetrics-admin-dashboard';
 		}
-		
+
 		wp_enqueue_script(
 			'greenmetrics-admin',
 			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin.js',
@@ -1308,7 +1308,7 @@ class GreenMetrics_Admin {
 			if ( isset( $_POST['greenmetrics_refresh_nonce'] ) && wp_verify_nonce( $_POST['greenmetrics_refresh_nonce'], 'greenmetrics_refresh_stats' ) ) {
 				// Trigger manual cache refresh
 				\GreenMetrics\GreenMetrics_Tracker::manual_cache_refresh();
-				
+
 				// Redirect back to the same page with a simple parameter
 				$redirect_url = add_query_arg( 'stats-refreshed', 'true', remove_query_arg( 'settings-updated' ) );
 				wp_redirect( $redirect_url );
@@ -1326,13 +1326,13 @@ class GreenMetrics_Admin {
 			wp_send_json_error( 'Invalid nonce' );
 			return;
 		}
-		
+
 		// Get the icon type from the request
 		$icon_type = isset( $_POST['icon_type'] ) ? sanitize_text_field( $_POST['icon_type'] ) : 'leaf';
-		
+
 		// Get the icon HTML
 		$icon_html = \GreenMetrics\GreenMetrics_Icons::get_icon( $icon_type );
-		
+
 		// Return the icon HTML as a JSON response
 		wp_send_json_success( $icon_html );
 	}

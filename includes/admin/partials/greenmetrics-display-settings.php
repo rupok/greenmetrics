@@ -15,38 +15,38 @@ if ( ! defined( 'WPINC' ) ) {
 $settings = get_option(
 	'greenmetrics_settings',
 	array(
-		'enable_badge'                     => 0,
-		'display_icon'                     => 1,
-		'badge_position'                   => 'bottom-right',
-		'badge_size'                       => 'medium',
-		'badge_text'                       => 'Eco-Friendly Site',
-		'badge_icon_type'                  => 'leaf',
-		'badge_custom_icon'                => '',
-		'badge_background_color'           => '#4CAF50',
-		'badge_text_color'                 => '#ffffff',
-		'badge_icon_color'                 => '#ffffff',
-		'badge_icon_size'                  => '16px',
-		'badge_theme'                      => 'light',
-		'popover_title'                    => 'Environmental Impact',
-		'popover_bg_color'                 => '#ffffff',
-		'popover_text_color'               => '#333333',
-		'popover_metrics_color'            => '#4CAF50',
-		'popover_metrics_bg_color'         => 'rgba(0, 0, 0, 0.05)',
-		'popover_metrics_list_bg_color'    => '#f8f9fa',
+		'enable_badge'                        => 0,
+		'display_icon'                        => 1,
+		'badge_position'                      => 'bottom-right',
+		'badge_size'                          => 'medium',
+		'badge_text'                          => 'Eco-Friendly Site',
+		'badge_icon_type'                     => 'leaf',
+		'badge_custom_icon'                   => '',
+		'badge_background_color'              => '#4CAF50',
+		'badge_text_color'                    => '#ffffff',
+		'badge_icon_color'                    => '#ffffff',
+		'badge_icon_size'                     => '16px',
+		'badge_theme'                         => 'light',
+		'popover_title'                       => 'Environmental Impact',
+		'popover_bg_color'                    => '#ffffff',
+		'popover_text_color'                  => '#333333',
+		'popover_metrics_color'               => '#4CAF50',
+		'popover_metrics_bg_color'            => 'rgba(0, 0, 0, 0.05)',
+		'popover_metrics_list_bg_color'       => '#f8f9fa',
 		'popover_metrics_list_hover_bg_color' => '#f3f4f6',
-		'popover_content_font'             => '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif',
-		'popover_content_font_size'        => '16px',
-		'popover_metrics_font'             => '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif',
-		'popover_metrics_font_size'        => '15px',
-		'popover_metrics_label_font_size'  => '14px',
-		'popover_custom_content'           => '',
-		'popover_metrics'                  => array(
+		'popover_content_font'                => '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif',
+		'popover_content_font_size'           => '16px',
+		'popover_metrics_font'                => '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif',
+		'popover_metrics_font_size'           => '15px',
+		'popover_metrics_label_font_size'     => '14px',
+		'popover_custom_content'              => '',
+		'popover_metrics'                     => array(
 			'carbon_footprint',
 			'energy_consumption',
 			'data_transfer',
 			'total_views',
 			'requests',
-			'performance_score'
+			'performance_score',
 		),
 	)
 );
@@ -60,21 +60,23 @@ $settings = get_option(
 				<h1><?php esc_html_e( 'GreenMetrics - Display Settings', 'greenmetrics' ); ?></h1>
 			</div>
 			
-			<span class="version"><?php 
+			<span class="version">
+			<?php
 			/* translators: %s: Plugin version number */
-			echo esc_html( sprintf( __( 'GreenMetrics v%s', 'greenmetrics' ), GREENMETRICS_VERSION ) ); 
-			?></span>
+			echo esc_html( sprintf( __( 'GreenMetrics v%s', 'greenmetrics' ), GREENMETRICS_VERSION ) );
+			?>
+			</span>
 		</div>
 
 		<div class="greenmetrics-admin-content-wrapper">
 			<!-- Left Column: Settings Form -->
 			<div class="greenmetrics-admin-settings-column">
 				<form method="post" action="options.php">
-					<?php 
+					<?php
 					settings_fields( 'greenmetrics_settings' );
-					
+
 					// Get admin instance if not already available
-					if (!isset($this) || !method_exists($this, 'render_badge_field')) {
+					if ( ! isset( $this ) || ! method_exists( $this, 'render_badge_field' ) ) {
 						global $greenmetrics_admin;
 						$admin = $greenmetrics_admin;
 					} else {
@@ -259,29 +261,29 @@ $settings = get_option(
 						<div class="preview-section">
 							<h3 style="padding: 10px 0; text-align: center;"><?php esc_html_e( 'Badge', 'greenmetrics' ); ?></h3>
 							<div class="badge-preview-panel">
-								<div id="badge-preview-container" style="position: absolute;" class="<?php echo esc_attr( isset($settings['badge_position']) ? $settings['badge_position'] : 'bottom-right' ); ?>">
-									<div class="greenmetrics-badge <?php echo esc_attr( isset($settings['badge_size']) ? $settings['badge_size'] : 'medium' ); ?>" style="
-										background-color: <?php echo esc_attr( isset($settings['badge_background_color']) ? $settings['badge_background_color'] : '#4CAF50' ); ?>;
-										color: <?php echo esc_attr( isset($settings['badge_text_color']) ? $settings['badge_text_color'] : '#ffffff' ); ?>;
+								<div id="badge-preview-container" style="position: absolute;" class="<?php echo esc_attr( isset( $settings['badge_position'] ) ? $settings['badge_position'] : 'bottom-right' ); ?>">
+									<div class="greenmetrics-badge <?php echo esc_attr( isset( $settings['badge_size'] ) ? $settings['badge_size'] : 'medium' ); ?>" style="
+										background-color: <?php echo esc_attr( isset( $settings['badge_background_color'] ) ? $settings['badge_background_color'] : '#4CAF50' ); ?>;
+										color: <?php echo esc_attr( isset( $settings['badge_text_color'] ) ? $settings['badge_text_color'] : '#ffffff' ); ?>;
 									">
 										<?php if ( isset( $settings['display_icon'] ) && $settings['display_icon'] ) : ?>
-											<div class="icon-container" style="color: <?php echo esc_attr( isset($settings['badge_icon_color']) ? $settings['badge_icon_color'] : '#ffffff' ); ?>;">
+											<div class="icon-container" style="color: <?php echo esc_attr( isset( $settings['badge_icon_color'] ) ? $settings['badge_icon_color'] : '#ffffff' ); ?>;">
 												<?php
-												$icon_type = isset( $settings['badge_icon_type'] ) ? $settings['badge_icon_type'] : 'leaf';
+												$icon_type   = isset( $settings['badge_icon_type'] ) ? $settings['badge_icon_type'] : 'leaf';
 												$custom_icon = isset( $settings['badge_custom_icon'] ) ? $settings['badge_custom_icon'] : '';
-												$icon_size = isset( $settings['badge_icon_size'] ) ? $settings['badge_icon_size'] : '16px';
-												
-												if ($icon_type === 'custom' && !empty($custom_icon)) {
+												$icon_size   = isset( $settings['badge_icon_size'] ) ? $settings['badge_icon_size'] : '16px';
+
+												if ( $icon_type === 'custom' && ! empty( $custom_icon ) ) {
 													echo '<img src="' . esc_url( $custom_icon ) . '" alt="' . esc_attr__( 'Custom Icon', 'greenmetrics' ) . '" style="width: ' . esc_attr( $icon_size ) . '; height: ' . esc_attr( $icon_size ) . ';">';
 												} else {
 													// Get the icon from GreenMetrics_Icons class
-													$icon_html = \GreenMetrics\GreenMetrics_Icons::get_icon($icon_type);
+													$icon_html = \GreenMetrics\GreenMetrics_Icons::get_icon( $icon_type );
 													echo '<div style="width: ' . esc_attr( $icon_size ) . '; height: ' . esc_attr( $icon_size ) . ';">' . $icon_html . '</div>';
 												}
 												?>
 											</div>
 										<?php endif; ?>
-										<span><?php echo esc_html( isset($settings['badge_text']) ? $settings['badge_text'] : __('Eco-Friendly Site', 'greenmetrics') ); ?></span>
+										<span><?php echo esc_html( isset( $settings['badge_text'] ) ? $settings['badge_text'] : __( 'Eco-Friendly Site', 'greenmetrics' ) ); ?></span>
 									</div>
 								</div>
 							</div>
@@ -298,46 +300,64 @@ $settings = get_option(
 									padding: 24px;
 									border-radius: 4px;
 									box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-									background-color: <?php echo isset($settings['popover_bg_color']) ? esc_attr($settings['popover_bg_color']) : '#ffffff'; ?>;
-									color: <?php echo isset($settings['popover_text_color']) ? esc_attr($settings['popover_text_color']) : '#333333'; ?>;
-									font-family: <?php echo isset($settings['popover_content_font']) ? esc_attr($settings['popover_content_font']) : 'inherit'; ?>;
-									font-size: <?php echo isset($settings['popover_content_font_size']) ? esc_attr($settings['popover_content_font_size']) : '16px'; ?>;
+									background-color: <?php echo isset( $settings['popover_bg_color'] ) ? esc_attr( $settings['popover_bg_color'] ) : '#ffffff'; ?>;
+									color: <?php echo isset( $settings['popover_text_color'] ) ? esc_attr( $settings['popover_text_color'] ) : '#333333'; ?>;
+									font-family: <?php echo isset( $settings['popover_content_font'] ) ? esc_attr( $settings['popover_content_font'] ) : 'inherit'; ?>;
+									font-size: <?php echo isset( $settings['popover_content_font_size'] ) ? esc_attr( $settings['popover_content_font_size'] ) : '16px'; ?>;
 								">
-									<h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: <?php echo isset($settings['popover_text_color']) ? esc_attr($settings['popover_text_color']) : '#333333'; ?>;">
-										<?php echo isset($settings['popover_title']) ? esc_html($settings['popover_title']) : esc_html__('Environmental Impact', 'greenmetrics'); ?>
+									<h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: <?php echo isset( $settings['popover_text_color'] ) ? esc_attr( $settings['popover_text_color'] ) : '#333333'; ?>;">
+										<?php echo isset( $settings['popover_title'] ) ? esc_html( $settings['popover_title'] ) : esc_html__( 'Environmental Impact', 'greenmetrics' ); ?>
 									</h3>
 									
 									<div class="greenmetrics-global-badge-metrics" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
 										<?php
 										// Sample metrics data for preview
 										$metrics_data = array(
-											'carbon_footprint' => array('label' => __('Carbon Footprint', 'greenmetrics'), 'value' => '0.024g CO2'),
-											'energy_consumption' => array('label' => __('Energy Consumption', 'greenmetrics'), 'value' => '0.32 Wh'),
-											'data_transfer' => array('label' => __('Data Transfer', 'greenmetrics'), 'value' => '1.24 MB'),
-											'total_views' => array('label' => __('Page Views', 'greenmetrics'), 'value' => '1,542'),
-											'requests' => array('label' => __('HTTP Requests', 'greenmetrics'), 'value' => '24'),
-											'performance_score' => array('label' => __('Performance Score', 'greenmetrics'), 'value' => '92.5%'),
+											'carbon_footprint' => array(
+												'label' => __( 'Carbon Footprint', 'greenmetrics' ),
+												'value' => '0.024g CO2',
+											),
+											'energy_consumption' => array(
+												'label' => __( 'Energy Consumption', 'greenmetrics' ),
+												'value' => '0.32 Wh',
+											),
+											'data_transfer' => array(
+												'label' => __( 'Data Transfer', 'greenmetrics' ),
+												'value' => '1.24 MB',
+											),
+											'total_views' => array(
+												'label' => __( 'Page Views', 'greenmetrics' ),
+												'value' => '1,542',
+											),
+											'requests'    => array(
+												'label' => __( 'HTTP Requests', 'greenmetrics' ),
+												'value' => '24',
+											),
+											'performance_score' => array(
+												'label' => __( 'Performance Score', 'greenmetrics' ),
+												'value' => '92.5%',
+											),
 										);
-										
-										$popover_metrics = isset($settings['popover_metrics']) ? $settings['popover_metrics'] : array(
+
+										$popover_metrics = isset( $settings['popover_metrics'] ) ? $settings['popover_metrics'] : array(
 											'carbon_footprint',
 											'energy_consumption',
 											'data_transfer',
 											'total_views',
 											'requests',
-											'performance_score'
+											'performance_score',
 										);
-										
+
 										// Show selected metrics
-										foreach ($popover_metrics as $metric_key) {
-											if (isset($metrics_data[$metric_key])) {
+										foreach ( $popover_metrics as $metric_key ) {
+											if ( isset( $metrics_data[ $metric_key ] ) ) {
 												?>
-												<div class="greenmetrics-global-badge-metric" data-metric="<?php echo esc_attr($metric_key); ?>" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 16px; padding: 10px; background-color: <?php echo isset($settings['popover_metrics_list_bg_color']) ? esc_attr($settings['popover_metrics_list_bg_color']) : 'transparent'; ?>; border-radius: 12px; transition: all 0.2s ease;">
+												<div class="greenmetrics-global-badge-metric" data-metric="<?php echo esc_attr( $metric_key ); ?>" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 16px; padding: 10px; background-color: <?php echo isset( $settings['popover_metrics_list_bg_color'] ) ? esc_attr( $settings['popover_metrics_list_bg_color'] ) : 'transparent'; ?>; border-radius: 12px; transition: all 0.2s ease;">
 													<div class="greenmetrics-global-badge-metric-label" style="color: #666; font-size: 15px;">
-														<span><?php echo esc_html($metrics_data[$metric_key]['label']); ?></span>
+														<span><?php echo esc_html( $metrics_data[ $metric_key ]['label'] ); ?></span>
 													</div>
 													<div class="greenmetrics-global-badge-metric-value" style="font-weight: 500; color: #4CAF50; font-size: 15px; background: rgba(0, 0, 0, 0.04); padding: 4px 8px; border-radius: 4px;">
-														<?php echo esc_html($metrics_data[$metric_key]['value']); ?>
+														<?php echo esc_html( $metrics_data[ $metric_key ]['value'] ); ?>
 													</div>
 												</div>
 												<?php
@@ -346,9 +366,9 @@ $settings = get_option(
 										?>
 									</div>
 									
-									<?php if (isset($settings['popover_custom_content']) && !empty($settings['popover_custom_content'])) : ?>
+									<?php if ( isset( $settings['popover_custom_content'] ) && ! empty( $settings['popover_custom_content'] ) ) : ?>
 										<div class="greenmetrics-global-badge-custom-content" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1);">
-											<?php echo wp_kses_post($settings['popover_custom_content']); ?>
+											<?php echo wp_kses_post( $settings['popover_custom_content'] ); ?>
 										</div>
 									<?php endif; ?>
 								</div>
@@ -414,7 +434,7 @@ $settings = get_option(
 jQuery(document).ready(function($) {
 	// Define ajaxurl if not already defined (WordPress admin variable)
 	if (typeof ajaxurl === 'undefined') {
-		var ajaxurl = '<?php echo esc_url(admin_url('admin-ajax.php')); ?>';
+		var ajaxurl = '<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>';
 	}
 	
 	// Add localized strings for JavaScript
@@ -422,11 +442,11 @@ jQuery(document).ready(function($) {
 	
 	// Update badge and popover preview when settings change
 	$('#enable_badge, #badge_position, #badge_size, #badge_text, #badge_background_color, #badge_text_color, ' + 
-	  '#display_icon, #badge_icon_type, #badge_icon_color, #badge_icon_size, #badge_custom_icon, ' +
-	  '#popover_title, #popover_custom_content, #popover_bg_color, #popover_text_color, #popover_metrics_color, ' +
-	  '#popover_metrics_bg_color, #popover_content_font, #popover_metrics_font, #popover_metrics_list_bg_color, ' + 
-	  '#popover_content_font_size_number, #popover_metrics_font_size_number, #popover_metrics_label_font_size_number, ' +
-	  '#popover_metrics_list_hover_bg_color')
+		'#display_icon, #badge_icon_type, #badge_icon_color, #badge_icon_size, #badge_custom_icon, ' +
+		'#popover_title, #popover_custom_content, #popover_bg_color, #popover_text_color, #popover_metrics_color, ' +
+		'#popover_metrics_bg_color, #popover_content_font, #popover_metrics_font, #popover_metrics_list_bg_color, ' + 
+		'#popover_content_font_size_number, #popover_metrics_font_size_number, #popover_metrics_label_font_size_number, ' +
+		'#popover_metrics_list_hover_bg_color')
 	.on('change input', function() {
 		updatePreview();
 	});

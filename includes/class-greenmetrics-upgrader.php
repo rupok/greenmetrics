@@ -164,7 +164,7 @@ class GreenMetrics_Upgrader {
 		if ( ! empty( $missing_columns ) ) {
 			greenmetrics_log( 'Missing database columns', $missing_columns );
 			self::add_missing_columns( $table_name, $missing_columns );
-			
+
 			// Force refresh the column cache after schema changes
 			GreenMetrics_DB_Helper::get_table_columns( $table_name, true );
 		}
@@ -175,10 +175,10 @@ class GreenMetrics_Upgrader {
 	 */
 	private static function create_database_tables() {
 		greenmetrics_log( 'Creating database tables via upgrader' );
-		
+
 		// Use the centralized table creation method from DB Helper
 		$result = GreenMetrics_DB_Helper::create_stats_table();
-		
+
 		greenmetrics_log( 'Database tables created via upgrader', $result );
 	}
 

@@ -62,12 +62,12 @@ class GreenMetrics_Rest_API {
 						'type'              => 'string',
 						'sanitize_callback' => 'sanitize_text_field',
 					),
-					'end_date' => array(
+					'end_date'   => array(
 						'required'          => false,
 						'type'              => 'string',
 						'sanitize_callback' => 'sanitize_text_field',
 					),
-					'interval' => array(
+					'interval'   => array(
 						'required'          => false,
 						'type'              => 'string',
 						'sanitize_callback' => 'sanitize_text_field',
@@ -334,14 +334,21 @@ class GreenMetrics_Rest_API {
 	public function get_metrics_by_date( $request ) {
 		try {
 			$start_date = $request->get_param( 'start_date' );
-			$end_date = $request->get_param( 'end_date' );
-			$interval = $request->get_param( 'interval' ) ?: 'day';
+			$end_date   = $request->get_param( 'end_date' );
+			$interval   = $request->get_param( 'interval' ) ?: 'day';
 
-			greenmetrics_log( 'REST: Getting metrics by date range', array( 'start' => $start_date, 'end' => $end_date, 'interval' => $interval ) );
+			greenmetrics_log(
+				'REST: Getting metrics by date range',
+				array(
+					'start'    => $start_date,
+					'end'      => $end_date,
+					'interval' => $interval,
+				)
+			);
 
 			// Get the tracker instance
 			$tracker = GreenMetrics_Tracker::get_instance();
-			
+
 			// Get metrics by date range
 			$metrics = $tracker->get_metrics_by_date_range( $start_date, $end_date, $interval );
 

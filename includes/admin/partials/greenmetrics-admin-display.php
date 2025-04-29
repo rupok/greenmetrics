@@ -32,10 +32,12 @@ $settings = get_option(
 				<img src="<?php echo esc_url( GREENMETRICS_PLUGIN_URL . 'includes/admin/img/greenmetrics-icon.png' ); ?>" alt="<?php esc_attr_e( 'GreenMetrics Icon', 'greenmetrics' ); ?>" />
 				<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 			</div>
-			<span class="version"><?php 
+			<span class="version">
+			<?php
 			/* translators: %s: Plugin version number */
-			echo esc_html( sprintf( __( 'GreenMetrics v%s', 'greenmetrics' ), GREENMETRICS_VERSION ) ); 
-			?></span>
+			echo esc_html( sprintf( __( 'GreenMetrics v%s', 'greenmetrics' ), GREENMETRICS_VERSION ) );
+			?>
+			</span>
 		</div>
 
 		<div class="greenmetrics-admin-content">

@@ -57,7 +57,7 @@ class GreenMetrics_Tracker {
 	 * Handle the tracking request.
 	 *
 	 * This function processes tracking data from the REST API endpoint.
-	 * 
+	 *
 	 * @param array $data The tracking data
 	 * @return bool Whether the processing was successful
 	 */
@@ -209,10 +209,10 @@ class GreenMetrics_Tracker {
 		}
 
 		// Attempt to get cached stats
-		$cache_key = 'greenmetrics_stats_' . ( $page_id ? $page_id : 'all' );
+		$cache_key    = 'greenmetrics_stats_' . ( $page_id ? $page_id : 'all' );
 		$cached_stats = false;
-		
-		if ( !$force_refresh ) {
+
+		if ( ! $force_refresh ) {
 			$cached_stats = get_transient( $cache_key );
 			if ( false !== $cached_stats ) {
 				return $cached_stats;
@@ -320,13 +320,13 @@ class GreenMetrics_Tracker {
 
 		// Cache the results for 24 hours
 		set_transient( $cache_key, $result, DAY_IN_SECONDS );
-		
+
 		return $result;
 	}
 
 	/**
 	 * Calculate median load time efficiently using a single query.
-	 * 
+	 *
 	 * Uses a compatible approach for MySQL versions that don't support PERCENTILE_CONT.
 	 *
 	 * @param int|null $page_id Optional page ID to filter results.
@@ -335,30 +335,30 @@ class GreenMetrics_Tracker {
 	public function get_median_load_time( $page_id = null ) {
 		global $wpdb;
 		$table_name_escaped = esc_sql( $this->table_name );
-		
+
 		// Where clause if filtering by page_id
 		$where_clause = $page_id ? $wpdb->prepare( ' WHERE page_id = %d', $page_id ) : '';
-		
+
 		// Get count of rows
-		$count_sql = "SELECT COUNT(*) FROM $table_name_escaped $where_clause";
+		$count_sql  = "SELECT COUNT(*) FROM $table_name_escaped $where_clause";
 		$total_rows = $wpdb->get_var( $count_sql );
-		
-		if ( !$total_rows ) {
+
+		if ( ! $total_rows ) {
 			return null;
 		}
-		
+
 		// Calculate middle position(s)
-		$middle_low = floor( $total_rows / 2 );
+		$middle_low  = floor( $total_rows / 2 );
 		$middle_high = ceil( $total_rows / 2 );
-		
+
 		// Get the value(s) at the middle position(s)
 		$median_sql = "SELECT AVG(load_time) FROM (
 			SELECT load_time FROM $table_name_escaped $where_clause ORDER BY load_time
-			LIMIT $middle_low, " . ($middle_high - $middle_low + 1) . "
-		) as t";
-		
+			LIMIT $middle_low, " . ( $middle_high - $middle_low + 1 ) . '
+		) as t';
+
 		$median = $wpdb->get_var( $median_sql );
-		
+
 		// Ensure we return a valid number or null
 		return $median !== false ? (float) $median : null;
 	}
@@ -403,12 +403,12 @@ class GreenMetrics_Tracker {
 			$settings = GreenMetrics_Settings_Manager::get_instance()->get();
 
 			// Calculate metrics using the Calculator class
-			$data_transfer = isset( $metrics['data_transfer'] ) ? floatval( $metrics['data_transfer'] ) : 0;
-			$carbon_footprint = GreenMetrics_Calculator::calculate_carbon_emissions( $data_transfer );
+			$data_transfer      = isset( $metrics['data_transfer'] ) ? floatval( $metrics['data_transfer'] ) : 0;
+			$carbon_footprint   = GreenMetrics_Calculator::calculate_carbon_emissions( $data_transfer );
 			$energy_consumption = GreenMetrics_Calculator::calculate_energy_consumption( $data_transfer );
 
 			// Calculate performance score
-			$load_time = isset( $metrics['load_time'] ) ? floatval( $metrics['load_time'] ) : 0;
+			$load_time         = isset( $metrics['load_time'] ) ? floatval( $metrics['load_time'] ) : 0;
 			$performance_score = $this->calculate_performance_score( $load_time );
 
 			// Prepare data for insertion
@@ -428,7 +428,7 @@ class GreenMetrics_Tracker {
 				greenmetrics_log( 'Table does not exist, attempting to create it', $this->table_name );
 				// Try to create the table
 				GreenMetrics_DB_Helper::create_stats_table();
-				
+
 				// Check if table creation was successful
 				if ( ! $this->table_exists() ) {
 					greenmetrics_log( 'Failed to create table', $this->table_name, 'error' );
@@ -452,13 +452,20 @@ class GreenMetrics_Tracker {
 			}
 
 			// Delete the cache for this page and for all pages to ensure fresh data
-			$this->delete_stats_cache($page_id);
-			$this->delete_stats_cache(null);  // Delete the 'all' cache
-			
+			$this->delete_stats_cache( $page_id );
+			$this->delete_stats_cache( null );  // Delete the 'all' cache
+
 			greenmetrics_log( 'Metrics saved successfully for page ID: ' . $page_id );
 			return true;
 		} catch ( \Exception $e ) {
-			greenmetrics_log( 'Exception in process_and_save_metrics', array( 'message' => $e->getMessage(), 'trace' => $e->getTraceAsString() ), 'error' );
+			greenmetrics_log(
+				'Exception in process_and_save_metrics',
+				array(
+					'message' => $e->getMessage(),
+					'trace'   => $e->getTraceAsString(),
+				),
+				'error'
+			);
 			return GreenMetrics_Error_Handler::handle_exception( $e, 'tracking_exception' );
 		}
 	}
@@ -497,13 +504,13 @@ class GreenMetrics_Tracker {
 	 */
 	public static function refresh_stats_cache() {
 		$instance = self::get_instance();
-		
+
 		// First, delete all caches to ensure they're refreshed
-		$instance->delete_stats_cache(null);
-		
+		$instance->delete_stats_cache( null );
+
 		// Now force a new database query to refresh the cache
-		$instance->get_stats(null, true);
-		
+		$instance->get_stats( null, true );
+
 		greenmetrics_log( 'Stats cache refreshed' );
 	}
 
@@ -546,17 +553,17 @@ class GreenMetrics_Tracker {
 
 		// Format dates for SQL query
 		$start_date_sql = date( 'Y-m-d 00:00:00', strtotime( $start_date ) );
-		$end_date_sql = date( 'Y-m-d 23:59:59', strtotime( $end_date ) );
+		$end_date_sql   = date( 'Y-m-d 23:59:59', strtotime( $end_date ) );
 
 		// Group by interval
-		$group_by = "DATE(created_at)";
-		$select_date = "DATE(created_at) as date";
-		
+		$group_by    = 'DATE(created_at)';
+		$select_date = 'DATE(created_at) as date';
+
 		if ( $interval === 'week' ) {
-			$group_by = "YEARWEEK(created_at)";
+			$group_by    = 'YEARWEEK(created_at)';
 			$select_date = "STR_TO_DATE(CONCAT(YEARWEEK(created_at),' Sunday'), '%X%V %W') as date";
 		} elseif ( $interval === 'month' ) {
-			$group_by = "DATE_FORMAT(created_at, '%Y-%m')";
+			$group_by    = "DATE_FORMAT(created_at, '%Y-%m')";
 			$select_date = "DATE_FORMAT(created_at, '%Y-%m-01') as date";
 		}
 
@@ -583,31 +590,38 @@ class GreenMetrics_Tracker {
 
 		// Check if we got results
 		if ( ! $results ) {
-			greenmetrics_log( 'No metrics found for date range', array( 'start' => $start_date, 'end' => $end_date ), 'warning' );
+			greenmetrics_log(
+				'No metrics found for date range',
+				array(
+					'start' => $start_date,
+					'end'   => $end_date,
+				),
+				'warning'
+			);
 			return array();
 		}
 
 		// Format results for chart display
 		$formatted_results = array(
-			'dates' => array(),
-			'carbon_footprint' => array(),
+			'dates'              => array(),
+			'carbon_footprint'   => array(),
 			'energy_consumption' => array(),
-			'data_transfer' => array(),
-			'http_requests' => array(),
-			'page_views' => array(),
+			'data_transfer'      => array(),
+			'http_requests'      => array(),
+			'page_views'         => array(),
 		);
 
 		foreach ( $results as $row ) {
 			// Format date for display
 			$formatted_date = date( 'M j', strtotime( $row['date'] ) );
-			
+
 			// Add data to the formatted results
-			$formatted_results['dates'][] = $formatted_date;
-			$formatted_results['carbon_footprint'][] = round( floatval( $row['carbon_footprint'] ), 2 );
+			$formatted_results['dates'][]              = $formatted_date;
+			$formatted_results['carbon_footprint'][]   = round( floatval( $row['carbon_footprint'] ), 2 );
 			$formatted_results['energy_consumption'][] = round( floatval( $row['energy_consumption'] ), 4 );
-			$formatted_results['data_transfer'][] = round( floatval( $row['data_transfer'] ) / 1024, 2 ); // Convert to KB
-			$formatted_results['http_requests'][] = intval( $row['requests'] );
-			$formatted_results['page_views'][] = intval( $row['views'] );
+			$formatted_results['data_transfer'][]      = round( floatval( $row['data_transfer'] ) / 1024, 2 ); // Convert to KB
+			$formatted_results['http_requests'][]      = intval( $row['requests'] );
+			$formatted_results['page_views'][]         = intval( $row['views'] );
 		}
 
 		return $formatted_results;

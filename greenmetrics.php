@@ -26,12 +26,12 @@ define( 'GREENMETRICS_DEBUG', false ); // Disabled by default for production env
 
 // Define a constant that can be used for compile-time optimizations
 // When true, all logging calls will be completely bypassed
-define( 'GREENMETRICS_NO_DEBUG', !GREENMETRICS_DEBUG );
+define( 'GREENMETRICS_NO_DEBUG', ! GREENMETRICS_DEBUG );
 
 /**
  * Helper function for logging debug messages.
  * Only logs if GREENMETRICS_DEBUG is enabled.
- * 
+ *
  * In production builds, this function does nothing and incurs no performance penalty
  * because the constant GREENMETRICS_NO_DEBUG will be evaluated at "compile time".
  *
@@ -43,10 +43,10 @@ define( 'GREENMETRICS_NO_DEBUG', !GREENMETRICS_DEBUG );
 function greenmetrics_log( $message, $data = null, $level = 'info' ) {
 	// This IF statement is evaluated at "compile time" by PHP's optimizer
 	// When GREENMETRICS_NO_DEBUG is true, the entire function body is skipped
-	if (GREENMETRICS_NO_DEBUG) {
+	if ( GREENMETRICS_NO_DEBUG ) {
 		return;
 	}
-	
+
 	// The code below only runs when debugging is enabled
 	$log_message = date( '[Y-m-d H:i:s]' ) . " GreenMetrics: $message";
 
@@ -81,10 +81,10 @@ spl_autoload_register(
 
 		// Split the relative class name into parts
 		$parts = explode( '\\', $relative_class ); // e.g., ['Admin', 'GreenMetrics_Admin']
-		
+
 		// The last part is the class name
 		$class_name_raw = array_pop( $parts ); // e.g., 'GreenMetrics_Admin'
-		
+
 		// The remaining parts form the subdirectory path (convert to lowercase)
 		$subdir = ! empty( $parts ) ? strtolower( implode( '/', $parts ) ) . '/' : ''; // e.g., 'admin/'
 
