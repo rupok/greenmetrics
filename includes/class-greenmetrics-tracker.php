@@ -7,6 +7,7 @@
  */
 
 namespace GreenMetrics;
+// phpcs:ignoreFile WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
@@ -226,31 +227,40 @@ class GreenMetrics_Tracker {
 		$carbon_intensity = isset( $settings['carbon_intensity'] ) ? floatval( $settings['carbon_intensity'] ) : 0.475;
 		$energy_per_byte  = isset( $settings['energy_per_byte'] ) ? floatval( $settings['energy_per_byte'] ) : 0.000000000072;
 
-		// Format the query with WHERE clause if needed
-		$table_name_escaped = esc_sql( $this->table_name );
-		
-		// Base query without the WHERE clause
-		$base_query = "SELECT
-			COUNT(*) as total_views,
-			SUM(data_transfer) as total_data_transfer,
-			AVG(load_time) as avg_load_time,
-			AVG(performance_score) as avg_performance_score,
-			SUM(requests) as total_requests,
-			SUM(energy_consumption) as total_energy_consumption,
-			SUM(carbon_footprint) as total_carbon_footprint
-		FROM " . $table_name_escaped;
-		
-		// Add WHERE clause if needed
+		$table = esc_sql( $this->table_name );
 		if ( $page_id ) {
-			$sql = $wpdb->prepare(
-				$base_query . " WHERE page_id = %d",
-				$page_id
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$stats = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT
+						COUNT(*) as total_views,
+						SUM(data_transfer) as total_data_transfer,
+						AVG(load_time) as avg_load_time,
+						AVG(performance_score) as avg_performance_score,
+						SUM(requests) as total_requests,
+						SUM(energy_consumption) as total_energy_consumption,
+						SUM(carbon_footprint) as total_carbon_footprint
+					FROM {$table}
+					WHERE page_id = %d",
+					$page_id
+				),
+				ARRAY_A
 			);
 		} else {
-			$sql = $base_query;
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$stats = $wpdb->get_row(
+				"SELECT
+					COUNT(*) as total_views,
+					SUM(data_transfer) as total_data_transfer,
+					AVG(load_time) as avg_load_time,
+					AVG(performance_score) as avg_performance_score,
+					SUM(requests) as total_requests,
+					SUM(energy_consumption) as total_energy_consumption,
+					SUM(carbon_footprint) as total_carbon_footprint
+				FROM {$table}",
+				ARRAY_A
+			);
 		}
-
-		$stats = $wpdb->get_row( $sql, ARRAY_A );
 
 		if ( ! $stats ) {
 			greenmetrics_log( 'No stats found in database', null, 'warning' );
@@ -328,59 +338,55 @@ class GreenMetrics_Tracker {
 	 */
 	public function get_median_load_time( $page_id = null ) {
 		global $wpdb;
-		$table_name_escaped = esc_sql( $this->table_name );
-
-		// Where clause if filtering by page_id
-		$where_clause = $page_id ? $wpdb->prepare( ' WHERE page_id = %d', $page_id ) : '';
-
-		// Get count of rows using a properly prepared statement
+		$table = esc_sql( $this->table_name );
 		if ( $page_id ) {
-			// If we have a page_id, use a fully prepared statement
-			$count_sql = $wpdb->prepare(
-				"SELECT COUNT(*) FROM " . $table_name_escaped . " WHERE page_id = %d",
-				$page_id
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$total_rows = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT COUNT(*) FROM {$table} WHERE page_id = %d",
+					$page_id
+				)
 			);
 		} else {
-			// If no page_id, we don't need placeholders but still need to protect the table name
-			$count_sql = "SELECT COUNT(*) FROM " . $table_name_escaped;
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$total_rows = $wpdb->get_var(
+				"SELECT COUNT(*) FROM {$table}"
+			);
 		}
-		$total_rows = $wpdb->get_var( $count_sql );
-
 		if ( ! $total_rows ) {
 			return null;
 		}
-
-		// Calculate middle position(s)
 		$middle_low  = floor( $total_rows / 2 );
 		$middle_high = ceil( $total_rows / 2 );
-
-		// Get the value(s) at the middle position(s) - with fully prepared queries
 		if ( $page_id ) {
-			// If we have a page_id, use a fully prepared statement with the page filter
-			$median_sql = $wpdb->prepare(
-				"SELECT AVG(load_time) FROM (
-					SELECT load_time FROM " . $table_name_escaped . " WHERE page_id = %d ORDER BY load_time
-					LIMIT %d, %d
-				) as t",
-				$page_id,
-				$middle_low,
-				($middle_high - $middle_low + 1)
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$median = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT AVG(load_time) FROM (
+						SELECT load_time FROM {$table}
+						WHERE page_id = %d
+						ORDER BY load_time
+						LIMIT %d, %d
+					) as t",
+					$page_id,
+					$middle_low,
+					$middle_high - $middle_low + 1
+				)
 			);
 		} else {
-			// If no page_id filter is needed
-			$median_sql = $wpdb->prepare(
-				"SELECT AVG(load_time) FROM (
-					SELECT load_time FROM " . $table_name_escaped . " ORDER BY load_time
-					LIMIT %d, %d
-				) as t",
-				$middle_low,
-				($middle_high - $middle_low + 1)
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$median = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT AVG(load_time) FROM (
+						SELECT load_time FROM {$table}
+						ORDER BY load_time
+						LIMIT %d, %d
+					) as t",
+					$middle_low,
+					$middle_high - $middle_low + 1
+				)
 			);
 		}
-
-		$median = $wpdb->get_var( $median_sql );
-
-		// Ensure we return a valid number or null
 		return $median !== false ? (float) $median : null;
 	}
 
@@ -561,25 +567,20 @@ class GreenMetrics_Tracker {
 	 */
 	public function get_metrics_by_date_range( $start_date = null, $end_date = null, $interval = 'day' ) {
 		global $wpdb;
-		$table_name_escaped = esc_sql( $this->table_name );
-
+		$table = esc_sql( $this->table_name );
 		// Set default date range if not provided (last 7 days)
 		if ( empty( $start_date ) ) {
 			$start_date = gmdate( 'Y-m-d', strtotime( '-7 days' ) );
 		}
-
 		if ( empty( $end_date ) ) {
 			$end_date = gmdate( 'Y-m-d' );
 		}
-
 		// Format dates for SQL query
 		$start_date_sql = gmdate( 'Y-m-d 00:00:00', strtotime( $start_date ) );
 		$end_date_sql   = gmdate( 'Y-m-d 23:59:59', strtotime( $end_date ) );
-
 		// Group by interval
 		$group_by    = 'DATE(created_at)';
 		$select_date = 'DATE(created_at) as date';
-
 		if ( $interval === 'week' ) {
 			$group_by    = 'YEARWEEK(created_at)';
 			$select_date = "STR_TO_DATE(CONCAT(YEARWEEK(created_at),' Sunday'), '%X%V %W') as date";
@@ -587,29 +588,27 @@ class GreenMetrics_Tracker {
 			$group_by    = "DATE_FORMAT(created_at, '%Y-%m')";
 			$select_date = "DATE_FORMAT(created_at, '%Y-%m-01') as date";
 		}
-
-		// Prepare the SQL query - handle the SQL components safely
-		$base_query = "SELECT " . $select_date . ", COUNT(*) as views, 
-			SUM(data_transfer) as data_transfer,
-			SUM(carbon_footprint) as carbon_footprint, 
-			SUM(energy_consumption) as energy_consumption,
-			SUM(requests) as requests, 
-			AVG(load_time) as avg_load_time
-		FROM " . $table_name_escaped;
-		
-		$end_query = " GROUP BY " . $group_by . " ORDER BY date ASC";
-		
-		// Create the complete prepared query with date placeholders
-		$sql = $wpdb->prepare(
-			$base_query . " WHERE created_at BETWEEN %s AND %s" . $end_query,
-			$start_date_sql,
-			$end_date_sql
-		);
-		
-		// Execute the query
-		$results = $wpdb->get_results( $sql, ARRAY_A );
-
 		// Check if we got results
+		// Execute inline prepared query for metrics by date range
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT {$select_date},
+					COUNT(*) as views,
+					SUM(data_transfer) as data_transfer,
+					SUM(carbon_footprint) as carbon_footprint,
+					SUM(energy_consumption) as energy_consumption,
+					SUM(requests) as requests,
+					AVG(load_time) as avg_load_time
+				FROM {$table}
+				WHERE created_at BETWEEN %s AND %s
+				GROUP BY {$group_by}
+				ORDER BY date ASC",
+				$start_date_sql,
+				$end_date_sql
+			),
+			ARRAY_A
+		);
+
 		if ( ! $results ) {
 			greenmetrics_log(
 				'No metrics found for date range',
