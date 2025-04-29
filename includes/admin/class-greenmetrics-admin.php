@@ -1046,10 +1046,26 @@ class GreenMetrics_Admin {
 	 * Register the stylesheets for the admin area.
 	 */
 	public function enqueue_styles() {
+		// Get current screen to determine which page we're on
+		$screen = get_current_screen();
+		
+		// Early return if not on admin page or can't determine screen
+		if ( ! $screen ) {
+			return;
+		}
+		
+		// Only load our styles on GreenMetrics plugin pages
+		// This includes our plugin settings pages and any page with greenmetrics in the ID
+		if ( strpos( $screen->id, 'greenmetrics' ) === false && 
+			 ! isset( $_GET['page'] ) && 
+			 ( ! isset( $_GET['page'] ) || strpos( $_GET['page'], 'greenmetrics' ) === false ) ) {
+			return;
+		}
+		
 		wp_enqueue_style(
 			'greenmetrics-admin',
 			GREENMETRICS_PLUGIN_URL . 'includes/admin/css/greenmetrics-admin.css',
-			array(),
+			array( 'wp-color-picker' ),
 			GREENMETRICS_VERSION,
 			'all'
 		);
@@ -1129,30 +1145,49 @@ class GreenMetrics_Admin {
 	 * Register and enqueue admin scripts.
 	 */
 	public function enqueue_scripts() {
+		// Get current screen to determine which page we're on
+		$screen = get_current_screen();
+		
+		// Early return if not on admin page or can't determine screen
+		if ( ! $screen ) {
+			return;
+		}
+		
+		// Only load our scripts on GreenMetrics plugin pages
+		// This includes our plugin settings pages and any page with greenmetrics in the ID
+		if ( strpos( $screen->id, 'greenmetrics' ) === false && 
+			 ! isset( $_GET['page'] ) && 
+			 ( ! isset( $_GET['page'] ) || strpos( $_GET['page'], 'greenmetrics' ) === false ) ) {
+			return;
+		}
+		
+		// We're on a GreenMetrics page - set flags
+		$is_plugin_page = true;
+		$is_dashboard_page = false;
+		
+		// Check specifically if we're on the dashboard/stats page
+		if ( strpos( $screen->id, 'greenmetrics-dashboard' ) !== false || 
+			 ( isset( $_GET['page'] ) && $_GET['page'] === 'greenmetrics' ) ) {
+			$is_dashboard_page = true;
+		}
+		
+		// Always load WordPress dependencies on our pages
 		wp_enqueue_style( 'wp-color-picker' );
 		wp_enqueue_script( 'wp-color-picker' );
 		wp_enqueue_media(); // Add media uploader scripts
 		
-		// Enqueue Chart.js
+		// First create a common namespace and utility functions - always needed
 		wp_enqueue_script(
-			'chart-js',
-			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/chart.min.js',
-			array(),
+			'greenmetrics-admin-utils',
+			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/utils.js',
+			array( 'jquery' ),
 			GREENMETRICS_VERSION,
 			true
 		);
 		
-		wp_enqueue_script(
-			'greenmetrics-admin',
-			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin.js',
-			array( 'jquery', 'wp-color-picker', 'wp-util', 'chart-js' ),
-			GREENMETRICS_VERSION,
-			true
-		);
-
-		// Add settings for the admin JavaScript
+		// Localize script with necessary data
 		wp_localize_script(
-			'greenmetrics-admin',
+			'greenmetrics-admin-utils',
 			'greenmetricsAdmin',
 			array(
 				'ajaxUrl'           => admin_url( 'admin-ajax.php' ),
@@ -1166,15 +1201,78 @@ class GreenMetrics_Admin {
 				'rest_nonce'        => wp_create_nonce( 'wp_rest' ),
 				'loadingText'       => __( 'Loading data...', 'greenmetrics' ),
 				'noDataText'        => __( 'No data available for the selected period.', 'greenmetrics' ),
+				'is_dashboard_page' => $is_dashboard_page,
+				'is_plugin_page'    => $is_plugin_page,
 			)
 		);
-
-		wp_enqueue_style(
-			'greenmetrics-admin',
-			GREENMETRICS_PLUGIN_URL . 'includes/admin/css/greenmetrics-admin.css',
-			array( 'wp-color-picker' ),
+		
+		// Load core module - always needed on our pages
+		wp_enqueue_script(
+			'greenmetrics-admin-core',
+			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/core.js',
+			array( 'jquery', 'wp-color-picker', 'wp-util', 'greenmetrics-admin-utils' ),
 			GREENMETRICS_VERSION,
-			'all'
+			true
+		);
+		
+		// Load preview module - only needed on plugin settings pages
+		// (which we are always on if we got this far and it's not the dashboard)
+		if ( ! $is_dashboard_page ) {
+			wp_enqueue_script(
+				'greenmetrics-admin-preview',
+				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/preview.js',
+				array( 'greenmetrics-admin-core', 'greenmetrics-admin-utils' ),
+				GREENMETRICS_VERSION,
+				true
+			);
+		}
+		
+		// Load Chart.js and Chart module - only needed on dashboard/stats page
+		if ( $is_dashboard_page ) {
+			wp_enqueue_script(
+				'chart-js',
+				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/chart.min.js',
+				array(),
+				GREENMETRICS_VERSION,
+				true
+			);
+			
+			wp_enqueue_script(
+				'greenmetrics-admin-chart',
+				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/chart.js',
+				array( 'greenmetrics-admin-core', 'chart-js', 'greenmetrics-admin-utils' ),
+				GREENMETRICS_VERSION,
+				true
+			);
+			
+			wp_enqueue_script(
+				'greenmetrics-admin-dashboard',
+				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/dashboard.js',
+				array( 'greenmetrics-admin-core', 'greenmetrics-admin-utils' ),
+				GREENMETRICS_VERSION,
+				true
+			);
+		}
+		
+		// Main entry point file - always needed
+		$main_dependencies = array( 'greenmetrics-admin-core' );
+		
+		// Add module dependencies based on what's loaded
+		if ( ! $is_dashboard_page ) {
+			$main_dependencies[] = 'greenmetrics-admin-preview';
+		}
+		
+		if ( $is_dashboard_page ) {
+			$main_dependencies[] = 'greenmetrics-admin-chart';
+			$main_dependencies[] = 'greenmetrics-admin-dashboard';
+		}
+		
+		wp_enqueue_script(
+			'greenmetrics-admin',
+			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin.js',
+			$main_dependencies,
+			GREENMETRICS_VERSION,
+			true
 		);
 	}
 
