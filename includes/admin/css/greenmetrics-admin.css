@@ -742,453 +742,453 @@
 
 /* Icon Selection Styles */
 .icon-options {
-    margin: 5px 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
+	margin: 5px 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 5px;
 }
 
 .icon-option {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 80px;
-    height: 80px;
-    padding: 10px;
-    border: 2px solid #ddd;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    background-color: #fff;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	width: 80px;
+	height: 80px;
+	padding: 10px;
+	border: 2px solid #ddd;
+	border-radius: 6px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	background-color: #fff;
 	margin: 5px;
 }
 
 .icon-option:hover {
-    border-color: #0073aa;
-    background-color: #f8f9fa;
+	border-color: #0073aa;
+	background-color: #f8f9fa;
 }
 
 .icon-option.selected {
-    border-color: #0073aa;
-    background-color: #f0f7fc;
-    box-shadow: 0 0 0 1px #0073aa;
+	border-color: #0073aa;
+	background-color: #f0f7fc;
+	box-shadow: 0 0 0 1px #0073aa;
 }
 
 .icon-option svg {
-    width: 36px;
-    height: 36px;
-    fill: #0073aa;
-    margin-bottom: 8px;
+	width: 36px;
+	height: 36px;
+	fill: #0073aa;
+	margin-bottom: 8px;
 }
 
 .icon-option span {
-    font-size: 12px;
-    text-align: center;
-    color: #555;
+	font-size: 12px;
+	text-align: center;
+	color: #555;
 }
 
 #custom-icon-field-wrapper {
-    margin-top: 10px;
+	margin-top: 10px;
 }
 
 /* Improve select display */
 #badge_icon_type {
-    min-width: 200px;
-    max-width: 100%;
+	min-width: 200px;
+	max-width: 100%;
 }
 
 /* Preview styles for the badge */
 .preview-container .icon-container {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 8px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	margin-right: 8px;
 }
 
 .preview-container .icon-container svg,
 .preview-container .icon-container img {
-    width: 20px;
-    height: 20px;
-    fill: currentColor;
+	width: 20px;
+	height: 20px;
+	fill: currentColor;
 }
 
 /* Color Picker Styling */
 .wp-picker-container {
-    margin-top: 4px;
-    display: block;
+	margin-top: 4px;
+	display: block;
 }
 
 .wp-picker-container .wp-color-result {
-    margin: 0 6px 6px 0;
-    height: 30px;
+	margin: 0 6px 6px 0;
+	height: 30px;
 }
 
 .wp-picker-container .wp-color-result-text {
-    line-height: 28px;
+	line-height: 28px;
 }
 
 /* Important: Don't hide any input elements */
 .wp-picker-container .wp-picker-input-wrap {
-    display: inline-block;
-    vertical-align: top;
+	display: inline-block;
+	vertical-align: top;
 }
 
 /* Make sure the label is visible but compact */
 .wp-picker-container .wp-picker-input-wrap label {
-    display: inline-block;
-    margin-right: 2px;
+	display: inline-block;
+	margin-right: 2px;
 }
 
 .wp-picker-container input[type="text"].wp-color-picker {
-    display: inline-block;
-    vertical-align: top;
-    margin: 0 4px 0 0;
-    height: 28px;
-    width: 80px;
+	display: inline-block;
+	vertical-align: top;
+	margin: 0 4px 0 0;
+	height: 28px;
+	width: 80px;
 }
 
 .wp-picker-container .button.wp-picker-clear {
-    display: inline-block;
-    height: 28px;
-    line-height: 26px;
-    padding: 0 10px;
-    margin: 0;
-    font-size: 12px;
+	display: inline-block;
+	height: 28px;
+	line-height: 26px;
+	padding: 0 10px;
+	margin: 0;
+	font-size: 12px;
 }
 
 .wp-color-result .color-alpha {
-    height: 100% !important;
+	height: 100% !important;
 }
 
 /* Form-field specific color picker styling */
 .form-field .wp-picker-container {
-    display: block;
-    margin-top: 6px;
+	display: block;
+	margin-top: 6px;
 }
 
 .form-field .wp-picker-container .wp-picker-holder {
-    margin-top: 6px;
+	margin-top: 6px;
 }
 
 .form-field .wp-picker-container.wp-picker-active {
-    display: block;
+	display: block;
 }
 
 /* Ensure proper alignment for color picker input group */
 .form-field .wp-picker-container .wp-picker-input-wrap {
-    display: inline-block;
-    vertical-align: top;
+	display: inline-block;
+	vertical-align: top;
 }
 
 /* Ensure the color text input has a proper width */
 .form-field .wp-picker-container input[type="text"].wp-color-picker {
-    height: 28px;
-    width: 80px;
-    margin: 0 4px 0 0;
+	height: 28px;
+	width: 80px;
+	margin: 0 4px 0 0;
 }
 
 /* Style the clear/reset button */
 .form-field .wp-picker-container .button.wp-picker-clear {
-    height: 28px;
-    line-height: 26px;
-    padding: 0 10px;
-    margin: 0;
-    font-size: 12px;
+	height: 28px;
+	line-height: 26px;
+	padding: 0 10px;
+	margin: 0;
+	font-size: 12px;
 }
 
 /* Preview Container Styles */
 .preview-container {
-    border-radius: 4px;
+	border-radius: 4px;
 }
 
 #badge-preview-container {
-    padding: 15px;
+	padding: 15px;
 }
 
 #badge-preview-container.top-left {
-    top: 0;
-    left: 0;
+	top: 0;
+	left: 0;
 }
 
 #badge-preview-container.top-right {
-    top: 0;
-    right: 0;
+	top: 0;
+	right: 0;
 }
 
 #badge-preview-container.bottom-left {
-    bottom: 0;
-    left: 0;
+	bottom: 0;
+	left: 0;
 }
 
 #badge-preview-container.bottom-right {
-    bottom: 0;
-    right: 0;
+	bottom: 0;
+	right: 0;
 }
 
 /* Badge Styles */
 .greenmetrics-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+	display: inline-flex;
+	align-items: center;
+	padding: 8px 12px;
+	border-radius: 4px;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .greenmetrics-badge.small {
-    font-size: 12px;
-    padding: 6px 10px;
+	font-size: 12px;
+	padding: 6px 10px;
 }
 
 .greenmetrics-badge.medium {
-    font-size: 14px;
-    padding: 8px 12px;
+	font-size: 14px;
+	padding: 8px 12px;
 }
 
 .greenmetrics-badge.large {
-    font-size: 16px;
-    padding: 10px 14px;
+	font-size: 16px;
+	padding: 10px 14px;
 }
 
 .greenmetrics-badge .icon-container {
-    display: inline-flex;
-    margin-right: 6px;
+	display: inline-flex;
+	margin-right: 6px;
 }
 
 
 /* Metrics checkboxes styling */
 .metrics-checkboxes {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    border: 1px solid #ddd;
-    padding: 15px;
-    margin-bottom: 10px;
-    background: #f9f9f9;
-    border-radius: 4px;
-    max-height: 200px;
-    overflow-y: auto;
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 10px;
+	border: 1px solid #ddd;
+	padding: 15px;
+	margin-bottom: 10px;
+	background: #f9f9f9;
+	border-radius: 4px;
+	max-height: 200px;
+	overflow-y: auto;
 }
 
 .metrics-checkbox-label {
-    display: flex;
-    align-items: center;
-    margin-bottom: 5px;
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 4px;
-    transition: background-color 0.2s;
+	display: flex;
+	align-items: center;
+	margin-bottom: 5px;
+	cursor: pointer;
+	padding: 4px 8px;
+	border-radius: 4px;
+	transition: background-color 0.2s;
 }
 
 .metrics-checkbox-label:hover {
-    background-color: rgba(0, 115, 170, 0.05);
+	background-color: rgba(0, 115, 170, 0.05);
 }
 
 .metrics-checkbox-label input {
-    margin-right: 8px;
+	margin-right: 8px;
 }
 
 @media screen and (max-width: 782px) {
-    .metrics-checkboxes {
-        grid-template-columns: 1fr;
-    }
+	.metrics-checkboxes {
+		grid-template-columns: 1fr;
+	}
 }
 
 /* Two-column layout for display settings */
 .greenmetrics-admin-content-wrapper {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 20px;
-    margin-top: 20px;
+	display: grid;
+	grid-template-columns: 2fr 1fr;
+	gap: 20px;
+	margin-top: 20px;
 }
 
 .greenmetrics-admin-settings-column {
-    flex: 1;
-    min-width: 0; /* Prevents overflow on small screens */
+	flex: 1;
+	min-width: 0; /* Prevents overflow on small screens */
 }
 
 .greenmetrics-admin-preview-column {
-    width: 400px;
-    flex-shrink: 0;
+	width: 400px;
+	flex-shrink: 0;
 }
 
 .greenmetrics-admin-preview-sticky {
-    position: sticky;
-    top: 32px; /* WP Admin bar height */
+	position: sticky;
+	top: 32px; /* WP Admin bar height */
 }
 
 /* Preview styles */
 .badge-preview-panel {
-    position: relative;
-    background-color: #f9f9f9;
-    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23eeeeee' fill-opacity='0.6' fill-rule='evenodd'/%3E%3C/svg%3E");
-    border: 1px solid #eee;
-    border-radius: 8px;
-    height: 200px;
-    overflow: hidden;
-    margin-bottom: 20px;
+	position: relative;
+	background-color: #f9f9f9;
+	background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23eeeeee' fill-opacity='0.6' fill-rule='evenodd'/%3E%3C/svg%3E");
+	border: 1px solid #eee;
+	border-radius: 8px;
+	height: 200px;
+	overflow: hidden;
+	margin-bottom: 20px;
 }
 
 /* Remove the badge placeholder */
 /* .badge-preview-panel:after {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 60%;
-    height: 60px;
-    background-image: url("data:image/svg+xml,%3Csvg width='120' height='30' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='0' y='0' width='120' height='30' rx='4' fill='%23e0e0e0'/%3E%3Ccircle cx='20' cy='15' r='8' fill='%23f0f0f0'/%3E%3Crect x='35' y='10' width='70' height='10' rx='2' fill='%23f0f0f0'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: contain;
-    opacity: 0.7;
-    pointer-events: none;
+	content: "";
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	width: 60%;
+	height: 60px;
+	background-image: url("data:image/svg+xml,%3Csvg width='120' height='30' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='0' y='0' width='120' height='30' rx='4' fill='%23e0e0e0'/%3E%3Ccircle cx='20' cy='15' r='8' fill='%23f0f0f0'/%3E%3Crect x='35' y='10' width='70' height='10' rx='2' fill='%23f0f0f0'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: contain;
+	opacity: 0.7;
+	pointer-events: none;
 } */
 
 .popover-preview-panel {
-    margin-bottom: 20px;
+	margin-bottom: 20px;
 }
 
 .preview-section {
-    margin-bottom: 30px;
+	margin-bottom: 30px;
 }
 
 .preview-section h3 {
-    border-bottom: 1px solid #eee;
-    margin-bottom: 15px;
+	border-bottom: 1px solid #eee;
+	margin-bottom: 15px;
 }
 
 /* Responsive adjustments */
 @media screen and (max-width: 1200px) {
-    .greenmetrics-admin-content-wrapper {
-        grid-template-columns: 1fr;
-    }
-    
-    .greenmetrics-admin-settings-column,
-    .greenmetrics-admin-preview-column {
-        width: 100%;
-        max-width: 100%;
-    }
-    
-    .greenmetrics-admin-preview-sticky {
-        position: relative;
-        top: 0;
-        width: 100%;
-        margin-top: 20px;
-    }
+	.greenmetrics-admin-content-wrapper {
+		grid-template-columns: 1fr;
+	}
+
+	.greenmetrics-admin-settings-column,
+	.greenmetrics-admin-preview-column {
+		width: 100%;
+		max-width: 100%;
+	}
+
+	.greenmetrics-admin-preview-sticky {
+		position: relative;
+		top: 0;
+		width: 100%;
+		margin-top: 20px;
+	}
 }
 
 /* Badge preview positions */
 #badge-preview-container.top-left {
-    top: 15px;
-    left: 15px;
+	top: 15px;
+	left: 15px;
 }
 
 #badge-preview-container.top-right {
-    top: 15px;
-    right: 15px;
+	top: 15px;
+	right: 15px;
 }
 
 #badge-preview-container.bottom-left {
-    bottom: 15px;
-    left: 15px;
+	bottom: 15px;
+	left: 15px;
 }
 
 #badge-preview-container.bottom-right {
-    bottom: 15px;
-    right: 15px;
+	bottom: 15px;
+	right: 15px;
 }
 
 /* Enhanced Visual Grouping for Settings Cards */
 .settings-card {
-    margin-bottom: 25px;
-    border: 1px solid #e2e4e7;
-    border-radius: 10px;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
-    transition: box-shadow 0.2s ease;
-    overflow: hidden;
+	margin-bottom: 25px;
+	border: 1px solid #e2e4e7;
+	border-radius: 10px;
+	box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+	transition: box-shadow 0.2s ease;
+	overflow: hidden;
 }
 
 .settings-card:hover {
-    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.08);
+	box-shadow: 0 5px 12px rgba(0, 0, 0, 0.08);
 }
 
 .settings-card-header {
-    background-color: #f8f9fa;
-    padding: 15px 20px;
-    margin: 0;
-    border-bottom: 1px solid #e2e4e7;
-    font-size: 16px;
-    font-weight: 600;
-    color: #23282d;
-    display: flex;
-    align-items: center;
+	background-color: #f8f9fa;
+	padding: 15px 20px;
+	margin: 0;
+	border-bottom: 1px solid #e2e4e7;
+	font-size: 16px;
+	font-weight: 600;
+	color: #23282d;
+	display: flex;
+	align-items: center;
 }
 
 .settings-card-header .card-icon {
-    margin-right: 10px;
-    color: #0073aa;
-    width: 20px;
-    height: 20px;
+	margin-right: 10px;
+	color: #0073aa;
+	width: 20px;
+	height: 20px;
 }
 
 .settings-card-content {
-    padding: 20px;
-    background-color: #fff;
+	padding: 20px;
+	background-color: #fff;
 }
 
 /* Card categories */
 .settings-card.badge-display {
-    border-left: 4px solid #4CAF50;
+	border-left: 4px solid #4CAF50;
 }
 
 .settings-card.badge-appearance {
-    border-left: 4px solid #2196F3; 
+	border-left: 4px solid #2196F3;
 }
 
 .settings-card.popover-content {
-    border-left: 4px solid #9C27B0;
+	border-left: 4px solid #9C27B0;
 }
 
 .settings-card.popover-appearance {
-    border-left: 4px solid #FF9800;
+	border-left: 4px solid #FF9800;
 }
 
 /* Form field spacing and styling */
 .form-field {
-    margin-bottom: 20px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #f0f0f1;
+	margin-bottom: 20px;
+	padding-bottom: 20px;
+	border-bottom: 1px solid #f0f0f1;
 }
 
 .form-field:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
+	border-bottom: none;
+	margin-bottom: 0;
+	padding-bottom: 0;
 }
 
 .form-field label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 4px;
+	display: block;
+	font-weight: 600;
+	margin-bottom: 4px;
 }
 
 /* Style the descriptions coming from the render functions */
 .form-field .description {
-    display: block;
-    margin-top: 8px;
-    color: #666;
-    font-style: italic;
-    font-size: 13px;
+	display: block;
+	margin-top: 8px;
+	color: #666;
+	font-style: italic;
+	font-size: 13px;
 }
 
 /* Styling for icon-related settings */
 .form-field.icon-settings {
-    margin-bottom: 20px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #f0f0f1;
+	margin-bottom: 20px;
+	padding-bottom: 20px;
+	border-bottom: 1px solid #f0f0f1;
 }
 
 /* Fix input styles within the form fields */
@@ -1196,60 +1196,60 @@
 .form-field input[type="number"],
 .form-field select,
 .form-field textarea {
-    width: 100%;
-    max-width: 400px;
+	width: 100%;
+	max-width: 400px;
 }
 
 /* Checkbox styling */
 .form-field input[type="checkbox"] {
-    margin-top: 6px;
+	margin-top: 6px;
 }
 
 /* Hidden fields - important for JS functionality */
 .form-field.custom-icon-field {
-    display: none;
+	display: none;
 }
 
 .form-field.custom-icon-field.visible {
-    display: block;
+	display: block;
 }
 
 /* Metrics checkboxes styling */
 .metrics-checkboxes {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    border: 1px solid #ddd;
-    padding: 15px;
-    margin-bottom: 10px;
-    background: #f9f9f9;
-    border-radius: 4px;
-    max-height: 200px;
-    overflow-y: auto;
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 10px;
+	border: 1px solid #ddd;
+	padding: 15px;
+	margin-bottom: 10px;
+	background: #f9f9f9;
+	border-radius: 4px;
+	max-height: 200px;
+	overflow-y: auto;
 }
 
 .metrics-checkbox-label {
-    display: flex;
-    align-items: center;
-    margin-bottom: 5px;
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 4px;
-    transition: background-color 0.2s;
+	display: flex;
+	align-items: center;
+	margin-bottom: 5px;
+	cursor: pointer;
+	padding: 4px 8px;
+	border-radius: 4px;
+	transition: background-color 0.2s;
 }
 
 .metrics-checkbox-label:hover {
-    background-color: rgba(0, 115, 170, 0.05);
+	background-color: rgba(0, 115, 170, 0.05);
 }
 
 .metrics-checkbox-label input {
-    margin-right: 8px;
+	margin-right: 8px;
 }
 
 @media screen and (max-width: 782px) {
-    .metrics-checkboxes {
-        grid-template-columns: 1fr;
-    }
+	.metrics-checkboxes {
+		grid-template-columns: 1fr;
+	}
 }
 
 /* Date Range Selector Styles */
@@ -1470,7 +1470,7 @@
 		flex-direction: column;
 		align-items: flex-start;
 	}
-	
+
 	.greenmetrics-custom-date-range {
 		margin-left: 0;
 		margin-top: 15px;
@@ -1480,69 +1480,69 @@
 		border-top: 1px solid #e2e4e7;
 		width: 100%;
 	}
-	
+
 	.greenmetrics-date-input {
 		width: 100%;
 	}
-	
+
 	.greenmetrics-chart-container {
 		height: 300px;
 	}
 }
 
 .greenmetrics-font-size-wrapper {
-    max-width: 200px;
+	max-width: 200px;
 }
 
 .font-size-control {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
 }
 
 .font-size-input-group {
-    display: flex;
-    border: 1px solid #8c8f94;
-    border-radius: 4px;
-    overflow: hidden;
+	display: flex;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	overflow: hidden;
 }
 
 .font-size-input-group input[type="number"] {
-    border: none;
-    width: 60px;
-    text-align: right;
-    -moz-appearance: textfield;
+	border: none;
+	width: 60px;
+	text-align: right;
+	-moz-appearance: textfield;
 }
 
 .font-size-input-group input[type="number"]::-webkit-outer-spin-button,
 .font-size-input-group input[type="number"]::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+	-webkit-appearance: none;
+	margin: 0;
 }
 
 .font-size-unit {
-    display: flex;
-    align-items: center;
-    padding: 0 8px;
-    background: #f0f0f1;
-    border-left: 1px solid #8c8f94;
+	display: flex;
+	align-items: center;
+	padding: 0 8px;
+	background: #f0f0f1;
+	border-left: 1px solid #8c8f94;
 }
 
 .font-size-arrows {
-    display: flex;
-    flex-direction: column;
+	display: flex;
+	flex-direction: column;
 }
 
 .font-size-arrows .dashicons {
-    cursor: pointer;
-    color: #2271b1;
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
+	cursor: pointer;
+	color: #2271b1;
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
 }
 
 .font-size-arrows .dashicons:hover {
-    color: #135e96;
+	color: #135e96;
 }
 
 .wp-core-ui .greenmetrics-date-range .greenmetrics-date-btn.active,
@@ -1634,172 +1634,172 @@
 
 /* Toggle switch for display settings */
 .toggle-switch {
-    position: relative;
-    display: inline-block;
-    width: 40px;
-    height: 22px;
-    margin-top: 4px;
+	position: relative;
+	display: inline-block;
+	width: 40px;
+	height: 22px;
+	margin-top: 4px;
 }
 
 .toggle-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
+	opacity: 0;
+	width: 0;
+	height: 0;
 }
 
 .toggle-switch .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: .4s;
-    border-radius: 34px;
+	position: absolute;
+	cursor: pointer;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: #ccc;
+	transition: .4s;
+	border-radius: 34px;
 }
 
 .toggle-switch .slider:before {
-    position: absolute;
-    content: "";
-    height: 16px;
-    width: 16px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
+	position: absolute;
+	content: "";
+	height: 16px;
+	width: 16px;
+	left: 3px;
+	bottom: 3px;
+	background-color: white;
+	transition: .4s;
+	border-radius: 50%;
 }
 
 .toggle-switch input:checked + .slider {
-    background-color: #0073aa;
+	background-color: #0073aa;
 }
 
 .toggle-switch input:focus + .slider {
-    box-shadow: 0 0 1px #0073aa;
+	box-shadow: 0 0 1px #0073aa;
 }
 
 .toggle-switch input:checked + .slider:before {
-    transform: translateX(18px);
+	transform: translateX(18px);
 }
 
 /* Settings cards styling */
 .settings-card {
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    margin-bottom: 20px;
-    border: 1px solid rgba(0,0,0,0.06);
-    overflow: hidden;
-    transition: all 0.2s ease;
+	background: #fff;
+	border-radius: 8px;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+	margin-bottom: 20px;
+	border: 1px solid rgba(0,0,0,0.06);
+	overflow: hidden;
+	transition: all 0.2s ease;
 }
 
 .settings-card:hover {
-    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+	box-shadow: 0 3px 10px rgba(0,0,0,0.1);
 }
 
 .settings-card-header {
-    background: #f9f9f9;
-    padding: 15px 20px;
-    border-bottom: 1px solid #f0f0f0;
-    display: flex;
-    align-items: center;
-    font-size: 15px;
-    font-weight: 600;
-    color: #23282d;
+	background: #f9f9f9;
+	padding: 15px 20px;
+	border-bottom: 1px solid #f0f0f0;
+	display: flex;
+	align-items: center;
+	font-size: 15px;
+	font-weight: 600;
+	color: #23282d;
 }
 
 .settings-card-header .card-icon {
-    margin-right: 8px;
-    color: #0073aa;
+	margin-right: 8px;
+	color: #0073aa;
 }
 
 .settings-card-content {
-    padding: 20px;
+	padding: 20px;
 }
 
 /* Form field styling */
 .form-field {
-    margin-bottom: 16px;
-    display: flex;
-    flex-direction: column;
+	margin-bottom: 16px;
+	display: flex;
+	flex-direction: column;
 }
 
 .form-field:last-child {
-    margin-bottom: 0;
+	margin-bottom: 0;
 }
 
 .form-field label {
-    margin-bottom: 8px;
-    font-weight: 500;
-    font-size: 14px;
-    color: #23282d;
+	margin-bottom: 8px;
+	font-weight: 500;
+	font-size: 14px;
+	color: #23282d;
 }
 
 .form-field input[type="text"],
 .form-field select,
 .form-field textarea {
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 8px 12px;
-    font-size: 14px;
-    transition: all 0.2s ease;
-    max-width: 400px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	padding: 8px 12px;
+	font-size: 14px;
+	transition: all 0.2s ease;
+	max-width: 400px;
 }
 
 .form-field input[type="text"]:focus,
 .form-field select:focus,
 .form-field textarea:focus {
-    border-color: #0073aa;
-    box-shadow: 0 0 0 1px #0073aa;
-    outline: none;
+	border-color: #0073aa;
+	box-shadow: 0 0 0 1px #0073aa;
+	outline: none;
 }
 
 /* Usage instructions styling */
 .code-block {
-    background: #f5f5f5;
-    padding: 15px;
-    border-radius: 4px;
-    margin: 15px 0;
-    overflow-x: auto;
+	background: #f5f5f5;
+	padding: 15px;
+	border-radius: 4px;
+	margin: 15px 0;
+	overflow-x: auto;
 }
 
 .attributes-list {
-    padding-left: 20px;
+	padding-left: 20px;
 }
 
 .attributes-list li {
-    margin-bottom: 8px;
+	margin-bottom: 8px;
 }
 
 .tip-box {
-    background: #f8f9fa;
-    border-left: 4px solid #0073aa;
-    padding: 12px 15px;
-    margin-top: 15px;
-    border-radius: 0 4px 4px 0;
+	background: #f8f9fa;
+	border-left: 4px solid #0073aa;
+	padding: 12px 15px;
+	margin-top: 15px;
+	border-radius: 0 4px 4px 0;
 }
 
 /* Guide cards for the usage instructions */
 .guide-card {
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    padding: 20px;
-    margin-bottom: 20px;
-    border: 1px solid rgba(0,0,0,0.06);
+	background: #fff;
+	border-radius: 8px;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+	padding: 20px;
+	margin-bottom: 20px;
+	border: 1px solid rgba(0,0,0,0.06);
 }
 
 .guide-card h3 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    font-size: 16px;
-    color: #23282d;
-    border-bottom: 1px solid #f0f0f0;
-    padding-bottom: 10px;
+	margin-top: 0;
+	margin-bottom: 15px;
+	font-size: 16px;
+	color: #23282d;
+	border-bottom: 1px solid #f0f0f0;
+	padding-bottom: 10px;
 }
 
 .guide-card ol {
-    margin-left: 20px;
-    line-height: 1.6;
+	margin-left: 20px;
+	line-height: 1.6;
 } 
