@@ -278,7 +278,7 @@ $settings = get_option(
 												} else {
 													// Get the icon from GreenMetrics_Icons class
 													$icon_html = \GreenMetrics\GreenMetrics_Icons::get_icon( $icon_type );
-													echo '<div style="width: ' . esc_attr( $icon_size ) . '; height: ' . esc_attr( $icon_size ) . ';">' . $icon_html . '</div>';
+													echo '<div style="width: ' . esc_attr( $icon_size ) . '; height: ' . esc_attr( $icon_size ) . ';">' . wp_kses_post( $icon_html ) . '</div>';
 												}
 												?>
 											</div>

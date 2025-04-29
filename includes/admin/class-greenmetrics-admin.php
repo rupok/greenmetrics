@@ -459,85 +459,85 @@ class GreenMetrics_Admin {
 			<div class="icon-options">
 				<div class="icon-option <?php echo $value === 'leaf' ? 'selected' : ''; ?>" data-value="leaf">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'leaf' ); ?>
+						<?php echo wp_kses_post( \GreenMetrics\GreenMetrics_Icons::get_icon( 'leaf' ) ); ?>
 					</div>
 					<span><?php esc_html_e( 'Leaf', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'tree' ? 'selected' : ''; ?>" data-value="tree">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'tree' ); ?>
+						<?php echo wp_kses_post( \GreenMetrics\GreenMetrics_Icons::get_icon( 'tree' ) ); ?>
 					</div>
 					<span><?php esc_html_e( 'Tree', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'globe' ? 'selected' : ''; ?>" data-value="globe">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'globe' ); ?>
+						<?php echo wp_kses_post( \GreenMetrics\GreenMetrics_Icons::get_icon( 'globe' ) ); ?>
 					</div>
 					<span><?php esc_html_e( 'Globe', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'recycle' ? 'selected' : ''; ?>" data-value="recycle">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'recycle' ); ?>
+						<?php echo wp_kses_post( \GreenMetrics\GreenMetrics_Icons::get_icon( 'recycle' ) ); ?>
 					</div>
 					<span><?php esc_html_e( 'Recycle', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'chart-bar' ? 'selected' : ''; ?>" data-value="chart-bar">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'chart-bar' ); ?>
+						<?php echo wp_kses_post( \GreenMetrics\GreenMetrics_Icons::get_icon( 'chart-bar' ) ); ?>
 					</div>
 					<span><?php esc_html_e( 'Chart Bar', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'chart-line' ? 'selected' : ''; ?>" data-value="chart-line">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'chart-line' ); ?>
+						<?php echo wp_kses_post( \GreenMetrics\GreenMetrics_Icons::get_icon( 'chart-line' ) ); ?>
 					</div>
 					<span><?php esc_html_e( 'Chart Line', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'chart-pie' ? 'selected' : ''; ?>" data-value="chart-pie">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'chart-pie' ); ?>
+						<?php echo wp_kses_post( \GreenMetrics\GreenMetrics_Icons::get_icon( 'chart-pie' ) ); ?>
 					</div>
 					<span><?php esc_html_e( 'Chart Pie', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'analytics' ? 'selected' : ''; ?>" data-value="analytics">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'analytics' ); ?>
+						<?php echo wp_kses_post( \GreenMetrics\GreenMetrics_Icons::get_icon( 'analytics' ) ); ?>
 					</div>
 					<span><?php esc_html_e( 'Analytics', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'performance' ? 'selected' : ''; ?>" data-value="performance">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'performance' ); ?>
+						<?php echo wp_kses_post( \GreenMetrics\GreenMetrics_Icons::get_icon( 'performance' ) ); ?>
 					</div>
 					<span><?php esc_html_e( 'Performance', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'energy' ? 'selected' : ''; ?>" data-value="energy">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'energy' ); ?>
+						<?php echo wp_kses_post( \GreenMetrics\GreenMetrics_Icons::get_icon( 'energy' ) ); ?>
 					</div>
 					<span><?php esc_html_e( 'Energy', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'water' ? 'selected' : ''; ?>" data-value="water">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'water' ); ?>
+						<?php echo wp_kses_post( \GreenMetrics\GreenMetrics_Icons::get_icon( 'water' ) ); ?>
 					</div>
 					<span><?php esc_html_e( 'Water', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'eco' ? 'selected' : ''; ?>" data-value="eco">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'eco' ); ?>
+						<?php echo wp_kses_post( \GreenMetrics\GreenMetrics_Icons::get_icon( 'eco' ) ); ?>
 					</div>
 					<span><?php esc_html_e( 'Eco', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'nature' ? 'selected' : ''; ?>" data-value="nature">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'nature' ); ?>
+						<?php echo wp_kses_post( \GreenMetrics\GreenMetrics_Icons::get_icon( 'nature' ) ); ?>
 					</div>
 					<span><?php esc_html_e( 'Nature', 'greenmetrics' ); ?></span>
 				</div>
 				<div class="icon-option <?php echo $value === 'sustainability' ? 'selected' : ''; ?>" data-value="sustainability">
 					<div class="icon-preview">
-						<?php echo \GreenMetrics\GreenMetrics_Icons::get_icon( 'sustainability' ); ?>
+						<?php echo wp_kses_post( \GreenMetrics\GreenMetrics_Icons::get_icon( 'sustainability' ) ); ?>
 					</div>
 					<span><?php esc_html_e( 'Sustainability', 'greenmetrics' ); ?></span>
 				</div>
