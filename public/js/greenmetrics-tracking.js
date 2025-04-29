@@ -3,6 +3,10 @@
         return;
     }
 
+    // Make sure we have the translation functions
+    const __ = window.wp && window.wp.i18n && window.wp.i18n.__ ? window.wp.i18n.__ : function(text) { return text; };
+    const _x = window.wp && window.wp.i18n && window.wp.i18n._x ? window.wp.i18n._x : function(text) { return text; };
+
     // Track page load metrics
     window.addEventListener('load', function() {
         // Small delay to ensure all resources are fully loaded
@@ -31,8 +35,8 @@
                 // Use newer Navigation Timing API (more accurate)
                 const navTiming = performance.getEntriesByType('navigation')[0];
                 rawLoadTime = navTiming.loadEventEnd - navTiming.startTime;
-                loadSource = 'Navigation API';
-                console.log('GreenMetrics Debug - Navigation API Timing:', {
+                loadSource = __('Navigation API', 'greenmetrics');
+                console.log(__('GreenMetrics Debug - Navigation API Timing:', 'greenmetrics'), {
                     startTime: navTiming.startTime,
                     loadEventEnd: navTiming.loadEventEnd,
                     rawDifference: rawLoadTime
@@ -40,8 +44,8 @@
             } else if (performance.timing) {
                 // Fallback to older Navigation Timing API
                 rawLoadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
-                loadSource = 'Legacy Timing API';
-                console.log('GreenMetrics Debug - Legacy Timing API:', {
+                loadSource = __('Legacy Timing API', 'greenmetrics');
+                console.log(__('GreenMetrics Debug - Legacy Timing API:', 'greenmetrics'), {
                     navigationStart: performance.timing.navigationStart,
                     loadEventEnd: performance.timing.loadEventEnd,
                     rawDifference: rawLoadTime
@@ -50,7 +54,7 @@
             
             // Also try to measure with more direct methods
             const pageLoadTime = performance.now();
-            console.log('GreenMetrics Debug - performance.now():', pageLoadTime);
+            console.log(__('GreenMetrics Debug - performance.now():', 'greenmetrics'), pageLoadTime);
             
             // Ensure loadTime is positive and convert to seconds
             loadTime = Math.max(0, rawLoadTime) / 1000;
@@ -61,7 +65,7 @@
                 // try to use performance.now() as a fallback
                 if (performance.now && typeof performance.now === 'function') {
                     loadTime = performance.now() / 1000; // Convert ms to seconds
-                    console.log('GreenMetrics Debug - Using performance.now() as fallback:', loadTime);
+                    console.log(__('GreenMetrics Debug - Using performance.now() as fallback:', 'greenmetrics'), loadTime);
                 } else {
                     loadTime = 0.1; // Default minimal value if all else fails
                 }
@@ -85,7 +89,7 @@
             const energyConsumption = dataTransfer * window.greenmetricsTracking.energyPerByte;
 
             // Log for debugging
-            console.log('GreenMetrics tracking:', {
+            console.log(__('GreenMetrics tracking:', 'greenmetrics'), {
                 data_transfer: dataTransfer,
                 load_time: loadTime,
                 requests: requests
@@ -106,20 +110,20 @@
                 })
             })
             .then(response => {
-                console.log('GreenMetrics tracking response status:', response.status);
+                console.log(__('GreenMetrics tracking response status:', 'greenmetrics'), response.status);
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    throw new Error(__('Network response was not ok', 'greenmetrics'));
                 }
                 return response.json();
             })
             .then(data => {
-                console.log('GreenMetrics tracking response data:', data);
+                console.log(__('GreenMetrics tracking response data:', 'greenmetrics'), data);
                 if (data.success) {
-                    console.log('Metrics tracked successfully via REST API');
+                    console.log(__('Metrics tracked successfully via REST API', 'greenmetrics'));
                 }
             })
             .catch(error => {
-                console.error('Error tracking metrics:', error);
+                console.error(__('Error tracking metrics:', 'greenmetrics'), error);
             });
         }, 500); // Small delay to ensure everything is fully measured
     });
