@@ -29,21 +29,15 @@
             // Get page load time - use modern Navigation Timing API if available
             let loadTime = 0;
             let rawLoadTime = 0;
-            let loadSource = '';
             
             if (performance.getEntriesByType && performance.getEntriesByType('navigation').length) {
                 // Use newer Navigation Timing API (more accurate)
                 const navTiming = performance.getEntriesByType('navigation')[0];
                 rawLoadTime = navTiming.loadEventEnd - navTiming.startTime;
-                loadSource = __('Navigation API', 'greenmetrics');
             } else if (performance.timing) {
                 // Fallback to older Navigation Timing API
                 rawLoadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
-                loadSource = __('Legacy Timing API', 'greenmetrics');
             }
-            
-            // Also try to measure with more direct methods
-            const pageLoadTime = performance.now();
             
             // Ensure loadTime is positive and convert to seconds
             loadTime = Math.max(0, rawLoadTime) / 1000;

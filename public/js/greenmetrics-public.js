@@ -174,19 +174,6 @@
             });
         });
     }
-    
-    /**
-     * Helper function to extract CSS custom property values from inline style
-     */
-    function getCssVarValue(styleText, varName) {
-        // This function is kept for backward compatibility but isn't actively used anymore
-        if (!styleText) return null;
-        
-        const regex = new RegExp(varName + '\\s*:\\s*([^;]+)');
-        const match = styleText.match(regex);
-        
-        return match ? match[1].trim() : null;
-    }
 
     /**
      * Initialize on DOM ready
