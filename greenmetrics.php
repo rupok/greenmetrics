@@ -23,7 +23,7 @@ define( 'GREENMETRICS_PLUGIN_FILE', __FILE__ );
 define( 'GREENMETRICS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'GREENMETRICS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'GREENMETRICS_USE_PUBLIC_JS', true ); // Use only one tracking script to prevent double counting
-define( 'GREENMETRICS_DEBUG', true ); // Enable debug logging for development
+define( 'GREENMETRICS_DEBUG', false ); // Disabled by default for production environments
 
 /**
  * Helper function for logging debug messages.
@@ -50,8 +50,8 @@ function greenmetrics_log( $message, $data = null, $level = 'info' ) {
 		}
 	}
 
-	// Write to plugin's own log file that's easily accessible
-	$log_file = GREENMETRICS_PLUGIN_DIR . 'debug.log';
+	// Write to a log file in wp-content directory which is typically writable
+	$log_file = WP_CONTENT_DIR . '/greenmetrics-debug.log';
 	file_put_contents( $log_file, $log_message . PHP_EOL, FILE_APPEND );
 
 	// Also use error_log for standard WordPress logging
