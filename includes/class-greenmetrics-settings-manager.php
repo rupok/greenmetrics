@@ -46,12 +46,17 @@ class GreenMetrics_Settings_Manager {
 		'badge_position'          => 'bottom-right', // Default badge position
 		'badge_theme'             => 'light',       // Default badge theme
 		'badge_size'              => 'medium',      // Default badge size
-		'badge_text'              => __('Eco-Friendly Site', 'greenmetrics'), // Default badge text
+		'badge_text'              => 'Eco-Friendly Site', // Default badge text
 		'badge_icon_type'         => 'leaf',        // Default icon type
 		'badge_custom_icon'       => '',            // Custom icon path (empty by default)
 		'badge_background_color'  => '#4CAF50',     // Default badge background color
 		'badge_text_color'        => '#ffffff',     // Default badge text color
 		'badge_icon_color'        => '#ffffff',     // Default badge icon color
+		'enable_popup'            => 0,             // Disable popup by default
+		'popup_delay'             => 3,             // Default popup delay (seconds)
+		'popup_session_views'     => 1,             // Show popup after X page views per session
+		'popup_title'             => 'Environmental Impact', // Default popup title
+		'popup_content'           => '',            // Default popup content
 	);
 
 	/**
