@@ -59,7 +59,7 @@ $settings = get_option(
 				<img src="<?php echo esc_url( GREENMETRICS_PLUGIN_URL . 'includes/admin/img/greenmetrics-icon.png' ); ?>" alt="<?php esc_attr_e( 'GreenMetrics Icon', 'greenmetrics' ); ?>" />
 				<h1><?php esc_html_e( 'GreenMetrics - Display Settings', 'greenmetrics' ); ?></h1>
 			</div>
-			<span class="version"><?php echo esc_html( 'GreenMetrics v' . GREENMETRICS_VERSION ); ?></span>
+			<span class="version"><?php echo esc_html( sprintf( __( 'GreenMetrics v%s', 'greenmetrics' ), GREENMETRICS_VERSION ) ); ?></span>
 		</div>
 
 		<div class="greenmetrics-admin-content-wrapper">
@@ -268,7 +268,7 @@ $settings = get_option(
 												$icon_size = isset( $settings['badge_icon_size'] ) ? $settings['badge_icon_size'] : '16px';
 												
 												if ($icon_type === 'custom' && !empty($custom_icon)) {
-													echo '<img src="' . esc_url( $custom_icon ) . '" alt="Custom Icon" style="width: ' . esc_attr( $icon_size ) . '; height: ' . esc_attr( $icon_size ) . ';">';
+													echo '<img src="' . esc_url( $custom_icon ) . '" alt="' . esc_attr__( 'Custom Icon', 'greenmetrics' ) . '" style="width: ' . esc_attr( $icon_size ) . '; height: ' . esc_attr( $icon_size ) . ';">';
 												} else {
 													// Get the icon from GreenMetrics_Icons class
 													$icon_html = \GreenMetrics\GreenMetrics_Icons::get_icon($icon_type);
@@ -277,7 +277,7 @@ $settings = get_option(
 												?>
 											</div>
 										<?php endif; ?>
-										<span><?php echo esc_html( isset($settings['badge_text']) ? $settings['badge_text'] : 'Eco-Friendly Site' ); ?></span>
+										<span><?php echo esc_html( isset($settings['badge_text']) ? $settings['badge_text'] : __('Eco-Friendly Site', 'greenmetrics') ); ?></span>
 									</div>
 								</div>
 							</div>
@@ -300,7 +300,7 @@ $settings = get_option(
 									font-size: <?php echo isset($settings['popover_content_font_size']) ? esc_attr($settings['popover_content_font_size']) : '16px'; ?>;
 								">
 									<h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: <?php echo isset($settings['popover_text_color']) ? esc_attr($settings['popover_text_color']) : '#333333'; ?>;">
-										<?php echo isset($settings['popover_title']) ? esc_html($settings['popover_title']) : 'Environmental Impact'; ?>
+										<?php echo isset($settings['popover_title']) ? esc_html($settings['popover_title']) : esc_html__('Environmental Impact', 'greenmetrics'); ?>
 									</h3>
 									
 									<div class="greenmetrics-global-badge-metrics" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
@@ -408,10 +408,21 @@ $settings = get_option(
 
 <script>
 jQuery(document).ready(function($) {
+	// Define ajaxurl if not already defined (WordPress admin variable)
+	if (typeof ajaxurl === 'undefined') {
+		var ajaxurl = '<?php echo esc_url(admin_url('admin-ajax.php')); ?>';
+	}
+	
+	// Add localized strings for JavaScript
+	const customIconText = "<?php echo esc_js( __( 'Custom Icon', 'greenmetrics' ) ); ?>";
+	
 	// Update badge and popover preview when settings change
-	$('#enable_badge, #badge_position, #badge_size, #badge_text, #badge_background_color, #badge_text_color, #badge_icon_color, ' +
+	$('#enable_badge, #badge_position, #badge_size, #badge_text, #badge_background_color, #badge_text_color, ' + 
+	  '#display_icon, #badge_icon_type, #badge_icon_color, #badge_icon_size, #badge_custom_icon, ' +
 	  '#popover_title, #popover_custom_content, #popover_bg_color, #popover_text_color, #popover_metrics_color, ' +
-	  '#popover_metrics_bg_color, #popover_content_font, #popover_metrics_font, #popover_metrics_list_bg_color, #popover_metrics_list_hover_bg_color')
+	  '#popover_metrics_bg_color, #popover_content_font, #popover_metrics_font, #popover_metrics_list_bg_color, ' + 
+	  '#popover_content_font_size_number, #popover_metrics_font_size_number, #popover_metrics_label_font_size_number, ' +
+	  '#popover_metrics_list_hover_bg_color')
 	.on('change input', function() {
 		updatePreview();
 	});
@@ -464,83 +475,53 @@ jQuery(document).ready(function($) {
 		$('#popover_metrics_label_font_size_number').val(parseInt($('#popover_metrics_label_font_size').val()));
 	}
 	
+	// Function to update the preview
 	function updatePreview() {
-		// Get current badge settings
-		const position = $('#badge_position').val();
-		const size = $('#badge_size').val();
-		const text = $('#badge_text').val();
-		const bgColor = $('#badge_background_color').val();
+		const badgeText = $('#badge_text').val();
+		const backgroundColor = $('#badge_background_color').val();
 		const textColor = $('#badge_text_color').val();
-		const iconColor = $('#badge_icon_color').val();
 		const displayIcon = $('#display_icon').is(':checked');
 		const iconType = $('#badge_icon_type').val();
+		const iconColor = $('#badge_icon_color').val();
+		const iconSize = $('#badge_icon_size').val();
 		const customIcon = $('#badge_custom_icon').val();
-		const iconSize = $('#badge_icon_size').val() || '16px';
+		const badgePosition = $('#badge_position').val();
+		const badgeSize = $('#badge_size').val();
 		
 		// Update badge position
-		$('#badge-preview-container').attr('class', position);
+		$('#badge-preview-container').attr('class', badgePosition);
 		
-		// Update badge appearance
-		const $badge = $('#badge-preview-container .greenmetrics-badge');
+		// Update badge size
+		$('.greenmetrics-badge').attr('class', 'greenmetrics-badge ' + badgeSize);
 		
-		// Make sure to properly apply the size class
-		$badge.removeClass('small medium large').addClass(size);
-		
-		// Ensure the badge has the greenmetrics-badge base class
-		if (!$badge.hasClass('greenmetrics-badge')) {
-			$badge.addClass('greenmetrics-badge');
-		}
-		
-		$badge.css({
-			'background-color': bgColor,
+		// Update the badge text and colors
+		$('.greenmetrics-badge span').text(badgeText);
+		$('.greenmetrics-badge').css({
+			'background-color': backgroundColor,
 			'color': textColor
 		});
 		
-		// Update badge text
-		$badge.find('span').text(text);
-		
 		// Update icon
+		const $iconContainer = $('.icon-container');
 		if (displayIcon) {
-			let $iconContainer = $badge.find('.icon-container');
+			$iconContainer.show();
+			$iconContainer.css('color', iconColor);
 			
-			// If the icon container doesn't exist, create it
-			if ($iconContainer.length === 0) {
-				$badge.prepend('<div class="icon-container"></div>');
-				$iconContainer = $badge.find('.icon-container');
-			}
-			
-			$iconContainer.show().css('color', iconColor);
-			
-			// Only update the icon if it doesn't exist yet or if explicitly changing icon type
-			// This ensures we don't reset to default when other settings change
-			const needsIconUpdate = 
-				$iconContainer.is(':empty') || 
-				($iconContainer.find('svg').length === 0 && $iconContainer.find('img').length === 0) ||
-				(iconType === 'custom' && customIcon && $iconContainer.find('img').attr('src') !== customIcon);
-			
-			if (needsIconUpdate) {
-				if (iconType === 'custom' && customIcon) {
-					// For custom icons, use the uploaded image
-					$iconContainer.html('<img src="' + customIcon + '" alt="Custom Icon" style="width: ' + iconSize + '; height: ' + iconSize + ';">');
-				} else {
-					// For predefined icons, get them from the server
-					getIconSvg(iconType, function(svgContent) {
-						// Make sure SVG uses currentColor for proper color inheritance
-						if (!svgContent.includes('fill="currentColor"')) {
-							svgContent = svgContent.replace(/<svg/, '<svg fill="currentColor"');
-						}
-						$iconContainer.html('<div style="width: ' + iconSize + '; height: ' + iconSize + ';">' + svgContent + '</div>');
-					});
-				}
+			if (iconType === 'custom' && customIcon) {
+				// For custom icons, use the uploaded image
+				$iconContainer.html('<img src="' + customIcon + '" alt="' + customIconText + '" style="width: ' + iconSize + '; height: ' + iconSize + ';">');
 			} else {
-				// Just update the size of existing icons
-				$iconContainer.find('div, img').css({
-					'width': iconSize,
-					'height': iconSize
+				// For predefined icons, get them from the server
+				getIconSvg(iconType, function(svgContent) {
+					// Make sure SVG uses currentColor for proper color inheritance
+					if (!svgContent.includes('fill="currentColor"')) {
+						svgContent = svgContent.replace(/<svg/, '<svg fill="currentColor"');
+					}
+					$iconContainer.html('<div style="width: ' + iconSize + '; height: ' + iconSize + ';">' + svgContent + '</div>');
 				});
 			}
 		} else {
-			$badge.find('.icon-container').hide();
+			$iconContainer.hide();
 		}
 		
 		// Get popover settings
@@ -626,7 +607,13 @@ jQuery(document).ready(function($) {
 		change: function(event, ui) {
 			// Trigger change event after color is picked
 			setTimeout(function() {
-				$(event.target).trigger('change');
+				$(event.target).val(ui.color.toString()).trigger('change');
+				updatePreview();
+			}, 100);
+		},
+		clear: function(event) {
+			setTimeout(function() {
+				updatePreview();
 			}, 100);
 		}
 	});
@@ -640,7 +627,7 @@ jQuery(document).ready(function($) {
 			data: {
 				action: 'greenmetrics_get_icon',
 				icon_type: iconType,
-				nonce: '<?php echo wp_create_nonce('greenmetrics_get_icon'); ?>'
+				nonce: greenmetricsAdmin.nonce
 			},
 			success: function(response) {
 				if (response.success && response.data) {

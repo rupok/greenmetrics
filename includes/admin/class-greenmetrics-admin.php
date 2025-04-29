@@ -1321,6 +1321,12 @@ class GreenMetrics_Admin {
 	 * Handle AJAX request to get an icon.
 	 */
 	public function handle_get_icon() {
+		// Verify nonce
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'greenmetrics_admin_nonce' ) ) {
+			wp_send_json_error( 'Invalid nonce' );
+			return;
+		}
+		
 		// Get the icon type from the request
 		$icon_type = isset( $_POST['icon_type'] ) ? sanitize_text_field( $_POST['icon_type'] ) : 'leaf';
 		
