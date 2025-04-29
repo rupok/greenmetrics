@@ -10,6 +10,7 @@
  */
 
 namespace GreenMetrics;
+// phpcs:ignoreFile WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 /**
  * Fired during plugin deactivation.
@@ -74,11 +75,12 @@ class GreenMetrics_Deactivator {
 		global $wpdb;
 
 		// Delete all transients with our prefix
-		$sql    = $wpdb->prepare(
-			"DELETE FROM $wpdb->options WHERE option_name LIKE %s OR option_name LIKE %s",
+		$sql = $wpdb->prepare(
+			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
 			'%_transient_greenmetrics_%',
 			'%_transient_timeout_greenmetrics_%'
 		);
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		$result = $wpdb->query( $sql );
 
 		greenmetrics_log( 'Cleared plugin transients', $result, 'info' );
