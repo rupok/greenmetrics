@@ -347,7 +347,7 @@ class GreenMetrics_Public {
 				esc_attr( $attributes['padding'] ),
 				esc_attr( $attributes['borderRadius'] ),
 				esc_attr( $attributes['textFontSize'] ),
-				esc_attr( $attributes['alignment'] ),
+				isset($attributes['alignment']) ? esc_attr( $attributes['alignment'] ) : 'center',
 				$attributes['showContent'] ? 'pointer' : 'default',
 				$attributes['showIcon'] ? sprintf(
 					'<div class="wp-block-greenmetrics-badge__icon" style="width:%1$spx;height:%1$spx;color:%2$s">%3$s</div>',
