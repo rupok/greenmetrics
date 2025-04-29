@@ -23,7 +23,7 @@ registerBlockType('greenmetrics/badge', {
     attributes: {
         text: {
             type: 'string',
-            default: 'Eco-Friendly Site',
+            default: __('Eco-Friendly Site', 'greenmetrics'),
         },
         alignment: {
             type: 'string',
@@ -79,7 +79,7 @@ registerBlockType('greenmetrics/badge', {
         },
         contentTitle: {
             type: 'string',
-            default: 'Environmental Impact',
+            default: __('Environmental Impact', 'greenmetrics'),
         },
         selectedMetrics: {
             type: 'array',

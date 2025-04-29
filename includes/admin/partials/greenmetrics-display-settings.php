@@ -307,12 +307,12 @@ $settings = get_option(
 										<?php
 										// Sample metrics data for preview
 										$metrics_data = array(
-											'carbon_footprint' => array('label' => 'Carbon Footprint', 'value' => '0.024g CO2'),
-											'energy_consumption' => array('label' => 'Energy Consumption', 'value' => '0.32 Wh'),
-											'data_transfer' => array('label' => 'Data Transfer', 'value' => '1.24 MB'),
-											'total_views' => array('label' => 'Page Views', 'value' => '1,542'),
-											'requests' => array('label' => 'HTTP Requests', 'value' => '24'),
-											'performance_score' => array('label' => 'Performance Score', 'value' => '92.5%'),
+											'carbon_footprint' => array('label' => __('Carbon Footprint', 'greenmetrics'), 'value' => '0.024g CO2'),
+											'energy_consumption' => array('label' => __('Energy Consumption', 'greenmetrics'), 'value' => '0.32 Wh'),
+											'data_transfer' => array('label' => __('Data Transfer', 'greenmetrics'), 'value' => '1.24 MB'),
+											'total_views' => array('label' => __('Page Views', 'greenmetrics'), 'value' => '1,542'),
+											'requests' => array('label' => __('HTTP Requests', 'greenmetrics'), 'value' => '24'),
+											'performance_score' => array('label' => __('Performance Score', 'greenmetrics'), 'value' => '92.5%'),
 										);
 										
 										$popover_metrics = isset($settings['popover_metrics']) ? $settings['popover_metrics'] : array(

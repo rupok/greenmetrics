@@ -656,7 +656,7 @@ class GreenMetrics_Admin {
 	 */
 	public function render_badge_text_field() {
 		$options = get_option( 'greenmetrics_settings' );
-		$value   = isset( $options['badge_text'] ) ? $options['badge_text'] : 'Eco-Friendly Site';
+		$value   = isset( $options['badge_text'] ) ? $options['badge_text'] : __('Eco-Friendly Site', 'greenmetrics');
 		?>
 		<input type="text" id="badge_text" name="greenmetrics_settings[badge_text]" value="<?php echo esc_attr( $value ); ?>" class="regular-text">
 		<p class="description"><?php esc_html_e( 'Text displayed on the badge.', 'greenmetrics' ); ?></p>

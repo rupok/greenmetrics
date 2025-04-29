@@ -170,11 +170,14 @@ class GreenMetrics_Public {
 		$attributes = wp_parse_args(
 			$attributes,
 			array(
-				'text'                   => 'Eco-Friendly Site',
-				'alignment'              => 'left',
+				'position'               => 'bottom-right',
+				'size'                   => 'medium',
+				'text'                   => __('Eco-Friendly Site', 'greenmetrics'),
 				'backgroundColor'        => '#4CAF50',
 				'textColor'              => '#ffffff',
+				'iconType'               => 'leaf',
 				'iconColor'              => '#ffffff',
+				'displayIcon'            => true,
 				'showIcon'               => true,
 				'iconName'               => 'leaf',
 				'iconSize'               => 20,
@@ -190,9 +193,7 @@ class GreenMetrics_Public {
 				'animationDuration'      => 300,
 				'showText'               => true,
 				'textFontSize'           => 14,
-				'position'               => 'bottom-right',
 				'theme'                  => 'light',
-				'size'                   => 'medium',
 			)
 		);
 
@@ -273,44 +274,44 @@ class GreenMetrics_Public {
 						<svg class="leaf-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
 							<path d="M17,8C8,10,5.9,16.17,3.82,21.34L5.71,22l1-2.3A4.49,4.49,0,0,0,8,20C19,20,22,3,22,3,21,5,14,5.25,9,6.25S2,11.5,2,13.5a6.23,6.23,0,0,0,1.4,3.3L3,19l1.76,1.37A10.23,10.23,0,0,1,4,17C4,16,7,8,17,8Z"/>
 						</svg>
-						<span>Eco-Friendly Site</span>
+						<span>' . esc_html__('Eco-Friendly Site', 'greenmetrics') . '</span>
 					</div>
 					<div class="greenmetrics-content">
-						<h3>Environmental Impact</h3>
+						<h3>' . esc_html__('Environmental Impact', 'greenmetrics') . '</h3>
 						<div class="greenmetrics-metrics">
 							<div class="greenmetrics-metric">
 								<div class="greenmetrics-metric-label">
-									<span>Carbon Footprint</span>
+									<span>' . esc_html__('Carbon Footprint', 'greenmetrics') . '</span>
 								</div>
 								<div class="greenmetrics-metric-value">%3$s</div>
 							</div>
 							<div class="greenmetrics-metric">
 								<div class="greenmetrics-metric-label">
-									<span>Energy Consumption</span>
+									<span>' . esc_html__('Energy Consumption', 'greenmetrics') . '</span>
 								</div>
 								<div class="greenmetrics-metric-value">%4$s</div>
 							</div>
 							<div class="greenmetrics-metric">
 								<div class="greenmetrics-metric-label">
-									<span>Data Transfer</span>
+									<span>' . esc_html__('Data Transfer', 'greenmetrics') . '</span>
 								</div>
 								<div class="greenmetrics-metric-value">%5$s</div>
 							</div>
 							<div class="greenmetrics-metric">
 								<div class="greenmetrics-metric-label">
-									<span>Page Views</span>
+									<span>' . esc_html__('Page Views', 'greenmetrics') . '</span>
 								</div>
 								<div class="greenmetrics-metric-value">%6$s</div>
 							</div>
 							<div class="greenmetrics-metric">
 								<div class="greenmetrics-metric-label">
-									<span>HTTP Requests</span>
+									<span>' . esc_html__('HTTP Requests', 'greenmetrics') . '</span>
 								</div>
 								<div class="greenmetrics-metric-value">%7$s</div>
 							</div>
 							<div class="greenmetrics-metric">
 								<div class="greenmetrics-metric-label">
-									<span>Performance Score</span>
+									<span>' . esc_html__('Performance Score', 'greenmetrics') . '</span>
 								</div>
 								<div class="greenmetrics-metric-value">%8$s</div>
 							</div>
@@ -353,7 +354,9 @@ class GreenMetrics_Public {
 					esc_attr( $attributes['iconSize'] ),
 					esc_attr( $attributes['iconColor'] ),
 					isset($attributes['useCustomIcon']) && $attributes['useCustomIcon'] && isset($attributes['customIconUrl']) && !empty($attributes['customIconUrl']) 
-						? sprintf('<img src="%s" alt="Custom Icon" style="width:100%%;height:100%%;object-fit:contain;">', esc_url($attributes['customIconUrl']))
+						? sprintf('<img src="%s" alt="%s" style="width:100%%;height:100%%;object-fit:contain;">', 
+						  esc_url($attributes['customIconUrl']),
+						  esc_attr__('Custom Icon', 'greenmetrics'))
 						: $attributes['icon_svg']
 				) : '',
 				$attributes['showText'] ? sprintf(
@@ -387,27 +390,27 @@ class GreenMetrics_Public {
 								$value = '';
 								switch ( $metric ) {
 									case 'carbon_footprint':
-										$label = 'Carbon Footprint';
+										$label = __( 'Carbon Footprint', 'greenmetrics' );
 										$value = GreenMetrics_Calculator::format_carbon_emissions( $metrics['carbon_footprint'] );
 										break;
 									case 'energy_consumption':
-										$label = 'Energy Consumption';
+										$label = __( 'Energy Consumption', 'greenmetrics' );
 										$value = GreenMetrics_Calculator::format_energy_consumption( $metrics['energy_consumption'] );
 										break;
 									case 'data_transfer':
-										$label = 'Data Transfer';
+										$label = __( 'Data Transfer', 'greenmetrics' );
 										$value = GreenMetrics_Calculator::format_data_transfer( $metrics['data_transfer'] );
 										break;
 									case 'views':
-										$label = 'Page Views';
+										$label = __( 'Page Views', 'greenmetrics' );
 										$value = number_format( $metrics['total_views'] );
 										break;
 									case 'http_requests':
-										$label = 'HTTP Requests';
+										$label = __( 'HTTP Requests', 'greenmetrics' );
 										$value = number_format( $metrics['requests'] );
 										break;
 									case 'performance_score':
-										$label = 'Performance Score';
+										$label = __( 'Performance Score', 'greenmetrics' );
 										$value = number_format( $metrics['performance_score'], 2 ) . '%';
 										break;
 								}
@@ -661,7 +664,7 @@ class GreenMetrics_Public {
 		$settings = $settings_manager->get();
 		$position = $settings_manager->get( 'badge_position', 'bottom-right' );
 		$size = $settings_manager->get( 'badge_size', 'medium' );
-		$badge_text = $settings_manager->get( 'badge_text', 'Eco-Friendly Site' );
+		$badge_text = $settings_manager->get( 'badge_text', __('Eco-Friendly Site', 'greenmetrics') );
 		$background_color = $settings_manager->get( 'badge_background_color', '#4CAF50' );
 		$text_color = $settings_manager->get( 'badge_text_color', '#ffffff' );
 		$icon_color = $settings_manager->get( 'badge_icon_color', '#ffffff' );
