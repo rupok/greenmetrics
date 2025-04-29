@@ -2,7 +2,7 @@
 Contributors: re_enter_rupok
 Tags: sustainability, carbon footprint, website performance, energy usage, eco-friendly, co2, green web, optimization, website efficiency, carbon emissions, environmental impact
 Requires at least: 5.5
-Tested up to: 6.5
+Tested up to: 6.8
 Requires PHP: 7.2
 Stable tag: 1.0.0
 License: GPLv2 or later
