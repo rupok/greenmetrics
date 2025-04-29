@@ -1141,18 +1141,62 @@ class GreenMetrics_Admin {
 			GREENMETRICS_VERSION,
 			true
 		);
+
+		// First create a common namespace and utility functions
+		wp_enqueue_script(
+			'greenmetrics-admin-utils',
+			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/utils.js',
+			array( 'jquery' ),
+			GREENMETRICS_VERSION,
+			true
+		);
 		
+		// Then load the core module that extends the namespace
+		wp_enqueue_script(
+			'greenmetrics-admin-core',
+			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/core.js',
+			array( 'jquery', 'wp-color-picker', 'wp-util', 'chart-js', 'greenmetrics-admin-utils' ),
+			GREENMETRICS_VERSION,
+			true
+		);
+		
+		// Now load the specific feature modules
+		wp_enqueue_script(
+			'greenmetrics-admin-preview',
+			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/preview.js',
+			array( 'greenmetrics-admin-core', 'greenmetrics-admin-utils' ),
+			GREENMETRICS_VERSION,
+			true
+		);
+		
+		wp_enqueue_script(
+			'greenmetrics-admin-chart',
+			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/chart.js',
+			array( 'greenmetrics-admin-core', 'chart-js', 'greenmetrics-admin-utils' ),
+			GREENMETRICS_VERSION,
+			true
+		);
+		
+		wp_enqueue_script(
+			'greenmetrics-admin-dashboard',
+			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/dashboard.js',
+			array( 'greenmetrics-admin-core', 'greenmetrics-admin-utils' ),
+			GREENMETRICS_VERSION,
+			true
+		);
+		
+		// Finally, load the main entry point file
 		wp_enqueue_script(
 			'greenmetrics-admin',
 			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin.js',
-			array( 'jquery', 'wp-color-picker', 'wp-util', 'chart-js' ),
+			array( 'greenmetrics-admin-core', 'greenmetrics-admin-preview', 'greenmetrics-admin-chart', 'greenmetrics-admin-dashboard' ),
 			GREENMETRICS_VERSION,
 			true
 		);
 
-		// Add settings for the admin JavaScript
+		// Add settings for the admin JavaScript - provide to the utils script that initializes the namespace
 		wp_localize_script(
-			'greenmetrics-admin',
+			'greenmetrics-admin-utils',
 			'greenmetricsAdmin',
 			array(
 				'ajaxUrl'           => admin_url( 'admin-ajax.php' ),
