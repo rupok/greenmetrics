@@ -41,10 +41,13 @@ class GreenMetrics_DB_Helper {
 	public static function table_exists( string $table_name ): bool {
 		if ( ! isset( self::$table_exists_cache[ $table_name ] ) ) {
 			global $wpdb;
+			// For SHOW TABLES LIKE, we need to properly escape the table name
+			// but avoid incorrect quoting that prepare() might add
+			$escaped_table_name = $wpdb->esc_like( $table_name );
 			self::$table_exists_cache[ $table_name ] = (bool) $wpdb->get_var(
 				$wpdb->prepare(
 					'SHOW TABLES LIKE %s',
-					$table_name
+					$escaped_table_name
 				)
 			);
 		}
@@ -80,7 +83,8 @@ class GreenMetrics_DB_Helper {
 		// If no cache or forced refresh, query the database
 		global $wpdb;
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Necessary direct query for schema check
-		$results = $wpdb->get_results( $wpdb->prepare( 'DESCRIBE %s', $table_name ) );
+		// Don't use prepare() for DESCRIBE as it quotes the table name incorrectly
+		$results = $wpdb->get_results( 'DESCRIBE ' . $wpdb->_real_escape( $table_name ) );
 
 		if ( ! $results ) {
 			// Return empty array if no results (e.g., table doesn't exist)
