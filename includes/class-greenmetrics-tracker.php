@@ -136,52 +136,52 @@ class GreenMetrics_Tracker {
 
 	/**
 	 * Calculate performance score based on load time.
-	 * Uses a logarithmic scale to provide more granular scoring with decimal precision.
-	 * Based on similar approaches used in web performance tools.
+	 * Uses a true logarithmic scale to provide more consistent scoring across all load times.
+	 * Based on similar approaches used in web performance tools like Lighthouse and PageSpeed Insights.
 	 *
 	 * @param float $load_time Load time in seconds
 	 * @return float Performance score from 0-100 with decimal precision
 	 */
 	public function calculate_performance_score( $load_time ) {
-		// Ignore extremely high load times (likely measurement errors or development-related delays)
-		// These can happen during development with browser cache disabled or when dev tools are open
-		if ( $load_time > 15 ) {
-			greenmetrics_log( 'Ignoring abnormally high load time', $load_time, 'warning' );
-			return 75; // Return a reasonable default value
+		// Handle invalid or zero load times
+		if ( ! is_numeric( $load_time ) || $load_time <= 0 ) {
+			return 100; // Perfect score for instant loads
 		}
 
 		// Convert to milliseconds for more precision
 		$load_time_ms = $load_time * 1000;
 
 		// Define reference values based on web performance standards
-		// These values align with general performance expectations
-		$fast_threshold_ms = 1500;    // 1.5 seconds - considered fast (scores close to 100)
-		$slow_threshold_ms = 5000;    // 5 seconds - considered slow (scores around 50)
-		$max_threshold_ms  = 10000;    // 10 seconds - very slow (scores below 20)
+		$perfect_threshold_ms = 500;   // 0.5 seconds - considered perfect (score 100)
+		$fast_threshold_ms    = 1500;  // 1.5 seconds - considered fast (scores ~90)
+		$slow_threshold_ms    = 5000;  // 5 seconds - considered slow (scores ~50)
+		$very_slow_ms         = 15000; // 15 seconds - very slow (scores ~10)
 
 		// If load time is extremely fast, give a perfect score
-		if ( $load_time_ms <= 500 ) {
+		if ( $load_time_ms <= $perfect_threshold_ms ) {
 			return 100;
 		}
 
-		// Apply a logarithmic scale for more granular scoring
+		// Use a true logarithmic scale for more consistent scoring across all load times
+		// This approach provides a smooth curve that works well for both fast and slow pages
+
+		// Parameters for the logarithmic function
+		$base = 1.5;  // Logarithm base (controls how quickly scores drop)
+		$scale = 100; // Maximum score
+		$offset = 1;  // Offset to avoid log(0)
+
+		// Calculate score using logarithmic function: score = scale - log_base(time + offset)
 		// This creates a curve that drops quickly for slow sites but gives more
 		// precision for fast sites in the 90-100 range
-		if ( $load_time_ms <= $fast_threshold_ms ) {
-			// For fast sites (0-1.5s): subtle scoring from 90-100
-			$score = 100 - ( 10 * ( $load_time_ms / $fast_threshold_ms ) );
-		} elseif ( $load_time_ms <= $slow_threshold_ms ) {
-			// For medium sites (1.5-5s): scoring from 50-90
-			$normalized = ( $load_time_ms - $fast_threshold_ms ) / ( $slow_threshold_ms - $fast_threshold_ms );
-			$score      = 90 - ( 40 * $normalized );
-		} elseif ( $load_time_ms <= $max_threshold_ms ) {
-			// For slow sites (5-10s): scoring from 20-50
-			$normalized = ( $load_time_ms - $slow_threshold_ms ) / ( $max_threshold_ms - $slow_threshold_ms );
-			$score      = 50 - ( 30 * $normalized );
-		} else {
-			// For extremely slow sites (>10s): scoring from 0-20
-			$normalized = min( 1, ( $load_time_ms - $max_threshold_ms ) / $max_threshold_ms );
-			$score      = max( 0, 20 - ( 20 * $normalized ) );
+		$log_value = log($load_time_ms + $offset) / log($base);
+		$score = $scale - (15 * $log_value);
+
+		// Apply additional scaling for very slow pages to ensure more consistent results
+		if ( $load_time_ms > $very_slow_ms ) {
+			// For extremely slow pages, apply a gentler slope to avoid scores dropping too quickly
+			$excess_time = $load_time_ms - $very_slow_ms;
+			$penalty = min(40, 5 * log($excess_time / 1000 + 1) / log(10));
+			$score = max(1, $score - $penalty);
 		}
 
 		// Ensure score is within 0-100 range with 2 decimal precision
