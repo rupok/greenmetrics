@@ -28,6 +28,10 @@ class GreenMetrics_Admin {
 		add_action( 'admin_notices', array( $this, 'show_settings_update_notice' ) );
 		add_action( 'admin_init', array( $this, 'handle_refresh_stats' ) );
 
+		// Admin post handlers
+		add_action( 'admin_post_greenmetrics_run_data_management', array( $this, 'handle_run_data_management' ) );
+		add_action( 'admin_post_greenmetrics_refresh_stats', array( $this, 'handle_refresh_stats_redirect' ) );
+
 		// AJAX handlers
 		add_action( 'wp_ajax_greenmetrics_refresh_stats', array( $this, 'handle_refresh_stats' ) );
 		add_action( 'wp_ajax_greenmetrics_get_icon', array( $this, 'handle_get_icon' ) );
@@ -47,7 +51,7 @@ class GreenMetrics_Admin {
 					greenmetrics_log( 'Settings updated but nonce verification failed', null, 'warning' );
 				}
 			}
-			
+
 			// Log the current settings after update
 			if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
 				$settings = get_option( 'greenmetrics_settings', array() );
@@ -96,6 +100,16 @@ class GreenMetrics_Admin {
 			'greenmetrics_display',
 			array( $this, 'render_display_settings_page' )
 		);
+
+		// Add submenu for Data Management
+		add_submenu_page(
+			'greenmetrics',
+			__( 'Data Management', 'greenmetrics' ),
+			__( 'Data Management', 'greenmetrics' ),
+			'manage_options',
+			'greenmetrics_data_management',
+			array( $this, 'render_data_management_page' )
+		);
 	}
 
 	/**
@@ -112,19 +126,19 @@ class GreenMetrics_Admin {
 			)
 		);
 
-		// Tracking Settings Section
+		// Tracking Settings Section - moved to data management page
 		add_settings_section(
 			'greenmetrics_tracking',
 			__( 'Tracking Settings', 'greenmetrics' ),
 			array( $this, 'render_tracking_section' ),
-			'greenmetrics'
+			'greenmetrics_data_management'
 		);
 
 		add_settings_field(
 			'tracking_enabled',
 			__( 'Enable Tracking', 'greenmetrics' ),
 			array( $this, 'render_tracking_field' ),
-			'greenmetrics',
+			'greenmetrics_data_management',
 			'greenmetrics_tracking',
 			array( 'label_for' => 'tracking_enabled' )
 		);
@@ -463,7 +477,7 @@ class GreenMetrics_Admin {
 				<option value="sustainability" <?php selected( $value, 'sustainability' ); ?>><?php esc_html_e( 'Sustainability', 'greenmetrics' ); ?></option>
 				<option value="custom" <?php selected( $value, 'custom' ); ?>><?php esc_html_e( 'Custom', 'greenmetrics' ); ?></option>
 			</select>
-			
+
 			<div class="icon-options">
 				<div class="icon-option <?php echo $value === 'leaf' ? 'selected' : ''; ?>" data-value="leaf">
 					<div class="icon-preview">
@@ -600,13 +614,13 @@ class GreenMetrics_Admin {
 		<div class="greenmetrics-font-size-wrapper">
 			<div class="font-size-control">
 				<div class="font-size-input-group">
-					<input type="number" 
-						id="badge_icon_size_number" 
-						min="8" 
-						max="48" 
-						step="1" 
-						value="<?php echo esc_attr( $numeric_value ); ?>" 
-						class="font-size-number" 
+					<input type="number"
+						id="badge_icon_size_number"
+						min="8"
+						max="48"
+						step="1"
+						value="<?php echo esc_attr( $numeric_value ); ?>"
+						class="font-size-number"
 						onchange="document.getElementById('badge_icon_size').value = this.value + 'px';">
 					<div class="font-size-unit">
 						<span>px</span>
@@ -616,9 +630,9 @@ class GreenMetrics_Admin {
 					<span class="dashicons dashicons-arrow-up-alt2" onclick="incrementFontSize('badge_icon_size_number')"></span>
 					<span class="dashicons dashicons-arrow-down-alt2" onclick="decrementFontSize('badge_icon_size_number')"></span>
 				</div>
-				<input type="hidden" 
-					id="badge_icon_size" 
-					name="greenmetrics_settings[badge_icon_size]" 
+				<input type="hidden"
+					id="badge_icon_size"
+					name="greenmetrics_settings[badge_icon_size]"
 					value="<?php echo esc_attr( $value ); ?>">
 			</div>
 			<p class="description"><?php esc_html_e( 'Size of the badge icon in pixels.', 'greenmetrics' ); ?></p>
@@ -741,9 +755,9 @@ class GreenMetrics_Admin {
 		<div class="metrics-checkboxes">
 			<?php foreach ( $available_metrics as $metric_key => $metric_label ) : ?>
 				<label class="metrics-checkbox-label">
-					<input type="checkbox" 
-						name="greenmetrics_settings[popover_metrics][]" 
-						value="<?php echo esc_attr( $metric_key ); ?>" 
+					<input type="checkbox"
+						name="greenmetrics_settings[popover_metrics][]"
+						value="<?php echo esc_attr( $metric_key ); ?>"
 						<?php checked( in_array( $metric_key, $metrics, true ) ); ?>>
 					<?php echo esc_html( $metric_label ); ?>
 				</label>
@@ -885,13 +899,13 @@ class GreenMetrics_Admin {
 		<div class="greenmetrics-font-size-wrapper">
 			<div class="font-size-control">
 				<div class="font-size-input-group">
-					<input type="number" 
-						id="popover_content_font_size_number" 
-						min="8" 
-						max="36" 
-						step="1" 
-						value="<?php echo esc_attr( $numeric_value ); ?>" 
-						class="font-size-number" 
+					<input type="number"
+						id="popover_content_font_size_number"
+						min="8"
+						max="36"
+						step="1"
+						value="<?php echo esc_attr( $numeric_value ); ?>"
+						class="font-size-number"
 						onchange="document.getElementById('popover_content_font_size').value = this.value + 'px';">
 					<div class="font-size-unit">
 						<span>px</span>
@@ -901,9 +915,9 @@ class GreenMetrics_Admin {
 					<span class="dashicons dashicons-arrow-up-alt2" onclick="incrementFontSize('popover_content_font_size_number')"></span>
 					<span class="dashicons dashicons-arrow-down-alt2" onclick="decrementFontSize('popover_content_font_size_number')"></span>
 				</div>
-				<input type="hidden" 
-					id="popover_content_font_size" 
-					name="greenmetrics_settings[popover_content_font_size]" 
+				<input type="hidden"
+					id="popover_content_font_size"
+					name="greenmetrics_settings[popover_content_font_size]"
 					value="<?php echo esc_attr( $value ); ?>">
 			</div>
 			<p class="description"><?php esc_html_e( 'Font size for the popover content.', 'greenmetrics' ); ?></p>
@@ -916,12 +930,12 @@ class GreenMetrics_Admin {
 			const newValue = Math.min(currentValue + 1, parseInt(input.max));
 			input.value = newValue;
 			hiddenInput.value = newValue + 'px';
-			
+
 			// Trigger change event for preview update
 			const event = new Event('change', { bubbles: true });
 			input.dispatchEvent(event);
 		}
-		
+
 		function decrementFontSize(inputId) {
 			const input = document.getElementById(inputId);
 			const hiddenInput = document.getElementById(inputId.replace('_number', ''));
@@ -929,7 +943,7 @@ class GreenMetrics_Admin {
 			const newValue = Math.max(currentValue - 1, parseInt(input.min));
 			input.value = newValue;
 			hiddenInput.value = newValue + 'px';
-			
+
 			// Trigger change event for preview update
 			const event = new Event('change', { bubbles: true });
 			input.dispatchEvent(event);
@@ -986,13 +1000,13 @@ class GreenMetrics_Admin {
 		<div class="greenmetrics-font-size-wrapper">
 			<div class="font-size-control">
 				<div class="font-size-input-group">
-					<input type="number" 
-						id="popover_metrics_label_font_size_number" 
-						min="8" 
-						max="36" 
-						step="1" 
-						value="<?php echo esc_attr( $numeric_value ); ?>" 
-						class="font-size-number" 
+					<input type="number"
+						id="popover_metrics_label_font_size_number"
+						min="8"
+						max="36"
+						step="1"
+						value="<?php echo esc_attr( $numeric_value ); ?>"
+						class="font-size-number"
 						onchange="document.getElementById('popover_metrics_label_font_size').value = this.value + 'px';">
 					<div class="font-size-unit">
 						<span>px</span>
@@ -1002,9 +1016,9 @@ class GreenMetrics_Admin {
 					<span class="dashicons dashicons-arrow-up-alt2" onclick="incrementFontSize('popover_metrics_label_font_size_number')"></span>
 					<span class="dashicons dashicons-arrow-down-alt2" onclick="decrementFontSize('popover_metrics_label_font_size_number')"></span>
 				</div>
-				<input type="hidden" 
-					id="popover_metrics_label_font_size" 
-					name="greenmetrics_settings[popover_metrics_label_font_size]" 
+				<input type="hidden"
+					id="popover_metrics_label_font_size"
+					name="greenmetrics_settings[popover_metrics_label_font_size]"
 					value="<?php echo esc_attr( $value ); ?>">
 			</div>
 			<p class="description"><?php esc_html_e( 'Font size for the metric labels in the popover.', 'greenmetrics' ); ?></p>
@@ -1024,13 +1038,13 @@ class GreenMetrics_Admin {
 		<div class="greenmetrics-font-size-wrapper">
 			<div class="font-size-control">
 				<div class="font-size-input-group">
-					<input type="number" 
-						id="popover_metrics_font_size_number" 
-						min="8" 
-						max="36" 
-						step="1" 
-						value="<?php echo esc_attr( $numeric_value ); ?>" 
-						class="font-size-number" 
+					<input type="number"
+						id="popover_metrics_font_size_number"
+						min="8"
+						max="36"
+						step="1"
+						value="<?php echo esc_attr( $numeric_value ); ?>"
+						class="font-size-number"
 						onchange="document.getElementById('popover_metrics_font_size').value = this.value + 'px';">
 					<div class="font-size-unit">
 						<span>px</span>
@@ -1040,9 +1054,9 @@ class GreenMetrics_Admin {
 					<span class="dashicons dashicons-arrow-up-alt2" onclick="incrementFontSize('popover_metrics_font_size_number')"></span>
 					<span class="dashicons dashicons-arrow-down-alt2" onclick="decrementFontSize('popover_metrics_font_size_number')"></span>
 				</div>
-				<input type="hidden" 
-					id="popover_metrics_font_size" 
-					name="greenmetrics_settings[popover_metrics_font_size]" 
+				<input type="hidden"
+					id="popover_metrics_font_size"
+					name="greenmetrics_settings[popover_metrics_font_size]"
 					value="<?php echo esc_attr( $value ); ?>">
 			</div>
 			<p class="description"><?php esc_html_e( 'Font size for the metrics in the popover.', 'greenmetrics' ); ?></p>
@@ -1067,7 +1081,7 @@ class GreenMetrics_Admin {
 		if ( isset( $_GET['page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checking GET parameter only for conditional loading of styles, no data modification.
 			$current_page = sanitize_text_field( wp_unslash( $_GET['page'] ) );
 		}
-		
+
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Simply checking if on a plugin page for conditionally loading styles
 		if ( strpos( $screen->id, 'greenmetrics' ) === false &&
 			empty( $current_page ) &&
@@ -1234,6 +1248,7 @@ class GreenMetrics_Admin {
 				'noDataText'        => __( 'No data available for the selected period.', 'greenmetrics' ),
 				'is_dashboard_page' => $is_dashboard_page,
 				'is_plugin_page'    => $is_plugin_page,
+				'debug'             => defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG,
 			)
 		);
 
@@ -1330,17 +1345,90 @@ class GreenMetrics_Admin {
 	}
 
 	/**
+	 * Render data management page.
+	 */
+	public function render_data_management_page() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		include GREENMETRICS_PLUGIN_DIR . 'includes/admin/partials/greenmetrics-data-management.php';
+	}
+
+	/**
+	 * Handle running data management tasks.
+	 */
+	public function handle_run_data_management() {
+		// Check nonce
+		if ( ! isset( $_POST['greenmetrics_data_management_nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['greenmetrics_data_management_nonce'] ), 'greenmetrics_run_data_management' ) ) {
+			wp_die( esc_html__( 'Security check failed.', 'greenmetrics' ) );
+		}
+
+		// Check permissions
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'greenmetrics' ) );
+		}
+
+		$data_manager = \GreenMetrics\GreenMetrics_Data_Manager::get_instance();
+		$settings = \GreenMetrics\GreenMetrics_Settings_Manager::get_instance()->get();
+		$message = '';
+
+		// Run aggregation if requested
+		if ( isset( $_POST['run_aggregation'] ) && $_POST['run_aggregation'] ) {
+			$aggregation_age = isset( $settings['aggregation_age'] ) ? intval( $settings['aggregation_age'] ) : 30;
+			$aggregation_type = isset( $settings['aggregation_type'] ) ? $settings['aggregation_type'] : 'daily';
+
+			$result = $data_manager->aggregate_old_data( $aggregation_age, $aggregation_type );
+
+			if ( $result['error'] ) {
+				$message = __( 'Error during data aggregation.', 'greenmetrics' );
+				add_settings_error( 'greenmetrics_data_management', 'aggregation_error', $message, 'error' );
+			} else {
+				$message = sprintf(
+					/* translators: %d: number of aggregated periods */
+					_n( 'Data aggregation completed successfully. %d period was aggregated.', 'Data aggregation completed successfully. %d periods were aggregated.', $result['aggregated'], 'greenmetrics' ),
+					$result['aggregated']
+				);
+				add_settings_error( 'greenmetrics_data_management', 'aggregation_success', $message, 'success' );
+			}
+		}
+
+		// Run pruning if requested
+		if ( isset( $_POST['run_pruning'] ) && $_POST['run_pruning'] ) {
+			$retention_period = isset( $settings['retention_period'] ) ? intval( $settings['retention_period'] ) : 90;
+
+			$result = $data_manager->prune_old_data( $retention_period );
+
+			if ( $result['error'] ) {
+				$message = __( 'Error during data pruning.', 'greenmetrics' );
+				add_settings_error( 'greenmetrics_data_management', 'pruning_error', $message, 'error' );
+			} else {
+				$message = sprintf(
+					/* translators: %d: number of pruned records */
+					_n( 'Data pruning completed successfully. %d record was deleted.', 'Data pruning completed successfully. %d records were deleted.', $result['pruned'], 'greenmetrics' ),
+					$result['pruned']
+				);
+				add_settings_error( 'greenmetrics_data_management', 'pruning_success', $message, 'success' );
+			}
+		}
+
+		// Redirect back to the data management page
+		wp_safe_redirect( add_query_arg( 'settings-updated', 'true', admin_url( 'admin.php?page=greenmetrics_data_management' ) ) );
+		exit;
+	}
+
+	/**
 	 * Handle refresh statistics form submission.
 	 */
 	public function handle_refresh_stats() {
 		// Check if the form was submitted and the refresh_stats action was set
 		if ( isset( $_POST['action'] ) && 'refresh_stats' === $_POST['action'] ) {
 			// Verify nonce
-			if ( isset( $_POST['greenmetrics_refresh_nonce'] ) && 
-				wp_verify_nonce( 
-					sanitize_key( wp_unslash( $_POST['greenmetrics_refresh_nonce'] ) ), 
-					'greenmetrics_refresh_stats' 
-				) 
+			if ( isset( $_POST['greenmetrics_refresh_nonce'] ) &&
+				wp_verify_nonce(
+					sanitize_key( wp_unslash( $_POST['greenmetrics_refresh_nonce'] ) ),
+					'greenmetrics_refresh_stats'
+				)
 			) {
 				// Trigger manual cache refresh
 				\GreenMetrics\GreenMetrics_Tracker::manual_cache_refresh();
@@ -1354,22 +1442,94 @@ class GreenMetrics_Admin {
 	}
 
 	/**
+	 * Handle refresh statistics form submission from the data management page.
+	 */
+	public function handle_refresh_stats_redirect() {
+		// Verify nonce
+		if ( ! isset( $_POST['greenmetrics_refresh_nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['greenmetrics_refresh_nonce'] ), 'greenmetrics_refresh_stats' ) ) {
+			wp_die( esc_html__( 'Security check failed.', 'greenmetrics' ) );
+		}
+
+		// Check permissions
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'greenmetrics' ) );
+		}
+
+		// Trigger manual cache refresh
+		\GreenMetrics\GreenMetrics_Tracker::manual_cache_refresh();
+
+		// Add success message
+		add_settings_error( 'greenmetrics_data_management', 'stats_refreshed', __( 'Statistics cache refreshed successfully!', 'greenmetrics' ), 'success' );
+
+		// Redirect back to the data management page
+		wp_safe_redirect( add_query_arg( 'settings-updated', 'true', admin_url( 'admin.php?page=greenmetrics_data_management' ) ) );
+		exit;
+	}
+
+	/**
 	 * Handle AJAX request to get an icon.
 	 */
 	public function handle_get_icon() {
 		// Verify nonce
-		if ( ! isset( $_POST['nonce'] ) || 
-			! wp_verify_nonce( 
-				sanitize_key( wp_unslash( $_POST['nonce'] ) ), 
-				'greenmetrics_admin_nonce' 
-			) 
+		if ( ! isset( $_POST['nonce'] ) ||
+			! wp_verify_nonce(
+				sanitize_key( wp_unslash( $_POST['nonce'] ) ),
+				'greenmetrics_admin_nonce'
+			)
 		) {
-			wp_send_json_error( 'Invalid nonce' );
+			wp_send_json_error( 'Security verification failed. Please refresh the page and try again.' );
+
+			// Log the failed nonce verification
+			if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
+				greenmetrics_log(
+					'AJAX get_icon: Nonce verification failed',
+					array(
+						'request' => $_POST,
+					),
+					'warning'
+				);
+			}
 			return;
 		}
 
-		// Get the icon type from the request
+		// Define valid icon types
+		$valid_icons = array(
+			'leaf',
+			'tree',
+			'globe',
+			'recycle',
+			'chart-bar',
+			'chart-line',
+			'chart-pie',
+			'analytics',
+			'performance',
+			'energy',
+			'water',
+			'eco',
+			'nature',
+			'sustainability',
+		);
+
+		// Get the icon type from the request with enhanced validation
 		$icon_type = isset( $_POST['icon_type'] ) ? sanitize_text_field( wp_unslash( $_POST['icon_type'] ) ) : 'leaf';
+
+		// Validate icon type
+		if ( ! in_array( $icon_type, $valid_icons, true ) ) {
+			// If invalid, use default icon
+			$icon_type = 'leaf';
+
+			// Log the invalid icon type
+			if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
+				greenmetrics_log(
+					'AJAX get_icon: Invalid icon type',
+					array(
+						'requested_icon' => isset( $_POST['icon_type'] ) ? sanitize_text_field( wp_unslash( $_POST['icon_type'] ) ) : 'none',
+						'using_default' => $icon_type,
+					),
+					'warning'
+				);
+			}
+		}
 
 		// Get the icon HTML
 		$icon_html = \GreenMetrics\GreenMetrics_Icons::get_icon( $icon_type );

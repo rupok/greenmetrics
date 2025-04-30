@@ -50,7 +50,7 @@ class GreenMetrics_Public {
 	 *
 	 * @param array  $tags    Allowed tags, attributes, and/or entities.
 	 * @param string $context Context to judge allowed tags by.
-	 * 
+	 *
 	 * @return array Modified allowed tags
 	 */
 	public function add_svg_to_allowed_tags( $tags, $context ) {
@@ -166,7 +166,7 @@ class GreenMetrics_Public {
 				'options'          => $options,
 			)
 		);
-		
+
 		// Localize script with REST URL
 		wp_localize_script(
 			'greenmetrics-public',
@@ -184,11 +184,11 @@ class GreenMetrics_Public {
 		$data = array(
 			'rest_url' => get_rest_url( null, 'greenmetrics/v1' ),
 		);
-		
+
 		if ( ! $data['rest_url'] ) {
 			greenmetrics_log( 'Failed to get REST URL', null, 'error' );
 		}
-		
+
 		return $data;
 	}
 
@@ -203,7 +203,7 @@ class GreenMetrics_Public {
 
 	/**
 	 * Add REST URL to script localization
-	 * 
+	 *
 	 * @deprecated Use get_script_data() instead
 	 * @param array $data The existing data.
 	 * @return array The data with REST URL added.
@@ -212,7 +212,7 @@ class GreenMetrics_Public {
 		if ( ! is_array( $data ) ) {
 			$data = array();
 		}
-		
+
 		$data['rest_url'] = get_rest_url( null, 'greenmetrics/v1' );
 
 		if ( ! $data['rest_url'] ) {
@@ -354,8 +354,8 @@ class GreenMetrics_Public {
 			return '';
 		}
 
-		// Get metrics data
-		$metrics = $this->get_metrics_data();
+		// Get metrics data with force refresh for frontend
+		$metrics = $this->get_metrics_data(true);
 
 		// For the shortcode rendering
 		if ( isset( $attributes['position'] ) && isset( $attributes['theme'] ) && isset( $attributes['size'] ) && ! isset( $attributes['text'] ) ) {
@@ -631,14 +631,21 @@ class GreenMetrics_Public {
 	/**
 	 * Get metrics data for the current page
 	 *
+	 * @param bool $force_refresh Whether to force refresh the cache.
 	 * @return array Metrics data
 	 */
-	private function get_metrics_data() {
+	private function get_metrics_data($force_refresh = false) {
 		greenmetrics_log( 'Starting get_metrics_data' );
+
+		// Always force refresh on frontend page loads to ensure latest data
+		if (!is_admin()) {
+			$force_refresh = true;
+			greenmetrics_log( 'Frontend request - forcing metrics cache refresh' );
+		}
 
 		// Get stats from tracker - all calculations are now done efficiently in SQL
 		$tracker = GreenMetrics_Tracker::get_instance();
-		$stats   = $tracker->get_stats();
+		$stats   = $tracker->get_stats(null, $force_refresh);
 		greenmetrics_log( 'Stats from tracker', $stats );
 
 		// Extract and validate the data needed for display
@@ -772,6 +779,7 @@ class GreenMetrics_Public {
 				'nonce'            => wp_create_nonce( 'greenmetrics_get_icon' ),
 				'carbonIntensity'  => $settings['carbon_intensity'],
 				'energyPerByte'    => $settings['energy_per_byte'],
+				'debug'            => defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG,
 			)
 		);
 	}
@@ -847,8 +855,8 @@ class GreenMetrics_Public {
 		$popover_metrics_font_size           = $settings_manager->get( 'popover_metrics_font_size', '14px' );
 		$popover_metrics_label_font_size     = $settings_manager->get( 'popover_metrics_label_font_size', '12px' );
 
-		// Get metrics data for the popover
-		$metrics = $this->get_metrics_data();
+		// Get metrics data for the popover with force refresh
+		$metrics = $this->get_metrics_data(true);
 
 		// Format metrics data
 		$carbon_formatted   = GreenMetrics_Calculator::format_carbon_emissions( $metrics['carbon_footprint'] );
@@ -913,7 +921,7 @@ class GreenMetrics_Public {
 				</div>
 				<div class="greenmetrics-global-badge-content" style="<?php echo esc_attr( $popover_content_style ); ?>">
 					<div class="greenmetrics-global-badge-title"><h3><?php echo esc_html( $popover_title ); ?></h3></div>
-					
+
 					<div class="greenmetrics-global-badge-metrics">
 						<?php if ( in_array( 'carbon_footprint', $popover_metrics ) ) : ?>
 						<div class="greenmetrics-global-badge-metric" style="<?php echo esc_attr( $popover_metrics_list_style ); ?>">
@@ -923,7 +931,7 @@ class GreenMetrics_Public {
 							<div class="greenmetrics-global-badge-metric-value" style="<?php echo esc_attr( $popover_metrics_style ); ?>"><?php echo esc_html( $carbon_formatted ); ?></div>
 						</div>
 						<?php endif; ?>
-						
+
 						<?php if ( in_array( 'energy_consumption', $popover_metrics ) ) : ?>
 						<div class="greenmetrics-global-badge-metric" style="<?php echo esc_attr( $popover_metrics_list_style ); ?>">
 							<div class="greenmetrics-global-badge-metric-label" style="<?php echo esc_attr( $popover_metrics_label_style ); ?>">
@@ -932,7 +940,7 @@ class GreenMetrics_Public {
 							<div class="greenmetrics-global-badge-metric-value" style="<?php echo esc_attr( $popover_metrics_style ); ?>"><?php echo esc_html( $energy_formatted ); ?></div>
 						</div>
 						<?php endif; ?>
-						
+
 						<?php if ( in_array( 'data_transfer', $popover_metrics ) ) : ?>
 						<div class="greenmetrics-global-badge-metric" style="<?php echo esc_attr( $popover_metrics_list_style ); ?>">
 							<div class="greenmetrics-global-badge-metric-label" style="<?php echo esc_attr( $popover_metrics_label_style ); ?>">
@@ -941,7 +949,7 @@ class GreenMetrics_Public {
 							<div class="greenmetrics-global-badge-metric-value" style="<?php echo esc_attr( $popover_metrics_style ); ?>"><?php echo esc_html( $data_formatted ); ?></div>
 						</div>
 						<?php endif; ?>
-						
+
 						<?php if ( in_array( 'total_views', $popover_metrics ) ) : ?>
 						<div class="greenmetrics-global-badge-metric" style="<?php echo esc_attr( $popover_metrics_list_style ); ?>">
 							<div class="greenmetrics-global-badge-metric-label" style="<?php echo esc_attr( $popover_metrics_label_style ); ?>">
@@ -950,7 +958,7 @@ class GreenMetrics_Public {
 							<div class="greenmetrics-global-badge-metric-value" style="<?php echo esc_attr( $popover_metrics_style ); ?>"><?php echo esc_html( $views_formatted ); ?></div>
 						</div>
 						<?php endif; ?>
-						
+
 						<?php if ( in_array( 'requests', $popover_metrics ) ) : ?>
 						<div class="greenmetrics-global-badge-metric" style="<?php echo esc_attr( $popover_metrics_list_style ); ?>">
 							<div class="greenmetrics-global-badge-metric-label" style="<?php echo esc_attr( $popover_metrics_label_style ); ?>">
@@ -959,7 +967,7 @@ class GreenMetrics_Public {
 							<div class="greenmetrics-global-badge-metric-value" style="<?php echo esc_attr( $popover_metrics_style ); ?>"><?php echo esc_html( $requests_formatted ); ?></div>
 						</div>
 						<?php endif; ?>
-						
+
 						<?php if ( in_array( 'performance_score', $popover_metrics ) ) : ?>
 						<div class="greenmetrics-global-badge-metric" style="<?php echo esc_attr( $popover_metrics_list_style ); ?>">
 							<div class="greenmetrics-global-badge-metric-label" style="<?php echo esc_attr( $popover_metrics_label_style ); ?>">
@@ -969,7 +977,7 @@ class GreenMetrics_Public {
 						</div>
 						<?php endif; ?>
 					</div>
-					
+
 					<?php if ( ! empty( $popover_custom_content ) ) : ?>
 						<div class="greenmetrics-global-badge-custom-content" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1);"><?php echo wp_kses_post( $popover_custom_content ); ?></div>
 					<?php endif; ?>
@@ -985,12 +993,59 @@ class GreenMetrics_Public {
 	public function handle_get_icon() {
 		// Verify nonce
 		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['nonce'] ) ), 'greenmetrics_get_icon' ) ) {
-			wp_send_json_error( 'Invalid nonce' );
+			wp_send_json_error( 'Security verification failed. Please refresh the page and try again.' );
+
+			// Log the failed nonce verification
+			if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
+				greenmetrics_log(
+					'Public AJAX get_icon: Nonce verification failed',
+					array(
+						'request' => $_POST,
+					),
+					'warning'
+				);
+			}
 			return;
 		}
 
-		// Get the icon type from the request
+		// Define valid icon types
+		$valid_icons = array(
+			'leaf',
+			'tree',
+			'globe',
+			'recycle',
+			'chart-bar',
+			'chart-line',
+			'chart-pie',
+			'analytics',
+			'performance',
+			'energy',
+			'water',
+			'eco',
+			'nature',
+			'sustainability',
+		);
+
+		// Get the icon type from the request with enhanced validation
 		$icon_type = isset( $_POST['icon_type'] ) ? sanitize_text_field( wp_unslash( $_POST['icon_type'] ) ) : 'leaf';
+
+		// Validate icon type
+		if ( ! in_array( $icon_type, $valid_icons, true ) ) {
+			// If invalid, use default icon
+			$icon_type = 'leaf';
+
+			// Log the invalid icon type
+			if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
+				greenmetrics_log(
+					'Public AJAX get_icon: Invalid icon type',
+					array(
+						'requested_icon' => isset( $_POST['icon_type'] ) ? sanitize_text_field( wp_unslash( $_POST['icon_type'] ) ) : 'none',
+						'using_default' => $icon_type,
+					),
+					'warning'
+				);
+			}
+		}
 
 		// Get the icon SVG
 		$icon_svg = $this->get_icon_svg( $icon_type );

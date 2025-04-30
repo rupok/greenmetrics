@@ -105,17 +105,9 @@ spl_autoload_register(
 		// Build the full file path
 		$file = GREENMETRICS_PLUGIN_DIR . 'includes/' . $subdir . 'class-' . $class_name_kebab . '.php';
 
-		greenmetrics_log( 'Autoloader: Looking for file', $file );
-
+		// No logging here - autoloader runs frequently and logging is unnecessary
 		if ( file_exists( $file ) ) {
 			require_once $file;
-
-			// Verify class was loaded in debug mode only
-			if ( ! class_exists( $class, false ) ) {
-				greenmetrics_log( 'Autoloader: File loaded but class not found', $class, 'error' );
-			}
-		} else {
-			greenmetrics_log( 'Autoloader: File not found', $file, 'warning' );
 		}
 	}
 );
@@ -124,6 +116,15 @@ spl_autoload_register(
 
 // Initialize the plugin
 function greenmetrics_init() {
+	// Use a static flag to ensure this function only runs once
+	static $initialized = false;
+
+	if ($initialized) {
+		return;
+	}
+
+	$initialized = true;
+
 	// Load text domain
 	load_plugin_textdomain( 'greenmetrics', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 
@@ -140,12 +141,15 @@ function greenmetrics_init() {
 	// Initialize components
 	try {
 		// Initialize components
-		$admin    = new \GreenMetrics\Admin\GreenMetrics_Admin();
-		$public   = new \GreenMetrics\GreenMetrics_Public();
-		$tracker  = \GreenMetrics\GreenMetrics_Tracker::get_instance();
-		$rest_api = new \GreenMetrics\GreenMetrics_Rest_API();
+		$admin        = new \GreenMetrics\Admin\GreenMetrics_Admin();
+		$public       = new \GreenMetrics\GreenMetrics_Public();
+		$tracker      = \GreenMetrics\GreenMetrics_Tracker::get_instance();
+		$rest_api     = new \GreenMetrics\GreenMetrics_Rest_API();
+		$data_manager = \GreenMetrics\GreenMetrics_Data_Manager::get_instance();
 
-		greenmetrics_log( 'All components initialized successfully' );
+		// Schedule data management tasks
+		\GreenMetrics\GreenMetrics_Data_Manager::schedule_data_management();
+		\GreenMetrics\GreenMetrics_Data_Manager::register_cron_job();
 	} catch ( Exception $e ) {
 		// Log error and show admin notice
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -153,7 +157,7 @@ function greenmetrics_init() {
 				wp_debug_log( 'GreenMetrics Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString() );
 			}
 		}
-		
+
 		add_action(
 			'admin_notices',
 			function () use ( $e ) {
@@ -180,6 +184,13 @@ register_activation_hook(
 add_action(
 	'plugins_loaded',
 	function () {
+		static $upgrade_checked = false;
+
+		if ($upgrade_checked) {
+			return;
+		}
+
+		$upgrade_checked = true;
 		\GreenMetrics\GreenMetrics_Upgrader::check_for_upgrades();
 	}
 );

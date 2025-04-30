@@ -134,8 +134,8 @@ class GreenMetrics_Upgrader {
 
 		greenmetrics_log( 'Checking database schema' );
 
-		// Check if table exists
-		$table_exists = GreenMetrics_DB_Helper::table_exists( $table_name );
+		// Check if table exists (force a fresh check)
+		$table_exists = GreenMetrics_DB_Helper::table_exists( $table_name, true );
 
 		if ( ! $table_exists ) {
 			greenmetrics_log( 'Database table missing, creating it', $table_name );
@@ -191,7 +191,7 @@ class GreenMetrics_Upgrader {
 	 */
 	private static function add_missing_columns( $table_name, $missing_columns ) {
 		global $wpdb;
-		
+
 		// Safely escape table name
 		$table = esc_sql( $table_name );
 

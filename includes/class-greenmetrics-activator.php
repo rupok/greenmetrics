@@ -31,8 +31,8 @@ class GreenMetrics_Activator {
 		// Create the stats table using the DB Helper
 		$result = GreenMetrics_DB_Helper::create_stats_table();
 
-		// Check if table exists using DB helper
-		$table_exists = GreenMetrics_DB_Helper::table_exists( $table_name );
+		// Check if table exists using DB helper (force a fresh check)
+		$table_exists = GreenMetrics_DB_Helper::table_exists( $table_name, true );
 		greenmetrics_log( 'Activator - Table exists', $table_exists ? 'Yes' : 'No' );
 
 		if ( $table_exists ) {
@@ -65,6 +65,14 @@ class GreenMetrics_Activator {
 		// Schedule the daily cache refresh
 		GreenMetrics_Tracker::schedule_daily_cache_refresh();
 		greenmetrics_log( 'Activator - Scheduled daily cache refresh' );
+
+		// Initialize data manager to create aggregated table
+		$data_manager = GreenMetrics_Data_Manager::get_instance();
+		greenmetrics_log( 'Activator - Initialized data manager' );
+
+		// Schedule data management tasks
+		GreenMetrics_Data_Manager::schedule_data_management();
+		greenmetrics_log( 'Activator - Scheduled data management tasks' );
 
 		// Store the current version in the database
 		update_option( 'greenmetrics_version', GREENMETRICS_VERSION );

@@ -205,8 +205,9 @@ class GreenMetrics_Tracker {
 	public function get_stats( $page_id = null, $force_refresh = false ) {
 		global $wpdb;
 
-		if ( $page_id ) {
-			greenmetrics_log( 'Getting stats for page ID', $page_id );
+		// For admin dashboard requests, always force refresh to ensure latest data
+		if (is_admin() && !wp_doing_ajax()) {
+			$force_refresh = true;
 		}
 
 		// Attempt to get cached stats
@@ -220,7 +221,7 @@ class GreenMetrics_Tracker {
 			}
 		}
 
-		greenmetrics_log( 'Querying database for stats' );
+		// Query database for stats
 
 		// Get settings to use in SQL calculations
 		$settings         = $this->get_settings();
@@ -263,7 +264,7 @@ class GreenMetrics_Tracker {
 		}
 
 		if ( ! $stats ) {
-			greenmetrics_log( 'No stats found in database', null, 'warning' );
+			// Return default values when no stats are found
 			return array(
 				'total_views'              => 0,
 				'total_data_transfer'      => 0,
@@ -396,9 +397,7 @@ class GreenMetrics_Tracker {
 	 * @return array The plugin settings.
 	 */
 	public function get_settings() {
-		$settings = GreenMetrics_Settings_Manager::get_instance()->get();
-		greenmetrics_log( 'Using settings', $settings );
-		return $settings;
+		return GreenMetrics_Settings_Manager::get_instance()->get();
 	}
 
 	/**
@@ -411,7 +410,7 @@ class GreenMetrics_Tracker {
 	private function process_and_save_metrics( $page_id, $metrics ) {
 		global $wpdb;
 
-		greenmetrics_log( 'Processing metrics for page ID: ' . $page_id );
+		// Process metrics for page ID
 
 		try {
 			if ( ! $page_id || ! is_array( $metrics ) ) {
@@ -478,11 +477,13 @@ class GreenMetrics_Tracker {
 				return GreenMetrics_Error_Handler::create_error( 'database_error', 'Failed to save metrics' );
 			}
 
-			// Delete the cache for this page and for all pages to ensure fresh data
+			// Implement more targeted cache invalidation
+			// Only delete the cache for this specific page
 			$this->delete_stats_cache( $page_id );
-			$this->delete_stats_cache( null );  // Delete the 'all' cache
 
-			greenmetrics_log( 'Metrics saved successfully for page ID: ' . $page_id );
+			// Check if we should update the "all" cache based on a threshold
+			$this->maybe_update_all_cache();
+
 			return true;
 		} catch ( \Exception $e ) {
 			greenmetrics_log(
@@ -505,15 +506,74 @@ class GreenMetrics_Tracker {
 	private function delete_stats_cache( $page_id = null ) {
 		$cache_key = 'greenmetrics_stats_' . ( $page_id ? $page_id : 'all' );
 		delete_transient( $cache_key );
+
+		// If we're deleting a specific page cache, also delete any date range caches
+		// that might include this page's data
+		if ( $page_id ) {
+			$this->delete_date_range_caches();
+		}
+	}
+
+	/**
+	 * Delete all date range caches.
+	 */
+	private function delete_date_range_caches() {
+		global $wpdb;
+
+		// Delete all date range transients
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
+				'%_transient_greenmetrics_date_range_%'
+			)
+		);
+
+		// Also delete the timeout entries
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
+				'%_transient_timeout_greenmetrics_date_range_%'
+			)
+		);
+	}
+
+	/**
+	 * Check if we should update the "all" cache based on certain conditions.
+	 * This implements a more efficient cache invalidation strategy.
+	 */
+	private function maybe_update_all_cache() {
+		// Get the last time the "all" cache was updated
+		$last_update = get_option( 'greenmetrics_all_cache_last_update', 0 );
+		$current_time = time();
+
+		// Define thresholds for cache updates
+		$update_threshold = 5 * MINUTE_IN_SECONDS; // Update "all" cache at most every 5 minutes
+
+		// Check if enough time has passed since the last update
+		if ( $current_time - $last_update > $update_threshold ) {
+			// Delete and refresh the "all" cache
+			$this->delete_stats_cache( null );
+
+			// Force a refresh of the "all" cache by calling get_stats
+			$this->get_stats( null, true );
+
+			// Update the last update timestamp
+			update_option( 'greenmetrics_all_cache_last_update', $current_time );
+
+			// Cache refreshed based on time threshold
+		} else {
+			// Skipping cache refresh (time threshold not met)
+		}
 	}
 
 	/**
 	 * Check if metrics table exists, using a prepared statement and cached result.
 	 *
+	 * @param bool $force_db_check Whether to force a fresh check from the database.
 	 * @return bool True if table exists, false otherwise.
 	 */
-	private function table_exists(): bool {
-		return GreenMetrics_DB_Helper::table_exists( $this->table_name );
+	private function table_exists(bool $force_db_check = false): bool {
+		return GreenMetrics_DB_Helper::table_exists( $this->table_name, $force_db_check );
 	}
 
 	/**
@@ -522,7 +582,6 @@ class GreenMetrics_Tracker {
 	public static function schedule_daily_cache_refresh() {
 		if ( ! wp_next_scheduled( 'greenmetrics_daily_cache_refresh' ) ) {
 			wp_schedule_event( time(), 'daily', 'greenmetrics_daily_cache_refresh' );
-			greenmetrics_log( 'Daily cache refresh scheduled' );
 		}
 	}
 
@@ -537,8 +596,6 @@ class GreenMetrics_Tracker {
 
 		// Now force a new database query to refresh the cache
 		$instance->get_stats( null, true );
-
-		greenmetrics_log( 'Stats cache refreshed' );
 	}
 
 	/**
@@ -552,9 +609,8 @@ class GreenMetrics_Tracker {
 	 * Manually trigger the cache refresh.
 	 */
 	public static function manual_cache_refresh() {
-		greenmetrics_log( 'Manual cache refresh started' );
+		// No logging needed for this common operation
 		self::refresh_stats_cache();
-		greenmetrics_log( 'Manual cache refresh completed' );
 	}
 
 	/**
@@ -563,17 +619,35 @@ class GreenMetrics_Tracker {
 	 * @param string $start_date Start date (Y-m-d format).
 	 * @param string $end_date End date (Y-m-d format).
 	 * @param string $interval Interval (day, week, month).
+	 * @param bool   $force_refresh Whether to force refresh the cache.
 	 * @return array Array of metrics data grouped by date.
 	 */
-	public function get_metrics_by_date_range( $start_date = null, $end_date = null, $interval = 'day' ) {
+	public function get_metrics_by_date_range( $start_date = null, $end_date = null, $interval = 'day', $force_refresh = false ) {
 		global $wpdb;
 		$table = esc_sql( $this->table_name );
+
 		// Set default date range if not provided (last 7 days)
 		if ( empty( $start_date ) ) {
 			$start_date = gmdate( 'Y-m-d', strtotime( '-7 days' ) );
 		}
 		if ( empty( $end_date ) ) {
 			$end_date = gmdate( 'Y-m-d' );
+		}
+
+		// For admin dashboard page loads, always force refresh to ensure latest data
+		if (is_admin() && !wp_doing_ajax()) {
+			$force_refresh = true;
+		}
+
+		// Create a cache key based on the parameters
+		$cache_key = 'greenmetrics_date_range_' . md5( $start_date . '_' . $end_date . '_' . $interval );
+
+		// Try to get cached results
+		if ( ! $force_refresh ) {
+			$cached_results = get_transient( $cache_key );
+			if ( false !== $cached_results ) {
+				return $cached_results;
+			}
 		}
 		// Format dates for SQL query
 		$start_date_sql = gmdate( 'Y-m-d 00:00:00', strtotime( $start_date ) );
@@ -610,14 +684,6 @@ class GreenMetrics_Tracker {
 		);
 
 		if ( ! $results ) {
-			greenmetrics_log(
-				'No metrics found for date range',
-				array(
-					'start' => $start_date,
-					'end'   => $end_date,
-				),
-				'warning'
-			);
 			return array();
 		}
 
@@ -643,6 +709,9 @@ class GreenMetrics_Tracker {
 			$formatted_results['http_requests'][]      = intval( $row['requests'] );
 			$formatted_results['page_views'][]         = intval( $row['views'] );
 		}
+
+		// Cache the results for 1 hour
+		set_transient( $cache_key, $formatted_results, HOUR_IN_SECONDS );
 
 		return $formatted_results;
 	}
