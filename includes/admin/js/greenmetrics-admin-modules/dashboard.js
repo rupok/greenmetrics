@@ -45,8 +45,31 @@ GreenMetricsAdmin.Dashboard = (function ($) {
 						updateStatsDisplay( response );
 					},
 					error: function (xhr, status, error) {
-						// Error handling without console logs
-						$( '#greenmetrics-stats' ).html( '<p class="error">Error loading stats. Please try again.</p>' );
+						// Enhanced error handling
+						let errorMessage = 'Error loading stats. Please try again.';
+
+						// Try to get more detailed error message from response
+						if (xhr.responseJSON && xhr.responseJSON.message) {
+							errorMessage = xhr.responseJSON.message;
+						}
+
+						// Check for nonce/security errors
+						if (errorMessage.includes('Security verification failed') ||
+							errorMessage.includes('Nonce')) {
+							errorMessage += ' Please refresh the page and try again.';
+						}
+
+						// Display error message
+						$( '#greenmetrics-stats' ).html( '<p class="error">' + errorMessage + '</p>' );
+
+						// Log error in debug mode
+						if (greenmetricsAdmin.debug) {
+							console.error('GreenMetrics: Error loading stats', {
+								status: status,
+								error: error,
+								response: xhr.responseText
+							});
+						}
 					}
 				}
 			);

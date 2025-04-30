@@ -85,15 +85,40 @@
             })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    // Get more detailed error information
+                    return response.json().then(errorData => {
+                        // Throw an error with the message from the server if available
+                        throw new Error(errorData.message || 'Network response was not ok');
+                    }).catch(jsonError => {
+                        // If parsing JSON fails, throw the original error
+                        throw new Error('Network response was not ok');
+                    });
                 }
                 return response.json();
             })
             .then(data => {
                 // Success handling without console logs
+                if (greenmetricsPublic.debug) {
+                    console.log('GreenMetrics: Tracking data sent successfully');
+                }
             })
             .catch(error => {
-                // Error handling without console logs
+                // Enhanced error handling
+                if (greenmetricsPublic.debug) {
+                    console.error('GreenMetrics: Error sending tracking data', error.message);
+                }
+
+                // If this is a security error, we might want to refresh the nonce
+                if (error.message && (
+                    error.message.includes('Security verification failed') ||
+                    error.message.includes('Nonce')
+                )) {
+                    // In a real implementation, we might want to refresh the nonce here
+                    // or notify the user to refresh the page
+                    if (greenmetricsPublic.debug) {
+                        console.warn('GreenMetrics: Security verification failed. The page may need to be refreshed.');
+                    }
+                }
             });
         }
     }

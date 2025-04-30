@@ -47,7 +47,7 @@ class GreenMetrics_Admin {
 					greenmetrics_log( 'Settings updated but nonce verification failed', null, 'warning' );
 				}
 			}
-			
+
 			// Log the current settings after update
 			if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
 				$settings = get_option( 'greenmetrics_settings', array() );
@@ -463,7 +463,7 @@ class GreenMetrics_Admin {
 				<option value="sustainability" <?php selected( $value, 'sustainability' ); ?>><?php esc_html_e( 'Sustainability', 'greenmetrics' ); ?></option>
 				<option value="custom" <?php selected( $value, 'custom' ); ?>><?php esc_html_e( 'Custom', 'greenmetrics' ); ?></option>
 			</select>
-			
+
 			<div class="icon-options">
 				<div class="icon-option <?php echo $value === 'leaf' ? 'selected' : ''; ?>" data-value="leaf">
 					<div class="icon-preview">
@@ -600,13 +600,13 @@ class GreenMetrics_Admin {
 		<div class="greenmetrics-font-size-wrapper">
 			<div class="font-size-control">
 				<div class="font-size-input-group">
-					<input type="number" 
-						id="badge_icon_size_number" 
-						min="8" 
-						max="48" 
-						step="1" 
-						value="<?php echo esc_attr( $numeric_value ); ?>" 
-						class="font-size-number" 
+					<input type="number"
+						id="badge_icon_size_number"
+						min="8"
+						max="48"
+						step="1"
+						value="<?php echo esc_attr( $numeric_value ); ?>"
+						class="font-size-number"
 						onchange="document.getElementById('badge_icon_size').value = this.value + 'px';">
 					<div class="font-size-unit">
 						<span>px</span>
@@ -616,9 +616,9 @@ class GreenMetrics_Admin {
 					<span class="dashicons dashicons-arrow-up-alt2" onclick="incrementFontSize('badge_icon_size_number')"></span>
 					<span class="dashicons dashicons-arrow-down-alt2" onclick="decrementFontSize('badge_icon_size_number')"></span>
 				</div>
-				<input type="hidden" 
-					id="badge_icon_size" 
-					name="greenmetrics_settings[badge_icon_size]" 
+				<input type="hidden"
+					id="badge_icon_size"
+					name="greenmetrics_settings[badge_icon_size]"
 					value="<?php echo esc_attr( $value ); ?>">
 			</div>
 			<p class="description"><?php esc_html_e( 'Size of the badge icon in pixels.', 'greenmetrics' ); ?></p>
@@ -741,9 +741,9 @@ class GreenMetrics_Admin {
 		<div class="metrics-checkboxes">
 			<?php foreach ( $available_metrics as $metric_key => $metric_label ) : ?>
 				<label class="metrics-checkbox-label">
-					<input type="checkbox" 
-						name="greenmetrics_settings[popover_metrics][]" 
-						value="<?php echo esc_attr( $metric_key ); ?>" 
+					<input type="checkbox"
+						name="greenmetrics_settings[popover_metrics][]"
+						value="<?php echo esc_attr( $metric_key ); ?>"
 						<?php checked( in_array( $metric_key, $metrics, true ) ); ?>>
 					<?php echo esc_html( $metric_label ); ?>
 				</label>
@@ -885,13 +885,13 @@ class GreenMetrics_Admin {
 		<div class="greenmetrics-font-size-wrapper">
 			<div class="font-size-control">
 				<div class="font-size-input-group">
-					<input type="number" 
-						id="popover_content_font_size_number" 
-						min="8" 
-						max="36" 
-						step="1" 
-						value="<?php echo esc_attr( $numeric_value ); ?>" 
-						class="font-size-number" 
+					<input type="number"
+						id="popover_content_font_size_number"
+						min="8"
+						max="36"
+						step="1"
+						value="<?php echo esc_attr( $numeric_value ); ?>"
+						class="font-size-number"
 						onchange="document.getElementById('popover_content_font_size').value = this.value + 'px';">
 					<div class="font-size-unit">
 						<span>px</span>
@@ -901,9 +901,9 @@ class GreenMetrics_Admin {
 					<span class="dashicons dashicons-arrow-up-alt2" onclick="incrementFontSize('popover_content_font_size_number')"></span>
 					<span class="dashicons dashicons-arrow-down-alt2" onclick="decrementFontSize('popover_content_font_size_number')"></span>
 				</div>
-				<input type="hidden" 
-					id="popover_content_font_size" 
-					name="greenmetrics_settings[popover_content_font_size]" 
+				<input type="hidden"
+					id="popover_content_font_size"
+					name="greenmetrics_settings[popover_content_font_size]"
 					value="<?php echo esc_attr( $value ); ?>">
 			</div>
 			<p class="description"><?php esc_html_e( 'Font size for the popover content.', 'greenmetrics' ); ?></p>
@@ -916,12 +916,12 @@ class GreenMetrics_Admin {
 			const newValue = Math.min(currentValue + 1, parseInt(input.max));
 			input.value = newValue;
 			hiddenInput.value = newValue + 'px';
-			
+
 			// Trigger change event for preview update
 			const event = new Event('change', { bubbles: true });
 			input.dispatchEvent(event);
 		}
-		
+
 		function decrementFontSize(inputId) {
 			const input = document.getElementById(inputId);
 			const hiddenInput = document.getElementById(inputId.replace('_number', ''));
@@ -929,7 +929,7 @@ class GreenMetrics_Admin {
 			const newValue = Math.max(currentValue - 1, parseInt(input.min));
 			input.value = newValue;
 			hiddenInput.value = newValue + 'px';
-			
+
 			// Trigger change event for preview update
 			const event = new Event('change', { bubbles: true });
 			input.dispatchEvent(event);
@@ -986,13 +986,13 @@ class GreenMetrics_Admin {
 		<div class="greenmetrics-font-size-wrapper">
 			<div class="font-size-control">
 				<div class="font-size-input-group">
-					<input type="number" 
-						id="popover_metrics_label_font_size_number" 
-						min="8" 
-						max="36" 
-						step="1" 
-						value="<?php echo esc_attr( $numeric_value ); ?>" 
-						class="font-size-number" 
+					<input type="number"
+						id="popover_metrics_label_font_size_number"
+						min="8"
+						max="36"
+						step="1"
+						value="<?php echo esc_attr( $numeric_value ); ?>"
+						class="font-size-number"
 						onchange="document.getElementById('popover_metrics_label_font_size').value = this.value + 'px';">
 					<div class="font-size-unit">
 						<span>px</span>
@@ -1002,9 +1002,9 @@ class GreenMetrics_Admin {
 					<span class="dashicons dashicons-arrow-up-alt2" onclick="incrementFontSize('popover_metrics_label_font_size_number')"></span>
 					<span class="dashicons dashicons-arrow-down-alt2" onclick="decrementFontSize('popover_metrics_label_font_size_number')"></span>
 				</div>
-				<input type="hidden" 
-					id="popover_metrics_label_font_size" 
-					name="greenmetrics_settings[popover_metrics_label_font_size]" 
+				<input type="hidden"
+					id="popover_metrics_label_font_size"
+					name="greenmetrics_settings[popover_metrics_label_font_size]"
 					value="<?php echo esc_attr( $value ); ?>">
 			</div>
 			<p class="description"><?php esc_html_e( 'Font size for the metric labels in the popover.', 'greenmetrics' ); ?></p>
@@ -1024,13 +1024,13 @@ class GreenMetrics_Admin {
 		<div class="greenmetrics-font-size-wrapper">
 			<div class="font-size-control">
 				<div class="font-size-input-group">
-					<input type="number" 
-						id="popover_metrics_font_size_number" 
-						min="8" 
-						max="36" 
-						step="1" 
-						value="<?php echo esc_attr( $numeric_value ); ?>" 
-						class="font-size-number" 
+					<input type="number"
+						id="popover_metrics_font_size_number"
+						min="8"
+						max="36"
+						step="1"
+						value="<?php echo esc_attr( $numeric_value ); ?>"
+						class="font-size-number"
 						onchange="document.getElementById('popover_metrics_font_size').value = this.value + 'px';">
 					<div class="font-size-unit">
 						<span>px</span>
@@ -1040,9 +1040,9 @@ class GreenMetrics_Admin {
 					<span class="dashicons dashicons-arrow-up-alt2" onclick="incrementFontSize('popover_metrics_font_size_number')"></span>
 					<span class="dashicons dashicons-arrow-down-alt2" onclick="decrementFontSize('popover_metrics_font_size_number')"></span>
 				</div>
-				<input type="hidden" 
-					id="popover_metrics_font_size" 
-					name="greenmetrics_settings[popover_metrics_font_size]" 
+				<input type="hidden"
+					id="popover_metrics_font_size"
+					name="greenmetrics_settings[popover_metrics_font_size]"
 					value="<?php echo esc_attr( $value ); ?>">
 			</div>
 			<p class="description"><?php esc_html_e( 'Font size for the metrics in the popover.', 'greenmetrics' ); ?></p>
@@ -1067,7 +1067,7 @@ class GreenMetrics_Admin {
 		if ( isset( $_GET['page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checking GET parameter only for conditional loading of styles, no data modification.
 			$current_page = sanitize_text_field( wp_unslash( $_GET['page'] ) );
 		}
-		
+
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Simply checking if on a plugin page for conditionally loading styles
 		if ( strpos( $screen->id, 'greenmetrics' ) === false &&
 			empty( $current_page ) &&
@@ -1234,6 +1234,7 @@ class GreenMetrics_Admin {
 				'noDataText'        => __( 'No data available for the selected period.', 'greenmetrics' ),
 				'is_dashboard_page' => $is_dashboard_page,
 				'is_plugin_page'    => $is_plugin_page,
+				'debug'             => defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG,
 			)
 		);
 
@@ -1336,11 +1337,11 @@ class GreenMetrics_Admin {
 		// Check if the form was submitted and the refresh_stats action was set
 		if ( isset( $_POST['action'] ) && 'refresh_stats' === $_POST['action'] ) {
 			// Verify nonce
-			if ( isset( $_POST['greenmetrics_refresh_nonce'] ) && 
-				wp_verify_nonce( 
-					sanitize_key( wp_unslash( $_POST['greenmetrics_refresh_nonce'] ) ), 
-					'greenmetrics_refresh_stats' 
-				) 
+			if ( isset( $_POST['greenmetrics_refresh_nonce'] ) &&
+				wp_verify_nonce(
+					sanitize_key( wp_unslash( $_POST['greenmetrics_refresh_nonce'] ) ),
+					'greenmetrics_refresh_stats'
+				)
 			) {
 				// Trigger manual cache refresh
 				\GreenMetrics\GreenMetrics_Tracker::manual_cache_refresh();
@@ -1358,11 +1359,11 @@ class GreenMetrics_Admin {
 	 */
 	public function handle_get_icon() {
 		// Verify nonce
-		if ( ! isset( $_POST['nonce'] ) || 
-			! wp_verify_nonce( 
-				sanitize_key( wp_unslash( $_POST['nonce'] ) ), 
-				'greenmetrics_admin_nonce' 
-			) 
+		if ( ! isset( $_POST['nonce'] ) ||
+			! wp_verify_nonce(
+				sanitize_key( wp_unslash( $_POST['nonce'] ) ),
+				'greenmetrics_admin_nonce'
+			)
 		) {
 			wp_send_json_error( 'Invalid nonce' );
 			return;

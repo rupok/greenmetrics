@@ -132,16 +132,47 @@ class GreenMetrics_Rest_API {
 	 * @return bool|\WP_Error True if the nonce is valid, WP_Error otherwise.
 	 */
 	public function check_tracking_permission( $request ) {
-		$nonce = $request->get_header( 'x_wp_nonce' );
+		// Try multiple possible header variations to be more robust
+		$nonce = $request->get_header( 'X-WP-Nonce' );
+
+		// If not found, try lowercase version (which is what get_header might convert it to)
 		if ( ! $nonce ) {
-			return new \WP_Error( 'rest_forbidden', esc_html__( 'Nonce is required.', 'greenmetrics' ), array( 'status' => 401 ) );
+			$nonce = $request->get_header( 'x-wp-nonce' );
 		}
 
+		// If still not found, try with underscores (PHP converts hyphens to underscores in $_SERVER)
+		if ( ! $nonce ) {
+			$nonce = $request->get_header( 'x_wp_nonce' );
+		}
+
+		// Log the headers for debugging in development environments
+		if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
+			greenmetrics_log( 'REST API Headers', $request->get_headers(), 'info' );
+		}
+
+		// If no nonce found in any of the expected headers
+		if ( ! $nonce ) {
+			greenmetrics_log( 'REST API Nonce Verification Failed: No nonce provided', null, 'warning' );
+			return new \WP_Error(
+				'rest_missing_nonce',
+				esc_html__( 'Security verification failed: Nonce is missing. Please refresh the page and try again.', 'greenmetrics' ),
+				array( 'status' => 401 )
+			);
+		}
+
+		// Verify the nonce
 		$result = wp_verify_nonce( $nonce, 'wp_rest' );
 		if ( ! $result ) {
-			return new \WP_Error( 'rest_forbidden', esc_html__( 'Nonce is invalid.', 'greenmetrics' ), array( 'status' => 403 ) );
+			greenmetrics_log( 'REST API Nonce Verification Failed: Invalid nonce', array( 'provided_nonce' => $nonce ), 'warning' );
+			return new \WP_Error(
+				'rest_invalid_nonce',
+				esc_html__( 'Security verification failed: Invalid nonce. Please refresh the page and try again.', 'greenmetrics' ),
+				array( 'status' => 403 )
+			);
 		}
 
+		// Nonce verification successful
+		greenmetrics_log( 'REST API Nonce Verification Successful', null, 'info' );
 		return true;
 	}
 

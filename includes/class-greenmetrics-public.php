@@ -50,7 +50,7 @@ class GreenMetrics_Public {
 	 *
 	 * @param array  $tags    Allowed tags, attributes, and/or entities.
 	 * @param string $context Context to judge allowed tags by.
-	 * 
+	 *
 	 * @return array Modified allowed tags
 	 */
 	public function add_svg_to_allowed_tags( $tags, $context ) {
@@ -166,7 +166,7 @@ class GreenMetrics_Public {
 				'options'          => $options,
 			)
 		);
-		
+
 		// Localize script with REST URL
 		wp_localize_script(
 			'greenmetrics-public',
@@ -184,11 +184,11 @@ class GreenMetrics_Public {
 		$data = array(
 			'rest_url' => get_rest_url( null, 'greenmetrics/v1' ),
 		);
-		
+
 		if ( ! $data['rest_url'] ) {
 			greenmetrics_log( 'Failed to get REST URL', null, 'error' );
 		}
-		
+
 		return $data;
 	}
 
@@ -203,7 +203,7 @@ class GreenMetrics_Public {
 
 	/**
 	 * Add REST URL to script localization
-	 * 
+	 *
 	 * @deprecated Use get_script_data() instead
 	 * @param array $data The existing data.
 	 * @return array The data with REST URL added.
@@ -212,7 +212,7 @@ class GreenMetrics_Public {
 		if ( ! is_array( $data ) ) {
 			$data = array();
 		}
-		
+
 		$data['rest_url'] = get_rest_url( null, 'greenmetrics/v1' );
 
 		if ( ! $data['rest_url'] ) {
@@ -772,6 +772,7 @@ class GreenMetrics_Public {
 				'nonce'            => wp_create_nonce( 'greenmetrics_get_icon' ),
 				'carbonIntensity'  => $settings['carbon_intensity'],
 				'energyPerByte'    => $settings['energy_per_byte'],
+				'debug'            => defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG,
 			)
 		);
 	}
@@ -913,7 +914,7 @@ class GreenMetrics_Public {
 				</div>
 				<div class="greenmetrics-global-badge-content" style="<?php echo esc_attr( $popover_content_style ); ?>">
 					<div class="greenmetrics-global-badge-title"><h3><?php echo esc_html( $popover_title ); ?></h3></div>
-					
+
 					<div class="greenmetrics-global-badge-metrics">
 						<?php if ( in_array( 'carbon_footprint', $popover_metrics ) ) : ?>
 						<div class="greenmetrics-global-badge-metric" style="<?php echo esc_attr( $popover_metrics_list_style ); ?>">
@@ -923,7 +924,7 @@ class GreenMetrics_Public {
 							<div class="greenmetrics-global-badge-metric-value" style="<?php echo esc_attr( $popover_metrics_style ); ?>"><?php echo esc_html( $carbon_formatted ); ?></div>
 						</div>
 						<?php endif; ?>
-						
+
 						<?php if ( in_array( 'energy_consumption', $popover_metrics ) ) : ?>
 						<div class="greenmetrics-global-badge-metric" style="<?php echo esc_attr( $popover_metrics_list_style ); ?>">
 							<div class="greenmetrics-global-badge-metric-label" style="<?php echo esc_attr( $popover_metrics_label_style ); ?>">
@@ -932,7 +933,7 @@ class GreenMetrics_Public {
 							<div class="greenmetrics-global-badge-metric-value" style="<?php echo esc_attr( $popover_metrics_style ); ?>"><?php echo esc_html( $energy_formatted ); ?></div>
 						</div>
 						<?php endif; ?>
-						
+
 						<?php if ( in_array( 'data_transfer', $popover_metrics ) ) : ?>
 						<div class="greenmetrics-global-badge-metric" style="<?php echo esc_attr( $popover_metrics_list_style ); ?>">
 							<div class="greenmetrics-global-badge-metric-label" style="<?php echo esc_attr( $popover_metrics_label_style ); ?>">
@@ -941,7 +942,7 @@ class GreenMetrics_Public {
 							<div class="greenmetrics-global-badge-metric-value" style="<?php echo esc_attr( $popover_metrics_style ); ?>"><?php echo esc_html( $data_formatted ); ?></div>
 						</div>
 						<?php endif; ?>
-						
+
 						<?php if ( in_array( 'total_views', $popover_metrics ) ) : ?>
 						<div class="greenmetrics-global-badge-metric" style="<?php echo esc_attr( $popover_metrics_list_style ); ?>">
 							<div class="greenmetrics-global-badge-metric-label" style="<?php echo esc_attr( $popover_metrics_label_style ); ?>">
@@ -950,7 +951,7 @@ class GreenMetrics_Public {
 							<div class="greenmetrics-global-badge-metric-value" style="<?php echo esc_attr( $popover_metrics_style ); ?>"><?php echo esc_html( $views_formatted ); ?></div>
 						</div>
 						<?php endif; ?>
-						
+
 						<?php if ( in_array( 'requests', $popover_metrics ) ) : ?>
 						<div class="greenmetrics-global-badge-metric" style="<?php echo esc_attr( $popover_metrics_list_style ); ?>">
 							<div class="greenmetrics-global-badge-metric-label" style="<?php echo esc_attr( $popover_metrics_label_style ); ?>">
@@ -959,7 +960,7 @@ class GreenMetrics_Public {
 							<div class="greenmetrics-global-badge-metric-value" style="<?php echo esc_attr( $popover_metrics_style ); ?>"><?php echo esc_html( $requests_formatted ); ?></div>
 						</div>
 						<?php endif; ?>
-						
+
 						<?php if ( in_array( 'performance_score', $popover_metrics ) ) : ?>
 						<div class="greenmetrics-global-badge-metric" style="<?php echo esc_attr( $popover_metrics_list_style ); ?>">
 							<div class="greenmetrics-global-badge-metric-label" style="<?php echo esc_attr( $popover_metrics_label_style ); ?>">
@@ -969,7 +970,7 @@ class GreenMetrics_Public {
 						</div>
 						<?php endif; ?>
 					</div>
-					
+
 					<?php if ( ! empty( $popover_custom_content ) ) : ?>
 						<div class="greenmetrics-global-badge-custom-content" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1);"><?php echo wp_kses_post( $popover_custom_content ); ?></div>
 					<?php endif; ?>

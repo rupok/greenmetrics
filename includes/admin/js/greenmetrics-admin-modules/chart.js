@@ -194,11 +194,39 @@ GreenMetricsAdmin.Chart = (function ($) {
 					updateChart( response );
 				},
 				error: function (xhr, status, error) {
-					// Error handling without console logs
+					// Enhanced error handling
 					if (metricsChart) {
 						metricsChart.data.labels   = [];
 						metricsChart.data.datasets = [];
 						metricsChart.update();
+					}
+
+					// Display error message
+					let errorMessage = 'Error loading chart data.';
+
+					// Try to get more detailed error message from response
+					if (xhr.responseJSON && xhr.responseJSON.message) {
+						errorMessage = xhr.responseJSON.message;
+					}
+
+					// Check for nonce/security errors
+					if (errorMessage.includes('Security verification failed') ||
+						errorMessage.includes('Nonce')) {
+						errorMessage += ' Please refresh the page and try again.';
+					}
+
+					// Add error message to chart container
+					$('.greenmetrics-chart-container').append(
+						'<div class="chart-error-message">' + errorMessage + '</div>'
+					);
+
+					// Log error in debug mode
+					if (greenmetricsAdmin.debug) {
+						console.error('GreenMetrics: Error loading chart data', {
+							status: status,
+							error: error,
+							response: xhr.responseText
+						});
 					}
 				},
 				complete: function () {
