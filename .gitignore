@@ -71,3 +71,4 @@ lint-fix.sh
 phpcs.xml
 *.sh
 .buildignore
+docs/error-handling.md

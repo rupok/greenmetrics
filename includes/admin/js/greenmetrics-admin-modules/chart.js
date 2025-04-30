@@ -195,40 +195,15 @@ GreenMetricsAdmin.Chart = (function ($) {
 					updateChart( response );
 				},
 				error: function (xhr, status, error) {
-					// Enhanced error handling
+					// Reset chart data
 					if (metricsChart) {
 						metricsChart.data.labels   = [];
 						metricsChart.data.datasets = [];
 						metricsChart.update();
 					}
 
-					// Display error message
-					let errorMessage = 'Error loading chart data.';
-
-					// Try to get more detailed error message from response
-					if (xhr.responseJSON && xhr.responseJSON.message) {
-						errorMessage = xhr.responseJSON.message;
-					}
-
-					// Check for nonce/security errors
-					if (errorMessage.includes('Security verification failed') ||
-						errorMessage.includes('Nonce')) {
-						errorMessage += ' Please refresh the page and try again.';
-					}
-
-					// Add error message to chart container
-					$('.greenmetrics-chart-container').append(
-						'<div class="chart-error-message">' + errorMessage + '</div>'
-					);
-
-					// Log error in debug mode
-					if (greenmetricsAdmin.debug) {
-						console.error('GreenMetrics: Error loading chart data', {
-							status: status,
-							error: error,
-							response: xhr.responseText
-						});
-					}
+					// Use the standardized error handler
+					GreenMetricsErrorHandler.handleRestError(xhr, status, error, '.greenmetrics-chart-container');
 				},
 				complete: function () {
 					// Remove loading states
@@ -369,21 +344,15 @@ GreenMetricsAdmin.Chart = (function ($) {
 							updateChart(response);
 						},
 						error: function (xhr, status, error) {
-							// Error handling (same as in loadMetricsByDate)
+							// Reset chart data
 							if (metricsChart) {
 								metricsChart.data.labels = [];
 								metricsChart.data.datasets = [];
 								metricsChart.update();
 							}
 
-							let errorMessage = 'Error loading chart data.';
-							if (xhr.responseJSON && xhr.responseJSON.message) {
-								errorMessage = xhr.responseJSON.message;
-							}
-
-							$('.greenmetrics-chart-container').append(
-								'<div class="chart-error-message">' + errorMessage + '</div>'
-							);
+							// Use the standardized error handler
+							GreenMetricsErrorHandler.handleRestError(xhr, status, error, '.greenmetrics-chart-container');
 						},
 						complete: function () {
 							// Remove loading states

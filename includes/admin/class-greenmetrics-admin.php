@@ -1221,11 +1221,20 @@ class GreenMetrics_Admin {
 		wp_enqueue_script( 'wp-color-picker' );
 		wp_enqueue_media(); // Add media uploader scripts
 
-		// First create a common namespace and utility functions - always needed
+		// First load the error handler - needed for all other modules
+		wp_enqueue_script(
+			'greenmetrics-error-handler',
+			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/error-handler.js',
+			array( 'jquery' ),
+			GREENMETRICS_VERSION,
+			true
+		);
+
+		// Then create a common namespace and utility functions - always needed
 		wp_enqueue_script(
 			'greenmetrics-admin-utils',
 			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/utils.js',
-			array( 'jquery' ),
+			array( 'jquery', 'greenmetrics-error-handler' ),
 			GREENMETRICS_VERSION,
 			true
 		);
