@@ -577,10 +577,11 @@ class GreenMetrics_Tracker {
 	/**
 	 * Check if metrics table exists, using a prepared statement and cached result.
 	 *
+	 * @param bool $force_db_check Whether to force a fresh check from the database.
 	 * @return bool True if table exists, false otherwise.
 	 */
-	private function table_exists(): bool {
-		return GreenMetrics_DB_Helper::table_exists( $this->table_name );
+	private function table_exists(bool $force_db_check = false): bool {
+		return GreenMetrics_DB_Helper::table_exists( $this->table_name, $force_db_check );
 	}
 
 	/**

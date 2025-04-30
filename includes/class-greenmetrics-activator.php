@@ -31,8 +31,8 @@ class GreenMetrics_Activator {
 		// Create the stats table using the DB Helper
 		$result = GreenMetrics_DB_Helper::create_stats_table();
 
-		// Check if table exists using DB helper
-		$table_exists = GreenMetrics_DB_Helper::table_exists( $table_name );
+		// Check if table exists using DB helper (force a fresh check)
+		$table_exists = GreenMetrics_DB_Helper::table_exists( $table_name, true );
 		greenmetrics_log( 'Activator - Table exists', $table_exists ? 'Yes' : 'No' );
 
 		if ( $table_exists ) {

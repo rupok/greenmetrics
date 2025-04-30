@@ -36,23 +36,45 @@ class GreenMetrics_DB_Helper {
 	 * Check if a table exists, using a prepared statement and caching.
 	 *
 	 * @param string $table_name Full table name including prefix.
+	 * @param bool   $force_db_check Whether to force a fresh check from the database.
 	 * @return bool True if the table exists.
 	 */
-	public static function table_exists( string $table_name ): bool {
-		if ( ! isset( self::$table_exists_cache[ $table_name ] ) ) {
-			global $wpdb;
-			// For SHOW TABLES LIKE, we need to properly escape the table name
-			// but avoid incorrect quoting that prepare() might add
-			$escaped_table_name = $wpdb->esc_like( $table_name );
-			self::$table_exists_cache[ $table_name ] = (bool) $wpdb->get_var(
-				$wpdb->prepare(
-					'SHOW TABLES LIKE %s',
-					$escaped_table_name
-				)
-			);
+	public static function table_exists( string $table_name, bool $force_db_check = false ): bool {
+		// First check memory cache
+		if ( ! $force_db_check && isset( self::$table_exists_cache[ $table_name ] ) ) {
+			return self::$table_exists_cache[ $table_name ];
 		}
 
-		return self::$table_exists_cache[ $table_name ];
+		// Then check transient cache
+		$cache_key = 'greenmetrics_table_exists_' . $table_name;
+		$cached_result = false;
+
+		if ( ! $force_db_check ) {
+			$cached_result = get_transient( $cache_key );
+			if ( $cached_result !== false ) {
+				// Update memory cache
+				self::$table_exists_cache[ $table_name ] = (bool) $cached_result;
+				return (bool) $cached_result;
+			}
+		}
+
+		// If no cache or forced refresh, query the database
+		global $wpdb;
+		// For SHOW TABLES LIKE, we need to properly escape the table name
+		// but avoid incorrect quoting that prepare() might add
+		$escaped_table_name = $wpdb->esc_like( $table_name );
+		$exists = (bool) $wpdb->get_var(
+			$wpdb->prepare(
+				'SHOW TABLES LIKE %s',
+				$escaped_table_name
+			)
+		);
+
+		// Update both caches
+		self::$table_exists_cache[ $table_name ] = $exists;
+		set_transient( $cache_key, $exists, WEEK_IN_SECONDS ); // Cache for a week
+
+		return $exists;
 	}
 
 	/**
@@ -165,13 +187,14 @@ class GreenMetrics_DB_Helper {
 
 		greenmetrics_log( 'Table creation result', $result );
 
-		// Clear table existence cache
+		// Clear table existence caches
 		if ( isset( self::$table_exists_cache[ $table_name ] ) ) {
 			unset( self::$table_exists_cache[ $table_name ] );
 		}
+		delete_transient( 'greenmetrics_table_exists_' . $table_name );
 
 		// Force refresh column cache after table creation
-		if ( self::table_exists( $table_name ) ) {
+		if ( self::table_exists( $table_name, true ) ) {
 			self::get_table_columns( $table_name, true );
 		}
 
