@@ -1239,6 +1239,24 @@ class GreenMetrics_Admin {
 			true
 		);
 
+		// Load the configuration module
+		wp_enqueue_script(
+			'greenmetrics-admin-config',
+			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/config.js',
+			array( 'jquery', 'greenmetrics-admin-utils' ),
+			GREENMETRICS_VERSION,
+			true
+		);
+
+		// Load the API module
+		wp_enqueue_script(
+			'greenmetrics-admin-api',
+			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/api.js',
+			array( 'jquery', 'greenmetrics-admin-config', 'greenmetrics-error-handler' ),
+			GREENMETRICS_VERSION,
+			true
+		);
+
 		// Localize script with necessary data
 		wp_localize_script(
 			'greenmetrics-admin-utils',
@@ -1265,7 +1283,7 @@ class GreenMetrics_Admin {
 		wp_enqueue_script(
 			'greenmetrics-admin-core',
 			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/core.js',
-			array( 'jquery', 'wp-color-picker', 'wp-util', 'greenmetrics-admin-utils' ),
+			array( 'jquery', 'wp-color-picker', 'wp-util', 'greenmetrics-admin-utils', 'greenmetrics-admin-config', 'greenmetrics-admin-api' ),
 			GREENMETRICS_VERSION,
 			true
 		);
@@ -1276,7 +1294,7 @@ class GreenMetrics_Admin {
 			wp_enqueue_script(
 				'greenmetrics-admin-preview',
 				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/preview.js',
-				array( 'greenmetrics-admin-core', 'greenmetrics-admin-utils' ),
+				array( 'greenmetrics-admin-core', 'greenmetrics-admin-utils', 'greenmetrics-admin-config' ),
 				GREENMETRICS_VERSION,
 				true
 			);
@@ -1295,7 +1313,7 @@ class GreenMetrics_Admin {
 			wp_enqueue_script(
 				'greenmetrics-admin-chart',
 				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/chart.js',
-				array( 'greenmetrics-admin-core', 'chart-js', 'greenmetrics-admin-utils' ),
+				array( 'greenmetrics-admin-core', 'chart-js', 'greenmetrics-admin-utils', 'greenmetrics-admin-config', 'greenmetrics-admin-api' ),
 				GREENMETRICS_VERSION,
 				true
 			);
@@ -1303,7 +1321,7 @@ class GreenMetrics_Admin {
 			wp_enqueue_script(
 				'greenmetrics-admin-dashboard',
 				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/dashboard.js',
-				array( 'greenmetrics-admin-core', 'greenmetrics-admin-utils' ),
+				array( 'greenmetrics-admin-core', 'greenmetrics-admin-utils', 'greenmetrics-admin-config', 'greenmetrics-admin-api' ),
 				GREENMETRICS_VERSION,
 				true
 			);

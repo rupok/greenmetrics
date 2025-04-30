@@ -1,6 +1,11 @@
 /**
  * GreenMetrics Admin Preview Module
  * Handles the badge and popover preview functionality
+ *
+ * @module GreenMetricsAdmin.Preview
+ * @requires jQuery
+ * @requires GreenMetricsAdmin.Config
+ * @requires GreenMetricsAdmin.Utils
  */
 // Ensure namespace exists
 var GreenMetricsAdmin = GreenMetricsAdmin || {};
@@ -16,10 +21,16 @@ GreenMetricsAdmin.Preview = (function ($) {
 	// Cache DOM elements
 	var $cache = {};
 
-	// Initialize the preview functionality
+	/**
+	 * Initialize the preview functionality
+	 *
+	 * @function init
+	 * @memberof GreenMetricsAdmin.Preview
+	 * @public
+	 */
 	function init() {
 		// Only proceed if we're on a plugin settings page
-		if ( ! greenmetricsAdmin.is_plugin_page) {
+		if (GreenMetricsAdmin.Config && !GreenMetricsAdmin.Config.isPluginPage) {
 			return;
 		}
 
@@ -108,7 +119,7 @@ GreenMetricsAdmin.Preview = (function ($) {
 		$( '.form-table' ).on(
 			'input change',
 			'input[type="text"], select, input[type="checkbox"]',
-			function (e) {
+			function () {
 				// Skip the font size controls that have special handling
 				if ( ! $( this ).hasClass( 'font-size-number' )) {
 					debouncedUpdateBadgePreview();
@@ -262,8 +273,9 @@ GreenMetricsAdmin.Preview = (function ($) {
 
 				$this.wpColorPicker(
 					{
-						defaultColor: GreenMetricsAdmin.core.defaultColors[fieldId] || '#ffffff',
-						change: function (event, ui) {
+						defaultColor: GreenMetricsAdmin.Config && GreenMetricsAdmin.Config.defaultColors ?
+							GreenMetricsAdmin.Config.defaultColors[fieldId] || '#ffffff' : '#ffffff',
+						change: function (_, ui) {
 							// Update preview when color changes
 							updateBadgePreview();
 
@@ -274,7 +286,8 @@ GreenMetricsAdmin.Preview = (function ($) {
 						},
 						clear: function () {
 							// Set to default color when clear is clicked
-							const defaultColor = GreenMetricsAdmin.core.defaultColors[fieldId] || '#ffffff';
+							const defaultColor = GreenMetricsAdmin.Config && GreenMetricsAdmin.Config.defaultColors ?
+								GreenMetricsAdmin.Config.defaultColors[fieldId] || '#ffffff' : '#ffffff';
 							setTimeout(
 								function () {
 									$this.val( defaultColor ).trigger( 'change' );
@@ -300,7 +313,7 @@ GreenMetricsAdmin.Preview = (function ($) {
 						if ($( this ).closest( '.wp-picker-container' ).find( '#popover_metrics_bg_color' ).length) {
 							$( this ).on(
 								'click',
-								function (e) {
+								function () {
 									// Add a small delay to let the default clear handler execute first
 									setTimeout(
 										function () {
@@ -650,4 +663,4 @@ GreenMetricsAdmin.Preview = (function ($) {
 		incrementFontSize: incrementFontSize,
 		decrementFontSize: decrementFontSize
 	};
-})( jQuery ); 
+})( jQuery );
