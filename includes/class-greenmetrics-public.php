@@ -354,8 +354,8 @@ class GreenMetrics_Public {
 			return '';
 		}
 
-		// Get metrics data
-		$metrics = $this->get_metrics_data();
+		// Get metrics data with force refresh for frontend
+		$metrics = $this->get_metrics_data(true);
 
 		// For the shortcode rendering
 		if ( isset( $attributes['position'] ) && isset( $attributes['theme'] ) && isset( $attributes['size'] ) && ! isset( $attributes['text'] ) ) {
@@ -631,14 +631,21 @@ class GreenMetrics_Public {
 	/**
 	 * Get metrics data for the current page
 	 *
+	 * @param bool $force_refresh Whether to force refresh the cache.
 	 * @return array Metrics data
 	 */
-	private function get_metrics_data() {
+	private function get_metrics_data($force_refresh = false) {
 		greenmetrics_log( 'Starting get_metrics_data' );
+
+		// Always force refresh on frontend page loads to ensure latest data
+		if (!is_admin()) {
+			$force_refresh = true;
+			greenmetrics_log( 'Frontend request - forcing metrics cache refresh' );
+		}
 
 		// Get stats from tracker - all calculations are now done efficiently in SQL
 		$tracker = GreenMetrics_Tracker::get_instance();
-		$stats   = $tracker->get_stats();
+		$stats   = $tracker->get_stats(null, $force_refresh);
 		greenmetrics_log( 'Stats from tracker', $stats );
 
 		// Extract and validate the data needed for display
@@ -848,8 +855,8 @@ class GreenMetrics_Public {
 		$popover_metrics_font_size           = $settings_manager->get( 'popover_metrics_font_size', '14px' );
 		$popover_metrics_label_font_size     = $settings_manager->get( 'popover_metrics_label_font_size', '12px' );
 
-		// Get metrics data for the popover
-		$metrics = $this->get_metrics_data();
+		// Get metrics data for the popover with force refresh
+		$metrics = $this->get_metrics_data(true);
 
 		// Format metrics data
 		$carbon_formatted   = GreenMetrics_Calculator::format_carbon_emissions( $metrics['carbon_footprint'] );

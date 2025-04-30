@@ -152,8 +152,8 @@ GreenMetricsAdmin.Chart = (function ($) {
 			}
 		);
 
-		// Load initial data (last 7 days by default)
-		loadMetricsByDate();
+		// Load initial data (last 7 days by default) with force refresh
+		loadMetricsByDate(null, null, true);
 
 		// Set up event handlers for date range buttons and chart toggles
 		setupDateRangeHandlers();
@@ -161,7 +161,7 @@ GreenMetricsAdmin.Chart = (function ($) {
 	}
 
 	// Load metrics data by date range
-	function loadMetricsByDate(startDate, endDate) {
+	function loadMetricsByDate(startDate, endDate, forceRefresh) {
 		// Show loading state
 		if (metricsChart) {
 			metricsChart.data.labels   = [];
@@ -185,7 +185,8 @@ GreenMetricsAdmin.Chart = (function ($) {
 				method: 'GET',
 				data: {
 					start_date: startDate,
-					end_date: endDate
+					end_date: endDate,
+					force_refresh: forceRefresh ? 'true' : 'false'
 				},
 				beforeSend: function (xhr) {
 					xhr.setRequestHeader( 'X-WP-Nonce', greenmetricsAdmin.rest_nonce );
@@ -319,6 +320,82 @@ GreenMetricsAdmin.Chart = (function ($) {
 			function (e) {
 				e.preventDefault();
 
+				// Special handling for force refresh button
+				if ($(this).hasClass('force-refresh')) {
+					// Get current active date range
+					const activeRange = $('.greenmetrics-date-btn.active').data('range');
+					let startDate, endDate;
+
+					// Get the current date range
+					switch (activeRange) {
+						case '7days':
+							startDate = GreenMetricsAdmin.Utils.getDateString(7);
+							endDate = GreenMetricsAdmin.Utils.getDateString(0);
+							break;
+						case '30days':
+							startDate = GreenMetricsAdmin.Utils.getDateString(30);
+							endDate = GreenMetricsAdmin.Utils.getDateString(0);
+							break;
+						case 'thisMonth':
+							const now = new Date();
+							startDate = now.getFullYear() + '-' + GreenMetricsAdmin.Utils.pad(now.getMonth() + 1) + '-01';
+							endDate = GreenMetricsAdmin.Utils.getDateString(0);
+							break;
+						case 'custom':
+							startDate = $('#greenmetrics-start-date').val();
+							endDate = $('#greenmetrics-end-date').val();
+							break;
+						default:
+							startDate = GreenMetricsAdmin.Utils.getDateString(7);
+							endDate = GreenMetricsAdmin.Utils.getDateString(0);
+					}
+
+					// Show loading state
+					$(this).addClass('loading');
+
+					// Force refresh the data
+					$.ajax({
+						url: greenmetricsAdmin.rest_url + '/metrics-by-date',
+						method: 'GET',
+						data: {
+							start_date: startDate,
+							end_date: endDate,
+							force_refresh: 'true'
+						},
+						beforeSend: function (xhr) {
+							xhr.setRequestHeader('X-WP-Nonce', greenmetricsAdmin.rest_nonce);
+						},
+						success: function (response) {
+							updateChart(response);
+						},
+						error: function (xhr, status, error) {
+							// Error handling (same as in loadMetricsByDate)
+							if (metricsChart) {
+								metricsChart.data.labels = [];
+								metricsChart.data.datasets = [];
+								metricsChart.update();
+							}
+
+							let errorMessage = 'Error loading chart data.';
+							if (xhr.responseJSON && xhr.responseJSON.message) {
+								errorMessage = xhr.responseJSON.message;
+							}
+
+							$('.greenmetrics-chart-container').append(
+								'<div class="chart-error-message">' + errorMessage + '</div>'
+							);
+						},
+						complete: function () {
+							// Remove loading states
+							$('.greenmetrics-date-btn').removeClass('loading');
+							$('.greenmetrics-chart-container').removeClass('loading');
+						}
+					});
+
+					return;
+				}
+
+				// Regular date range button handling
 				// Remove active class from all buttons
 				$( '.greenmetrics-date-btn' ).removeClass( 'active' );
 
@@ -393,7 +470,8 @@ GreenMetricsAdmin.Chart = (function ($) {
 				$( this ).addClass( 'loading' );
 
 				// Load metrics for the selected date range
-				loadMetricsByDate( startDate, endDate );
+				// Pass true for forceRefresh if this is the refresh button
+				loadMetricsByDate( startDate, endDate, $(this).hasClass('force-refresh') );
 			}
 		);
 

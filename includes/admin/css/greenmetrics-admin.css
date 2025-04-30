@@ -1363,6 +1363,31 @@
 
 /* Chart Styles */
 .greenmetrics-metrics-chart {
+	margin-top: 20px;
+}
+
+.greenmetrics-chart-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 15px;
+}
+
+.greenmetrics-chart-header h3 {
+	margin: 0;
+	padding-left: 0 !important;
+}
+
+.greenmetrics-chart-header h3::before {
+	display: none !important;
+}
+
+.greenmetrics-chart-header .force-refresh {
+	background-color: #f0f0f1;
+	border-color: #c3c4c7;
+}
+
+.greenmetrics-metrics-chart {
 	padding: 20px;
 }
 
@@ -1802,4 +1827,4 @@
 .guide-card ol {
 	margin-left: 20px;
 	line-height: 1.6;
-} 
+}

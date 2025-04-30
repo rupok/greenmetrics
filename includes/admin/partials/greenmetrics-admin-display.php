@@ -43,7 +43,7 @@ $settings = get_option(
 		<div class="greenmetrics-admin-content">
 			<div class="greenmetrics-admin-stats">
 				<h2><?php esc_html_e( 'Website Environmental Metrics', 'greenmetrics' ); ?></h2>
-				
+
 				<!-- Environmental Impact Context Section with visuals -->
 				<div class="greenmetrics-environmental-context">
 					<div class="context-item carbon">
@@ -130,7 +130,7 @@ $settings = get_option(
 						</div>
 					</div>
 				</div>
-				
+
 				<!-- Total Metrics Section -->
 				<h3><?php esc_html_e( 'Total Website Impact', 'greenmetrics' ); ?></h3>
 				<div class="greenmetrics-stats-grid">
@@ -288,7 +288,7 @@ $settings = get_option(
 			<!-- Historical Metrics Analysis Section -->
 			<div class="greenmetrics-metrics-trends">
 				<h2><?php esc_html_e( 'Environmental Metrics Trends', 'greenmetrics' ); ?></h2>
-				
+
 				<!-- Date Range Selector -->
 				<div class="greenmetrics-date-range">
 					<h3 class="greenmetrics-date-range-title"><?php esc_html_e( 'Select Date Range', 'greenmetrics' ); ?></h3>
@@ -296,7 +296,7 @@ $settings = get_option(
 						<button class="button greenmetrics-date-btn active" data-range="7days"><?php esc_html_e( 'Last 7 days', 'greenmetrics' ); ?></button>
 						<button class="button greenmetrics-date-btn" data-range="30days"><?php esc_html_e( 'Last 30 days', 'greenmetrics' ); ?></button>
 						<button class="button greenmetrics-date-btn" data-range="thisMonth"><?php esc_html_e( 'This Month', 'greenmetrics' ); ?></button>
-						
+
 						<div class="greenmetrics-custom-date-range">
 							<span><?php esc_html_e( 'Custom Range:', 'greenmetrics' ); ?></span>
 							<input type="date" id="greenmetrics-start-date" name="greenmetrics-start-date" class="greenmetrics-date-input">
@@ -306,9 +306,16 @@ $settings = get_option(
 						</div>
 					</div>
 				</div>
-				
+
 				<!-- Metrics Chart -->
 				<div class="greenmetrics-metrics-chart">
+					<div class="greenmetrics-chart-header">
+						<h3><?php esc_html_e( 'Metrics Chart', 'greenmetrics' ); ?></h3>
+						<button class="button greenmetrics-date-btn force-refresh" data-range="current">
+							<span class="dashicons dashicons-update" style="vertical-align: middle; margin-top: -3px;"></span>
+							<?php esc_html_e( 'Refresh Data', 'greenmetrics' ); ?>
+						</button>
+					</div>
 					<div class="greenmetrics-chart-container">
 						<canvas id="greenmetrics-chart"></canvas>
 					</div>
@@ -343,7 +350,7 @@ $settings = get_option(
 			</div>
 
 			<div class="greenmetrics-admin-settings">
-				
+
 				<!-- Tracking Settings Section -->
 				<form method="post" action="options.php">
 					<?php
@@ -352,7 +359,7 @@ $settings = get_option(
 					submit_button();
 					?>
 				</form>
-				
+
 				<!-- Display Settings Link -->
 				<div style="margin: 20px 0;">
 					<p>
@@ -363,7 +370,7 @@ $settings = get_option(
 					</p>
 					<p class="description"><?php esc_html_e( 'Configure how the eco-friendly badge appears on your website.', 'greenmetrics' ); ?></p>
 				</div>
-				
+
 				<!-- Statistics Cache Section -->
 				<div class="greenmetrics-refresh-stats" style="margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px;">
 					<h3><?php esc_html_e( 'Statistics Cache', 'greenmetrics' ); ?></h3>
@@ -378,7 +385,7 @@ $settings = get_option(
 					</form>
 				</div>
 			</div>
-			
+
 			<!-- Optimization Suggestions -->
 			<div class="greenmetrics-admin-card optimization-suggestions">
 				<h2><?php esc_html_e( 'Optimization Suggestions', 'greenmetrics' ); ?></h2>
@@ -430,7 +437,7 @@ $settings = get_option(
 							<?php endif; ?>
 						</div>
 					</li>
-					
+
 					<li class="optimization-item <?php echo ( $avg_requests_per_page > 30 ) ? 'needs-improvement' : 'good-status'; ?>">
 						<div class="optimization-icon">
 							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
@@ -528,7 +535,7 @@ $settings = get_option(
 						</div>
 					</li>
 					<?php endforeach; ?>
-					
+
 					<li class="optimization-item good-status">
 						<div class="optimization-icon">
 							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
@@ -549,4 +556,4 @@ $settings = get_option(
 			</div>
 		</div>
 	</div>
-</div> 
+</div>

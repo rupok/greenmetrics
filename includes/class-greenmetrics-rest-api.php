@@ -44,6 +44,12 @@ class GreenMetrics_Rest_API {
 						'sanitize_callback' => function ( $param ) {
 							return absint( $param ); },
 					),
+					'force_refresh' => array(
+						'required'          => false,
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+						'default'           => 'false',
+					),
 				),
 			)
 		);
@@ -72,6 +78,12 @@ class GreenMetrics_Rest_API {
 						'type'              => 'string',
 						'sanitize_callback' => 'sanitize_text_field',
 						'default'           => 'day',
+					),
+					'force_refresh' => array(
+						'required'          => false,
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+						'default'           => 'false',
 					),
 				),
 			)
@@ -185,11 +197,13 @@ class GreenMetrics_Rest_API {
 	public function get_stats( $request ) {
 		try {
 			$page_id = $request->get_param( 'page_id' );
+			$force_refresh = $request->get_param( 'force_refresh' ) === 'true';
 
 			greenmetrics_log( 'REST: Getting stats for page_id', $page_id ? $page_id : 'all pages' );
+			greenmetrics_log( 'REST: Force refresh', $force_refresh ? 'yes' : 'no' );
 
 			$tracker = GreenMetrics_Tracker::get_instance();
-			$stats   = $tracker->get_stats( $page_id );
+			$stats   = $tracker->get_stats( $page_id, $force_refresh );
 
 			if ( ! is_array( $stats ) ) {
 				greenmetrics_log( 'REST: Failed to retrieve statistics', null, 'error' );
@@ -380,8 +394,11 @@ class GreenMetrics_Rest_API {
 			// Get the tracker instance
 			$tracker = GreenMetrics_Tracker::get_instance();
 
-			// Get metrics by date range
-			$metrics = $tracker->get_metrics_by_date_range( $start_date, $end_date, $interval );
+			// Check if we should force refresh the cache
+			$force_refresh = $request->get_param( 'force_refresh' ) === 'true';
+
+			// Get metrics by date range with improved caching
+			$metrics = $tracker->get_metrics_by_date_range( $start_date, $end_date, $interval, $force_refresh );
 
 			if ( ! $metrics || ! is_array( $metrics ) ) {
 				greenmetrics_log( 'REST: Failed to retrieve metrics by date range', null, 'error' );

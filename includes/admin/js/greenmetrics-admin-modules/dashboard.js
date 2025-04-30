@@ -32,12 +32,20 @@ GreenMetricsAdmin.Dashboard = (function ($) {
 	}
 
 	// Get stats via AJAX
-	function getStats() {
+	function getStats(forceRefresh) {
 		if (typeof greenmetricsAdmin !== 'undefined' && greenmetricsAdmin.rest_url) {
+			// For page loads, always force refresh to ensure latest data
+			if (forceRefresh === undefined) {
+				forceRefresh = true;
+			}
+
 			$.ajax(
 				{
 					url: greenmetricsAdmin.rest_url + 'greenmetrics/v1/metrics',
 					type: 'GET',
+					data: {
+						force_refresh: forceRefresh ? 'true' : 'false'
+					},
 					beforeSend: function (xhr) {
 						xhr.setRequestHeader( 'X-WP-Nonce', greenmetricsAdmin.rest_nonce );
 					},
