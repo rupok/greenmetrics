@@ -125,7 +125,7 @@ class GreenMetrics_Rest_API {
 			)
 		);
 
-		greenmetrics_log( 'REST routes registered' );
+		// REST routes registered
 	}
 
 	/**
@@ -157,14 +157,8 @@ class GreenMetrics_Rest_API {
 			$nonce = $request->get_header( 'x_wp_nonce' );
 		}
 
-		// Log the headers for debugging in development environments
-		if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
-			greenmetrics_log( 'REST API Headers', $request->get_headers(), 'info' );
-		}
-
 		// If no nonce found in any of the expected headers
 		if ( ! $nonce ) {
-			greenmetrics_log( 'REST API Nonce Verification Failed: No nonce provided', null, 'warning' );
 			return new \WP_Error(
 				'rest_missing_nonce',
 				esc_html__( 'Security verification failed: Nonce is missing. Please refresh the page and try again.', 'greenmetrics' ),
@@ -175,16 +169,12 @@ class GreenMetrics_Rest_API {
 		// Verify the nonce
 		$result = wp_verify_nonce( $nonce, 'wp_rest' );
 		if ( ! $result ) {
-			greenmetrics_log( 'REST API Nonce Verification Failed: Invalid nonce', array( 'provided_nonce' => $nonce ), 'warning' );
 			return new \WP_Error(
 				'rest_invalid_nonce',
 				esc_html__( 'Security verification failed: Invalid nonce. Please refresh the page and try again.', 'greenmetrics' ),
 				array( 'status' => 403 )
 			);
 		}
-
-		// Nonce verification successful
-		greenmetrics_log( 'REST API Nonce Verification Successful', null, 'info' );
 		return true;
 	}
 
@@ -198,9 +188,6 @@ class GreenMetrics_Rest_API {
 		try {
 			$page_id = $request->get_param( 'page_id' );
 			$force_refresh = $request->get_param( 'force_refresh' ) === 'true';
-
-			greenmetrics_log( 'REST: Getting stats for page_id', $page_id ? $page_id : 'all pages' );
-			greenmetrics_log( 'REST: Force refresh', $force_refresh ? 'yes' : 'no' );
 
 			$tracker = GreenMetrics_Tracker::get_instance();
 			$stats   = $tracker->get_stats( $page_id, $force_refresh );
@@ -236,14 +223,7 @@ class GreenMetrics_Rest_API {
 			$avg_data_transfer_kb   = $avg_data_transfer / 1024;
 			$total_data_transfer_kb = $total_data_transfer / 1024;
 
-			greenmetrics_log(
-				'REST: Stats response prepared',
-				array(
-					'views'  => $total_views,
-					'carbon' => round( $total_carbon_footprint, 2 ),
-					'data'   => round( $total_data_transfer_kb, 2 ) . 'KB',
-				)
-			);
+			// Stats response prepared
 
 			// Format the response to include both total and average metrics
 			return rest_ensure_response(
@@ -290,21 +270,9 @@ class GreenMetrics_Rest_API {
 	 */
 	public function track_page( $request ) {
 		try {
-			// Add detailed logging of what we're doing
-			greenmetrics_log(
-				'REST: track_page method called',
-				array(
-					'request_params' => $request->get_params(),
-					'method'         => $request->get_method(),
-					'headers'        => $request->get_headers(),
-				)
-			);
-
 			$options = get_option( 'greenmetrics_settings' );
-			greenmetrics_log( 'REST: Settings retrieved', $options );
 
 			if ( ! isset( $options['tracking_enabled'] ) || ! $options['tracking_enabled'] ) {
-				greenmetrics_log( 'REST: Tracking request denied - tracking is disabled', null, 'warning' );
 				return GreenMetrics_Error_Handler::create_error(
 					'tracking_disabled',
 					'Tracking is disabled',
@@ -325,24 +293,10 @@ class GreenMetrics_Rest_API {
 				$data['requests'] = $request->get_param( 'requests' );
 			}
 
-			greenmetrics_log( 'REST: Full request received', $request->get_params() );
-			greenmetrics_log(
-				'REST: Tracking page',
-				array(
-					'ID'        => $data['page_id'],
-					'data'      => round( $data['data_transfer'] / 1024, 2 ) . 'KB',
-					'load_time' => round( $data['load_time'], 2 ) . 'ms',
-					'requests'  => isset( $data['requests'] ) ? $data['requests'] : 'not set',
-				)
-			);
-
 			$tracker = GreenMetrics_Tracker::get_instance();
-			greenmetrics_log( 'REST: About to call handle_track_page' );
 			$success = $tracker->handle_track_page( $data );
-			greenmetrics_log( 'REST: handle_track_page result', array( 'success' => $success ) );
 
 			if ( ! $success ) {
-				greenmetrics_log( 'REST: Failed to track page metrics', null, 'error' );
 				return GreenMetrics_Error_Handler::create_error(
 					'tracking_failed',
 					'Failed to track page metrics',
@@ -382,15 +336,6 @@ class GreenMetrics_Rest_API {
 			$end_date   = $request->get_param( 'end_date' );
 			$interval   = $request->get_param( 'interval' ) ?: 'day';
 
-			greenmetrics_log(
-				'REST: Getting metrics by date range',
-				array(
-					'start'    => $start_date,
-					'end'      => $end_date,
-					'interval' => $interval,
-				)
-			);
-
 			// Get the tracker instance
 			$tracker = GreenMetrics_Tracker::get_instance();
 
@@ -401,7 +346,6 @@ class GreenMetrics_Rest_API {
 			$metrics = $tracker->get_metrics_by_date_range( $start_date, $end_date, $interval, $force_refresh );
 
 			if ( ! $metrics || ! is_array( $metrics ) ) {
-				greenmetrics_log( 'REST: Failed to retrieve metrics by date range', null, 'error' );
 				return GreenMetrics_Error_Handler::create_error(
 					'invalid_metrics',
 					'Failed to retrieve metrics by date range',

@@ -46,7 +46,6 @@ class GreenMetrics_Calculator {
 	 */
 	public static function calculate_carbon_emissions( $bytes, $carbon_intensity = null ) {
 		if ( ! is_numeric( $bytes ) || $bytes < 0 ) {
-			greenmetrics_log( 'Invalid data transfer value', $bytes, 'error' );
 			return 0;
 		}
 
@@ -59,16 +58,6 @@ class GreenMetrics_Calculator {
 		// Calculate carbon emissions (intensity is in kg CO2/kWh, we need grams)
 		$carbon_grams = $energy_kwh * $intensity * 1000; // Convert kg to grams
 
-		greenmetrics_log(
-			'Carbon emissions calculated',
-			array(
-				'bytes'            => $bytes,
-				'energy_kwh'       => $energy_kwh,
-				'carbon_intensity' => $intensity,
-				'carbon_grams'     => $carbon_grams,
-			)
-		);
-
 		return $carbon_grams;
 	}
 
@@ -80,20 +69,11 @@ class GreenMetrics_Calculator {
 	 */
 	public static function calculate_energy_consumption( $bytes ) {
 		if ( ! is_numeric( $bytes ) || $bytes < 0 ) {
-			greenmetrics_log( 'Invalid data transfer value', $bytes, 'error' );
 			return 0;
 		}
 
 		// Calculate energy consumption directly in kWh (ENERGY_PER_BYTE is now in kWh/byte)
 		$energy_kwh = $bytes * self::ENERGY_PER_BYTE * self::PUE;
-
-		greenmetrics_log(
-			'Energy consumption calculated',
-			array(
-				'bytes'      => $bytes,
-				'energy_kwh' => $energy_kwh,
-			)
-		);
 
 		return $energy_kwh;
 	}
@@ -221,13 +201,7 @@ class GreenMetrics_Calculator {
 			);
 		}
 
-		greenmetrics_log(
-			'Generated optimization suggestions',
-			array(
-				'bytes'             => $bytes,
-				'suggestions_count' => count( $suggestions ),
-			)
-		);
+		// Return the generated suggestions
 
 		return $suggestions;
 	}

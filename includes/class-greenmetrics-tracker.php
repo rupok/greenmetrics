@@ -205,14 +205,9 @@ class GreenMetrics_Tracker {
 	public function get_stats( $page_id = null, $force_refresh = false ) {
 		global $wpdb;
 
-		if ( $page_id ) {
-			greenmetrics_log( 'Getting stats for page ID', $page_id );
-		}
-
 		// For admin dashboard requests, always force refresh to ensure latest data
 		if (is_admin() && !wp_doing_ajax()) {
 			$force_refresh = true;
-			greenmetrics_log( 'Admin dashboard request - forcing cache refresh' );
 		}
 
 		// Attempt to get cached stats
@@ -226,7 +221,7 @@ class GreenMetrics_Tracker {
 			}
 		}
 
-		greenmetrics_log( 'Querying database for stats' );
+		// Query database for stats
 
 		// Get settings to use in SQL calculations
 		$settings         = $this->get_settings();
@@ -269,7 +264,7 @@ class GreenMetrics_Tracker {
 		}
 
 		if ( ! $stats ) {
-			greenmetrics_log( 'No stats found in database', null, 'warning' );
+			// Return default values when no stats are found
 			return array(
 				'total_views'              => 0,
 				'total_data_transfer'      => 0,
@@ -402,9 +397,7 @@ class GreenMetrics_Tracker {
 	 * @return array The plugin settings.
 	 */
 	public function get_settings() {
-		$settings = GreenMetrics_Settings_Manager::get_instance()->get();
-		greenmetrics_log( 'Using settings', $settings );
-		return $settings;
+		return GreenMetrics_Settings_Manager::get_instance()->get();
 	}
 
 	/**
@@ -417,7 +410,7 @@ class GreenMetrics_Tracker {
 	private function process_and_save_metrics( $page_id, $metrics ) {
 		global $wpdb;
 
-		greenmetrics_log( 'Processing metrics for page ID: ' . $page_id );
+		// Process metrics for page ID
 
 		try {
 			if ( ! $page_id || ! is_array( $metrics ) ) {
@@ -491,7 +484,6 @@ class GreenMetrics_Tracker {
 			// Check if we should update the "all" cache based on a threshold
 			$this->maybe_update_all_cache();
 
-			greenmetrics_log( 'Metrics saved successfully for page ID: ' . $page_id );
 			return true;
 		} catch ( \Exception $e ) {
 			greenmetrics_log(
@@ -568,9 +560,9 @@ class GreenMetrics_Tracker {
 			// Update the last update timestamp
 			update_option( 'greenmetrics_all_cache_last_update', $current_time );
 
-			greenmetrics_log( 'All stats cache refreshed based on time threshold' );
+			// Cache refreshed based on time threshold
 		} else {
-			greenmetrics_log( 'Skipping all stats cache refresh (time threshold not met)' );
+			// Skipping cache refresh (time threshold not met)
 		}
 	}
 
@@ -590,7 +582,6 @@ class GreenMetrics_Tracker {
 	public static function schedule_daily_cache_refresh() {
 		if ( ! wp_next_scheduled( 'greenmetrics_daily_cache_refresh' ) ) {
 			wp_schedule_event( time(), 'daily', 'greenmetrics_daily_cache_refresh' );
-			greenmetrics_log( 'Daily cache refresh scheduled' );
 		}
 	}
 
@@ -605,8 +596,6 @@ class GreenMetrics_Tracker {
 
 		// Now force a new database query to refresh the cache
 		$instance->get_stats( null, true );
-
-		greenmetrics_log( 'Stats cache refreshed' );
 	}
 
 	/**
@@ -620,9 +609,8 @@ class GreenMetrics_Tracker {
 	 * Manually trigger the cache refresh.
 	 */
 	public static function manual_cache_refresh() {
-		greenmetrics_log( 'Manual cache refresh started' );
+		// No logging needed for this common operation
 		self::refresh_stats_cache();
-		greenmetrics_log( 'Manual cache refresh completed' );
 	}
 
 	/**
@@ -649,7 +637,6 @@ class GreenMetrics_Tracker {
 		// For admin dashboard page loads, always force refresh to ensure latest data
 		if (is_admin() && !wp_doing_ajax()) {
 			$force_refresh = true;
-			greenmetrics_log( 'Admin dashboard request - forcing date range cache refresh' );
 		}
 
 		// Create a cache key based on the parameters
@@ -659,11 +646,6 @@ class GreenMetrics_Tracker {
 		if ( ! $force_refresh ) {
 			$cached_results = get_transient( $cache_key );
 			if ( false !== $cached_results ) {
-				greenmetrics_log( 'Using cached date range metrics', array(
-					'start' => $start_date,
-					'end' => $end_date,
-					'interval' => $interval
-				) );
 				return $cached_results;
 			}
 		}
@@ -702,14 +684,6 @@ class GreenMetrics_Tracker {
 		);
 
 		if ( ! $results ) {
-			greenmetrics_log(
-				'No metrics found for date range',
-				array(
-					'start' => $start_date,
-					'end'   => $end_date,
-				),
-				'warning'
-			);
 			return array();
 		}
 

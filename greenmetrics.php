@@ -105,17 +105,9 @@ spl_autoload_register(
 		// Build the full file path
 		$file = GREENMETRICS_PLUGIN_DIR . 'includes/' . $subdir . 'class-' . $class_name_kebab . '.php';
 
-		greenmetrics_log( 'Autoloader: Looking for file', $file );
-
+		// No logging here - autoloader runs frequently and logging is unnecessary
 		if ( file_exists( $file ) ) {
 			require_once $file;
-
-			// Verify class was loaded in debug mode only
-			if ( ! class_exists( $class, false ) ) {
-				greenmetrics_log( 'Autoloader: File loaded but class not found', $class, 'error' );
-			}
-		} else {
-			greenmetrics_log( 'Autoloader: File not found', $file, 'warning' );
 		}
 	}
 );
@@ -158,8 +150,6 @@ function greenmetrics_init() {
 		// Schedule data management tasks
 		\GreenMetrics\GreenMetrics_Data_Manager::schedule_data_management();
 		\GreenMetrics\GreenMetrics_Data_Manager::register_cron_job();
-
-		greenmetrics_log( 'All components initialized successfully' );
 	} catch ( Exception $e ) {
 		// Log error and show admin notice
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
