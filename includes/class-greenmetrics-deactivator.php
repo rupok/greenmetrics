@@ -10,6 +10,7 @@
  */
 
 namespace GreenMetrics;
+// phpcs:ignoreFile WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 /**
  * Fired during plugin deactivation.
@@ -22,7 +23,7 @@ namespace GreenMetrics;
  * @author     Your Name <email@example.com>
  */
 
- // If this file is called directly, abort.
+// If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
@@ -59,7 +60,7 @@ class GreenMetrics_Deactivator {
 	private static function clear_scheduled_events() {
 		// Only clear the events that are actually scheduled by the plugin
 		$event_hook = 'greenmetrics_daily_cache_refresh';
-		$timestamp = wp_next_scheduled( $event_hook );
+		$timestamp  = wp_next_scheduled( $event_hook );
 
 		if ( $timestamp ) {
 			wp_unschedule_event( $timestamp, $event_hook );
@@ -74,11 +75,12 @@ class GreenMetrics_Deactivator {
 		global $wpdb;
 
 		// Delete all transients with our prefix
-		$sql    = $wpdb->prepare(
-			"DELETE FROM $wpdb->options WHERE option_name LIKE %s OR option_name LIKE %s",
+		$sql = $wpdb->prepare(
+			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
 			'%_transient_greenmetrics_%',
 			'%_transient_timeout_greenmetrics_%'
 		);
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		$result = $wpdb->query( $sql );
 
 		greenmetrics_log( 'Cleared plugin transients', $result, 'info' );

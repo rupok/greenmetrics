@@ -69,3 +69,5 @@ composer.phar
 format-code.sh
 lint-fix.sh
 phpcs.xml
+*.sh
+.buildignore

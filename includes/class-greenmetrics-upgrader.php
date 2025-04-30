@@ -7,6 +7,7 @@
  */
 
 namespace GreenMetrics;
+// phpcs:ignoreFile WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
@@ -164,7 +165,7 @@ class GreenMetrics_Upgrader {
 		if ( ! empty( $missing_columns ) ) {
 			greenmetrics_log( 'Missing database columns', $missing_columns );
 			self::add_missing_columns( $table_name, $missing_columns );
-			
+
 			// Force refresh the column cache after schema changes
 			GreenMetrics_DB_Helper::get_table_columns( $table_name, true );
 		}
@@ -175,10 +176,10 @@ class GreenMetrics_Upgrader {
 	 */
 	private static function create_database_tables() {
 		greenmetrics_log( 'Creating database tables via upgrader' );
-		
+
 		// Use the centralized table creation method from DB Helper
 		$result = GreenMetrics_DB_Helper::create_stats_table();
-		
+
 		greenmetrics_log( 'Database tables created via upgrader', $result );
 	}
 
@@ -190,42 +191,46 @@ class GreenMetrics_Upgrader {
 	 */
 	private static function add_missing_columns( $table_name, $missing_columns ) {
 		global $wpdb;
+		
+		// Safely escape table name
+		$table = esc_sql( $table_name );
 
 		foreach ( $missing_columns as $column ) {
 			$sql = '';
 
 			switch ( $column ) {
 				case 'id':
-					$sql = "ALTER TABLE $table_name ADD COLUMN id bigint(20) NOT NULL AUTO_INCREMENT PRIMARY KEY";
+					$sql = "ALTER TABLE $table ADD COLUMN id bigint(20) NOT NULL AUTO_INCREMENT PRIMARY KEY";
 					break;
 				case 'page_id':
-					$sql = "ALTER TABLE $table_name ADD COLUMN page_id bigint(20) NOT NULL";
+					$sql = "ALTER TABLE $table ADD COLUMN page_id bigint(20) NOT NULL";
 					break;
 				case 'data_transfer':
-					$sql = "ALTER TABLE $table_name ADD COLUMN data_transfer bigint(20) NOT NULL";
+					$sql = "ALTER TABLE $table ADD COLUMN data_transfer bigint(20) NOT NULL";
 					break;
 				case 'load_time':
-					$sql = "ALTER TABLE $table_name ADD COLUMN load_time float NOT NULL";
+					$sql = "ALTER TABLE $table ADD COLUMN load_time float NOT NULL";
 					break;
 				case 'requests':
-					$sql = "ALTER TABLE $table_name ADD COLUMN requests int(11) NOT NULL";
+					$sql = "ALTER TABLE $table ADD COLUMN requests int(11) NOT NULL";
 					break;
 				case 'carbon_footprint':
-					$sql = "ALTER TABLE $table_name ADD COLUMN carbon_footprint float NOT NULL";
+					$sql = "ALTER TABLE $table ADD COLUMN carbon_footprint float NOT NULL";
 					break;
 				case 'energy_consumption':
-					$sql = "ALTER TABLE $table_name ADD COLUMN energy_consumption float NOT NULL";
+					$sql = "ALTER TABLE $table ADD COLUMN energy_consumption float NOT NULL";
 					break;
 				case 'performance_score':
-					$sql = "ALTER TABLE $table_name ADD COLUMN performance_score float NOT NULL";
+					$sql = "ALTER TABLE $table ADD COLUMN performance_score float NOT NULL";
 					break;
 				case 'created_at':
-					$sql = "ALTER TABLE $table_name ADD COLUMN created_at datetime DEFAULT CURRENT_TIMESTAMP";
+					$sql = "ALTER TABLE $table ADD COLUMN created_at datetime DEFAULT CURRENT_TIMESTAMP";
 					break;
 			}
 
 			if ( ! empty( $sql ) ) {
 				// Using direct query because column names can't be parameterized
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 				$wpdb->query( $sql );
 				greenmetrics_log( 'Added missing column', $column );
 			}
@@ -233,7 +238,8 @@ class GreenMetrics_Upgrader {
 
 		// Add index if page_id column was just added
 		if ( in_array( 'page_id', $missing_columns ) ) {
-			$wpdb->query( "ALTER TABLE $table_name ADD INDEX (page_id)" );
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$wpdb->query( "ALTER TABLE $table ADD INDEX (page_id)" );
 			greenmetrics_log( 'Added index for page_id column' );
 		}
 	}

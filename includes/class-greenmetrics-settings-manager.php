@@ -38,25 +38,25 @@ class GreenMetrics_Settings_Manager {
 	 * Default settings values
 	 */
 	private $defaults = array(
-		'carbon_intensity'        => 0.475,         // Default carbon intensity factor (kg CO2/kWh)
-		'energy_per_byte'         => 0.000000000072, // Default energy per byte (kWh/byte)
-		'tracking_enabled'        => 1,             // Enable tracking by default
-		'enable_badge'            => 1,             // Enable badge display by default
-		'display_icon'            => 1,             // Display icon by default
-		'badge_position'          => 'bottom-right', // Default badge position
-		'badge_theme'             => 'light',       // Default badge theme
-		'badge_size'              => 'medium',      // Default badge size
-		'badge_text'              => 'Eco-Friendly Site', // Default badge text
-		'badge_icon_type'         => 'leaf',        // Default icon type
-		'badge_custom_icon'       => '',            // Custom icon path (empty by default)
-		'badge_background_color'  => '#4CAF50',     // Default badge background color
-		'badge_text_color'        => '#ffffff',     // Default badge text color
-		'badge_icon_color'        => '#ffffff',     // Default badge icon color
-		'enable_popup'            => 0,             // Disable popup by default
-		'popup_delay'             => 3,             // Default popup delay (seconds)
-		'popup_session_views'     => 1,             // Show popup after X page views per session
-		'popup_title'             => 'Environmental Impact', // Default popup title
-		'popup_content'           => '',            // Default popup content
+		'carbon_intensity'       => 0.475,         // Default carbon intensity factor (kg CO2/kWh)
+		'energy_per_byte'        => 0.000000000072, // Default energy per byte (kWh/byte)
+		'tracking_enabled'       => 1,             // Enable tracking by default
+		'enable_badge'           => 1,             // Enable badge display by default
+		'display_icon'           => 1,             // Display icon by default
+		'badge_position'         => 'bottom-right', // Default badge position
+		'badge_theme'            => 'light',       // Default badge theme
+		'badge_size'             => 'medium',      // Default badge size
+		'badge_text'             => 'Eco-Friendly Site', // Default badge text
+		'badge_icon_type'        => 'leaf',        // Default icon type
+		'badge_custom_icon'      => '',            // Custom icon path (empty by default)
+		'badge_background_color' => '#4CAF50',     // Default badge background color
+		'badge_text_color'       => '#ffffff',     // Default badge text color
+		'badge_icon_color'       => '#ffffff',     // Default badge icon color
+		'enable_popup'           => 0,             // Disable popup by default
+		'popup_delay'            => 3,             // Default popup delay (seconds)
+		'popup_session_views'    => 1,             // Show popup after X page views per session
+		'popup_title'            => 'Environmental Impact', // Default popup title
+		'popup_content'          => '',            // Default popup content
 	);
 
 	/**
@@ -210,7 +210,7 @@ class GreenMetrics_Settings_Manager {
 
 		// Get current settings to preserve values not present in current form
 		$current_settings = $this->get();
-		$sanitized = $current_settings;
+		$sanitized        = $current_settings;
 
 		// Ensure input is an array
 		if ( ! is_array( $input ) ) {
@@ -222,7 +222,7 @@ class GreenMetrics_Settings_Manager {
 		$boolean_fields = array(
 			'tracking_enabled',
 			'enable_badge',
-			'display_icon'
+			'display_icon',
 		);
 
 		foreach ( $boolean_fields as $field ) {
@@ -233,23 +233,23 @@ class GreenMetrics_Settings_Manager {
 
 		// Sanitize select fields with defined options
 		if ( isset( $input['badge_position'] ) ) {
-			$valid_positions = array( 'bottom-right', 'bottom-left', 'top-right', 'top-left' );
-			$sanitized['badge_position'] = in_array( $input['badge_position'], $valid_positions, true ) 
-				? $input['badge_position'] 
+			$valid_positions             = array( 'bottom-right', 'bottom-left', 'top-right', 'top-left' );
+			$sanitized['badge_position'] = in_array( $input['badge_position'], $valid_positions, true )
+				? $input['badge_position']
 				: 'bottom-right';
 		}
-		
+
 		if ( isset( $input['badge_size'] ) ) {
-			$valid_sizes = array( 'small', 'medium', 'large' );
-			$sanitized['badge_size'] = in_array( $input['badge_size'], $valid_sizes, true ) 
-				? $input['badge_size'] 
+			$valid_sizes             = array( 'small', 'medium', 'large' );
+			$sanitized['badge_size'] = in_array( $input['badge_size'], $valid_sizes, true )
+				? $input['badge_size']
 				: 'medium';
 		}
 
 		if ( isset( $input['badge_theme'] ) ) {
-			$valid_themes = array( 'light', 'dark' );
-			$sanitized['badge_theme'] = in_array( $input['badge_theme'], $valid_themes, true ) 
-				? $input['badge_theme'] 
+			$valid_themes             = array( 'light', 'dark' );
+			$sanitized['badge_theme'] = in_array( $input['badge_theme'], $valid_themes, true )
+				? $input['badge_theme']
 				: 'light';
 		}
 
@@ -258,7 +258,7 @@ class GreenMetrics_Settings_Manager {
 			'badge_text',
 			'popover_title',
 			'popover_content_font',
-			'popover_metrics_font'
+			'popover_metrics_font',
 		);
 
 		foreach ( $text_fields as $field ) {
@@ -274,14 +274,26 @@ class GreenMetrics_Settings_Manager {
 
 		// Sanitize icon type
 		if ( isset( $input['badge_icon_type'] ) ) {
-			$valid_icons = array( 
-				'leaf', 'tree', 'globe', 'recycle', 'chart-bar', 'chart-line', 
-				'chart-pie', 'analytics', 'performance', 'energy', 'water', 
-				'eco', 'nature', 'sustainability', 'custom' 
+			$valid_icons = array(
+				'leaf',
+				'tree',
+				'globe',
+				'recycle',
+				'chart-bar',
+				'chart-line',
+				'chart-pie',
+				'analytics',
+				'performance',
+				'energy',
+				'water',
+				'eco',
+				'nature',
+				'sustainability',
+				'custom',
 			);
-			
-			$sanitized['badge_icon_type'] = in_array( $input['badge_icon_type'], $valid_icons, true ) 
-				? $input['badge_icon_type'] 
+
+			$sanitized['badge_icon_type'] = in_array( $input['badge_icon_type'], $valid_icons, true )
+				? $input['badge_icon_type']
 				: 'leaf';
 		}
 
@@ -294,7 +306,7 @@ class GreenMetrics_Settings_Manager {
 			'popover_text_color',
 			'popover_metrics_color',
 			'popover_metrics_list_bg_color',
-			'popover_metrics_list_hover_bg_color'
+			'popover_metrics_list_hover_bg_color',
 		);
 
 		foreach ( $color_fields as $field ) {
@@ -314,18 +326,18 @@ class GreenMetrics_Settings_Manager {
 			'badge_icon_size',
 			'popover_content_font_size',
 			'popover_metrics_font_size',
-			'popover_metrics_label_font_size'
+			'popover_metrics_label_font_size',
 		);
 
 		foreach ( $size_fields as $field ) {
 			if ( isset( $input[ $field ] ) ) {
 				$value = sanitize_text_field( $input[ $field ] );
-				
+
 				// Check if the value already has 'px' suffix, otherwise add it
 				if ( strpos( $value, 'px' ) === false && strpos( $value, 'em' ) === false && strpos( $value, 'rem' ) === false ) {
 					$value = intval( $value ) . 'px';
 				}
-				
+
 				// Ensure the font size is within reasonable bounds (8px to 36px)
 				if ( preg_match( '/^(\d+)px$/', $value, $matches ) ) {
 					$numeric_size = intval( $matches[1] );
@@ -337,7 +349,7 @@ class GreenMetrics_Settings_Manager {
 						$value = $numeric_size . 'px';
 					}
 				}
-				
+
 				$sanitized[ $field ] = $value;
 			}
 		}
@@ -345,7 +357,7 @@ class GreenMetrics_Settings_Manager {
 		// Sanitize numeric fields
 		$numeric_fields = array(
 			'carbon_intensity',
-			'energy_per_byte'
+			'energy_per_byte',
 		);
 
 		foreach ( $numeric_fields as $field ) {
@@ -362,9 +374,9 @@ class GreenMetrics_Settings_Manager {
 				'data_transfer',
 				'total_views',
 				'requests',
-				'performance_score'
+				'performance_score',
 			);
-			
+
 			$sanitized_metrics = array();
 			foreach ( $input['popover_metrics'] as $metric ) {
 				$metric = sanitize_text_field( $metric );
@@ -372,7 +384,7 @@ class GreenMetrics_Settings_Manager {
 					$sanitized_metrics[] = $metric;
 				}
 			}
-			
+
 			$sanitized['popover_metrics'] = ! empty( $sanitized_metrics ) ? $sanitized_metrics : $valid_metrics;
 		}
 
@@ -397,7 +409,7 @@ class GreenMetrics_Settings_Manager {
 				'br'     => array(),
 				'small'  => array(),
 			);
-			
+
 			$sanitized['popover_custom_content'] = wp_kses( $input['popover_custom_content'], $allowed_html );
 		}
 

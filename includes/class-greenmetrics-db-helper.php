@@ -24,7 +24,7 @@ class GreenMetrics_DB_Helper {
 	 * @var array<string,string[]>
 	 */
 	private static $table_columns_cache = array();
-	
+
 	/**
 	 * Option name for storing column information.
 	 *
@@ -43,10 +43,10 @@ class GreenMetrics_DB_Helper {
 			global $wpdb;
 			self::$table_exists_cache[ $table_name ] = (bool) $wpdb->get_var(
 				$wpdb->prepare(
-					"SHOW TABLES LIKE %s",
+					'SHOW TABLES LIKE %s',
 					$table_name
-					)
-				);
+				)
+			);
 		}
 
 		return self::$table_exists_cache[ $table_name ];
@@ -61,41 +61,45 @@ class GreenMetrics_DB_Helper {
 	 */
 	public static function get_table_columns( string $table_name, bool $force_db_check = false ): array {
 		// First try memory cache
-		if ( ! $force_db_check && isset( self::$table_columns_cache[ $table_name ] ) ) {
-			return self::$table_columns_cache[ $table_name ];
+		$cache_key = 'greenmetrics_table_columns_' . $table_name;
+		$cached_columns = wp_cache_get( $cache_key, 'greenmetrics' );
+		if ( ! $force_db_check && $cached_columns !== false ) {
+			return $cached_columns;
 		}
-		
+
 		// Then try persistent cache in wp_options
 		if ( ! $force_db_check ) {
 			$cached_columns = self::get_cached_table_columns( $table_name );
 			if ( $cached_columns !== false ) {
 				self::$table_columns_cache[ $table_name ] = $cached_columns;
+				wp_cache_set( $cache_key, $cached_columns, 'greenmetrics' );
 				return $cached_columns;
 			}
 		}
-		
+
 		// If no cache or forced refresh, query the database
 		global $wpdb;
-		$escaped = esc_sql( $table_name );
-		$results = $wpdb->get_results( "DESCRIBE $escaped" );
-		
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Necessary direct query for schema check
+		$results = $wpdb->get_results( $wpdb->prepare( 'DESCRIBE %s', $table_name ) );
+
 		if ( ! $results ) {
 			// Return empty array if no results (e.g., table doesn't exist)
 			return array();
 		}
-		
+
 		$columns = array();
 		foreach ( $results as $col ) {
 			$columns[] = $col->Field;
 		}
-		
+
 		// Update both caches
 		self::$table_columns_cache[ $table_name ] = $columns;
 		self::update_cached_table_columns( $table_name, $columns );
-		
+		wp_cache_set( $cache_key, $columns, 'greenmetrics' );
+
 		return $columns;
 	}
-	
+
 	/**
 	 * Get cached table columns from wp_options.
 	 *
@@ -104,14 +108,14 @@ class GreenMetrics_DB_Helper {
 	 */
 	public static function get_cached_table_columns( string $table_name ) {
 		$columns_cache = get_option( self::$columns_option_name, array() );
-		
+
 		if ( isset( $columns_cache[ $table_name ] ) ) {
 			return $columns_cache[ $table_name ];
 		}
-		
+
 		return false;
 	}
-	
+
 	/**
 	 * Update cached table columns in wp_options.
 	 *
@@ -120,12 +124,12 @@ class GreenMetrics_DB_Helper {
 	 * @return bool True if the option was updated.
 	 */
 	public static function update_cached_table_columns( string $table_name, array $columns ): bool {
-		$columns_cache = get_option( self::$columns_option_name, array() );
+		$columns_cache                = get_option( self::$columns_option_name, array() );
 		$columns_cache[ $table_name ] = $columns;
-		
+
 		return update_option( self::$columns_option_name, $columns_cache );
 	}
-	
+
 	/**
 	 * Create the greenmetrics_stats table if it doesn't exist.
 	 *
@@ -133,7 +137,7 @@ class GreenMetrics_DB_Helper {
 	 */
 	public static function create_stats_table(): array {
 		global $wpdb;
-		$table_name = $wpdb->prefix . 'greenmetrics_stats';
+		$table_name      = $wpdb->prefix . 'greenmetrics_stats';
 		$charset_collate = $wpdb->get_charset_collate();
 
 		greenmetrics_log( 'Creating greenmetrics_stats table' );
@@ -158,10 +162,10 @@ class GreenMetrics_DB_Helper {
 		greenmetrics_log( 'Table creation result', $result );
 
 		// Clear table existence cache
-		if (isset(self::$table_exists_cache[$table_name])) {
-			unset(self::$table_exists_cache[$table_name]);
+		if ( isset( self::$table_exists_cache[ $table_name ] ) ) {
+			unset( self::$table_exists_cache[ $table_name ] );
 		}
-		
+
 		// Force refresh column cache after table creation
 		if ( self::table_exists( $table_name ) ) {
 			self::get_table_columns( $table_name, true );
@@ -169,4 +173,4 @@ class GreenMetrics_DB_Helper {
 
 		return $result;
 	}
-} 
+}
