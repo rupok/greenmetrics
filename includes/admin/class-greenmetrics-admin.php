@@ -1365,12 +1365,59 @@ class GreenMetrics_Admin {
 				'greenmetrics_admin_nonce'
 			)
 		) {
-			wp_send_json_error( 'Invalid nonce' );
+			wp_send_json_error( 'Security verification failed. Please refresh the page and try again.' );
+
+			// Log the failed nonce verification
+			if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
+				greenmetrics_log(
+					'AJAX get_icon: Nonce verification failed',
+					array(
+						'request' => $_POST,
+					),
+					'warning'
+				);
+			}
 			return;
 		}
 
-		// Get the icon type from the request
+		// Define valid icon types
+		$valid_icons = array(
+			'leaf',
+			'tree',
+			'globe',
+			'recycle',
+			'chart-bar',
+			'chart-line',
+			'chart-pie',
+			'analytics',
+			'performance',
+			'energy',
+			'water',
+			'eco',
+			'nature',
+			'sustainability',
+		);
+
+		// Get the icon type from the request with enhanced validation
 		$icon_type = isset( $_POST['icon_type'] ) ? sanitize_text_field( wp_unslash( $_POST['icon_type'] ) ) : 'leaf';
+
+		// Validate icon type
+		if ( ! in_array( $icon_type, $valid_icons, true ) ) {
+			// If invalid, use default icon
+			$icon_type = 'leaf';
+
+			// Log the invalid icon type
+			if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
+				greenmetrics_log(
+					'AJAX get_icon: Invalid icon type',
+					array(
+						'requested_icon' => isset( $_POST['icon_type'] ) ? sanitize_text_field( wp_unslash( $_POST['icon_type'] ) ) : 'none',
+						'using_default' => $icon_type,
+					),
+					'warning'
+				);
+			}
+		}
 
 		// Get the icon HTML
 		$icon_html = \GreenMetrics\GreenMetrics_Icons::get_icon( $icon_type );

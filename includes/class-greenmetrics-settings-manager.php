@@ -311,12 +311,93 @@ class GreenMetrics_Settings_Manager {
 
 		foreach ( $color_fields as $field ) {
 			if ( isset( $input[ $field ] ) ) {
-				// Handle rgba colors
-				if ( preg_match( '/^rgba\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3}),\s*([0-9.]+)\)$/', $input[ $field ] ) ) {
-					$sanitized[ $field ] = $input[ $field ];
+				$color_value = trim( $input[ $field ] );
+
+				// Handle rgba colors with enhanced validation
+				if ( preg_match( '/^rgba\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3}),\s*([0-9.]+)\)$/', $color_value, $matches ) ) {
+					// Validate each RGB component is between 0-255
+					$r = intval( $matches[1] );
+					$g = intval( $matches[2] );
+					$b = intval( $matches[3] );
+					$a = floatval( $matches[4] );
+
+					// Ensure RGB values are within valid range
+					$r = max( 0, min( 255, $r ) );
+					$g = max( 0, min( 255, $g ) );
+					$b = max( 0, min( 255, $b ) );
+
+					// Ensure alpha is between 0 and 1
+					$a = max( 0, min( 1, $a ) );
+
+					// Reconstruct the validated rgba string
+					$sanitized[ $field ] = "rgba($r, $g, $b, $a)";
+				} elseif ( preg_match( '/^rgb\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})\)$/', $color_value, $matches ) ) {
+					// Handle rgb colors
+					$r = intval( $matches[1] );
+					$g = intval( $matches[2] );
+					$b = intval( $matches[3] );
+
+					// Ensure RGB values are within valid range
+					$r = max( 0, min( 255, $r ) );
+					$g = max( 0, min( 255, $g ) );
+					$b = max( 0, min( 255, $b ) );
+
+					// Reconstruct the validated rgb string
+					$sanitized[ $field ] = "rgb($r, $g, $b)";
+				} elseif ( preg_match( '/^#([a-fA-F0-9]{3}){1,2}$/', $color_value ) ) {
+					// Handle hex colors (3 or 6 digits)
+					$sanitized[ $field ] = $color_value;
+				} elseif ( in_array( $color_value, array( 'transparent', 'initial', 'inherit', 'currentColor' ), true ) ) {
+					// Handle special CSS color keywords
+					$sanitized[ $field ] = $color_value;
 				} else {
-					// Handle regular hex colors
-					$sanitized[ $field ] = sanitize_hex_color( $input[ $field ] );
+					// For any other format, use WordPress sanitize_hex_color
+					$sanitized_color = sanitize_hex_color( $color_value );
+
+					// If sanitize_hex_color returns empty (invalid), use default color
+					if ( empty( $sanitized_color ) ) {
+						// Use field-specific defaults
+						switch ( $field ) {
+							case 'badge_background_color':
+								$sanitized[ $field ] = '#4CAF50';
+								break;
+							case 'badge_text_color':
+							case 'badge_icon_color':
+								$sanitized[ $field ] = '#ffffff';
+								break;
+							case 'popover_bg_color':
+								$sanitized[ $field ] = '#ffffff';
+								break;
+							case 'popover_text_color':
+								$sanitized[ $field ] = '#333333';
+								break;
+							case 'popover_metrics_color':
+								$sanitized[ $field ] = '#4CAF50';
+								break;
+							case 'popover_metrics_list_bg_color':
+								$sanitized[ $field ] = '#f9f9f9';
+								break;
+							case 'popover_metrics_list_hover_bg_color':
+								$sanitized[ $field ] = '#f0f0f0';
+								break;
+							default:
+								$sanitized[ $field ] = '#000000';
+						}
+					} else {
+						$sanitized[ $field ] = $sanitized_color;
+					}
+				}
+
+				// Log sanitization for debugging
+				if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
+					greenmetrics_log(
+						'Color sanitization',
+						array(
+							'field' => $field,
+							'input' => $input[ $field ],
+							'output' => $sanitized[ $field ]
+						)
+					);
 				}
 			}
 		}
@@ -354,15 +435,61 @@ class GreenMetrics_Settings_Manager {
 			}
 		}
 
-		// Sanitize numeric fields
+		// Sanitize numeric fields with enhanced validation
 		$numeric_fields = array(
-			'carbon_intensity',
-			'energy_per_byte',
+			'carbon_intensity' => array(
+				'min' => 0,
+				'max' => 10,
+				'default' => 0.475,
+				'precision' => 3,
+			),
+			'energy_per_byte' => array(
+				'min' => 0,
+				'max' => 0.0000001,
+				'default' => 0.000000000072,
+				'precision' => 12,
+			),
 		);
 
-		foreach ( $numeric_fields as $field ) {
+		foreach ( $numeric_fields as $field => $constraints ) {
 			if ( isset( $input[ $field ] ) ) {
-				$sanitized[ $field ] = floatval( $input[ $field ] );
+				// Convert to float and validate
+				$value = floatval( $input[ $field ] );
+
+				// Apply constraints
+				if ( $value < $constraints['min'] || $value > $constraints['max'] || !is_numeric( $input[ $field ] ) ) {
+					// If value is out of range or not numeric, use default
+					$sanitized[ $field ] = $constraints['default'];
+
+					// Log invalid input
+					if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
+						greenmetrics_log(
+							'Invalid numeric input',
+							array(
+								'field' => $field,
+								'input' => $input[ $field ],
+								'sanitized' => $sanitized[ $field ],
+								'reason' => 'Value out of range or not numeric',
+							),
+							'warning'
+						);
+					}
+				} else {
+					// Round to specified precision
+					$sanitized[ $field ] = round( $value, $constraints['precision'] );
+
+					// Log sanitization for debugging
+					if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
+						greenmetrics_log(
+							'Numeric sanitization',
+							array(
+								'field' => $field,
+								'input' => $input[ $field ],
+								'output' => $sanitized[ $field ]
+							)
+						);
+					}
+				}
 			}
 		}
 
@@ -390,27 +517,160 @@ class GreenMetrics_Settings_Manager {
 
 		// Sanitize custom content (HTML allowed with specific tags)
 		if ( isset( $input['popover_custom_content'] ) ) {
+			// Define a more restrictive set of allowed HTML tags and attributes
 			$allowed_html = array(
 				'a'      => array(
 					'href'   => array(),
 					'title'  => array(),
-					'target' => array(),
-					'rel'    => array(),
+					'target' => array( '_blank', '_self' ), // Restrict target values
+					'rel'    => array( 'nofollow', 'noreferrer', 'noopener' ), // Restrict rel values
 					'class'  => array(),
 				),
 				'p'      => array(
 					'class' => array(),
+					'style' => array(), // Allow basic styling
 				),
 				'span'   => array(
 					'class' => array(),
+					'style' => array(), // Allow basic styling
 				),
 				'strong' => array(),
 				'em'     => array(),
 				'br'     => array(),
 				'small'  => array(),
+				'ul'     => array(
+					'class' => array(),
+				),
+				'ol'     => array(
+					'class' => array(),
+				),
+				'li'     => array(
+					'class' => array(),
+				),
 			);
 
-			$sanitized['popover_custom_content'] = wp_kses( $input['popover_custom_content'], $allowed_html );
+			// First sanitize with wp_kses to remove any disallowed HTML
+			$sanitized_content = wp_kses( $input['popover_custom_content'], $allowed_html );
+
+			// Additional sanitization for style attributes to prevent XSS
+			$sanitized_content = preg_replace_callback(
+				'/<([a-z][a-z0-9]*)[^>]*?style=["\']([^"\']*)["\'][^>]*?>/i',
+				function( $matches ) {
+					$tag = $matches[1];
+					$style = $matches[2];
+
+					// Only allow specific CSS properties
+					$allowed_css_properties = array(
+						'color', 'background-color', 'font-size', 'font-weight',
+						'text-align', 'margin', 'padding', 'text-decoration'
+					);
+
+					// Parse the style attribute
+					$styles = explode( ';', $style );
+					$sanitized_styles = array();
+
+					foreach ( $styles as $style_rule ) {
+						$style_rule = trim( $style_rule );
+						if ( empty( $style_rule ) ) {
+							continue;
+						}
+
+						// Split into property and value
+						$parts = explode( ':', $style_rule, 2 );
+						if ( count( $parts ) !== 2 ) {
+							continue;
+						}
+
+						$property = trim( $parts[0] );
+						$value = trim( $parts[1] );
+
+						// Check if property is allowed
+						if ( in_array( $property, $allowed_css_properties, true ) ) {
+							// Additional validation for values to prevent CSS injection
+							if ( $property === 'color' || $property === 'background-color' ) {
+								// Only allow hex colors, rgb, rgba, and named colors
+								if ( preg_match( '/^(#[a-f0-9]{3,6}|rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)|rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*[0-9.]+\s*\)|[a-z-]+)$/i', $value ) ) {
+									$sanitized_styles[] = $property . ':' . $value;
+								}
+							} elseif ( $property === 'font-size' ) {
+								// Only allow specific units and reasonable sizes
+								if ( preg_match( '/^(\d+)(px|em|rem|%)$/', $value, $size_matches ) ) {
+									$size = intval( $size_matches[1] );
+									$unit = $size_matches[2];
+
+									// Limit size based on unit
+									if ( $unit === 'px' && $size >= 8 && $size <= 36 ) {
+										$sanitized_styles[] = $property . ':' . $value;
+									} elseif ( ($unit === 'em' || $unit === 'rem') && $size >= 0.5 && $size <= 3 ) {
+										$sanitized_styles[] = $property . ':' . $value;
+									} elseif ( $unit === '%' && $size >= 50 && $size <= 200 ) {
+										$sanitized_styles[] = $property . ':' . $value;
+									}
+								}
+							} elseif ( in_array( $property, array( 'margin', 'padding' ), true ) ) {
+								// Only allow specific units and reasonable sizes for spacing
+								if ( preg_match( '/^(\d+)(px|em|rem|%)(\s+(\d+)(px|em|rem|%))*$/', $value ) ) {
+									$sanitized_styles[] = $property . ':' . $value;
+								}
+							} elseif ( $property === 'text-align' ) {
+								// Only allow specific values
+								if ( in_array( $value, array( 'left', 'right', 'center', 'justify' ), true ) ) {
+									$sanitized_styles[] = $property . ':' . $value;
+								}
+							} elseif ( $property === 'font-weight' ) {
+								// Only allow specific values
+								if ( in_array( $value, array( 'normal', 'bold', 'bolder', 'lighter', '100', '200', '300', '400', '500', '600', '700', '800', '900' ), true ) ) {
+									$sanitized_styles[] = $property . ':' . $value;
+								}
+							} elseif ( $property === 'text-decoration' ) {
+								// Only allow specific values
+								if ( in_array( $value, array( 'none', 'underline', 'overline', 'line-through' ), true ) ) {
+									$sanitized_styles[] = $property . ':' . $value;
+								}
+							}
+						}
+					}
+
+					// Rebuild the tag with sanitized style attribute
+					if ( ! empty( $sanitized_styles ) ) {
+						return '<' . $tag . ' style="' . esc_attr( implode( '; ', $sanitized_styles ) ) . '">';
+					} else {
+						return '<' . $tag . '>';
+					}
+				},
+				$sanitized_content
+			);
+
+			// Limit the length of the custom content
+			$max_length = 1000; // Set a reasonable maximum length
+			if ( strlen( $sanitized_content ) > $max_length ) {
+				$sanitized_content = substr( $sanitized_content, 0, $max_length );
+
+				// Log truncation
+				if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
+					greenmetrics_log(
+						'Custom content truncated',
+						array(
+							'original_length' => strlen( $input['popover_custom_content'] ),
+							'truncated_length' => $max_length,
+						),
+						'warning'
+					);
+				}
+			}
+
+			$sanitized['popover_custom_content'] = $sanitized_content;
+
+			// Log sanitization for debugging
+			if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
+				greenmetrics_log(
+					'Custom content sanitization',
+					array(
+						'input_length' => strlen( $input['popover_custom_content'] ),
+						'output_length' => strlen( $sanitized['popover_custom_content'] ),
+					)
+				);
+			}
 		}
 
 		// Log the sanitized output for debugging
