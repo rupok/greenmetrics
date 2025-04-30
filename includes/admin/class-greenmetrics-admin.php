@@ -13,6 +13,10 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
+// Import required classes from other namespaces
+use GreenMetrics\GreenMetrics_DB_Helper;
+use GreenMetrics\GreenMetrics_Error_Handler;
+
 /**
  * The admin-specific functionality of the plugin.
  */
@@ -23,6 +27,7 @@ class GreenMetrics_Admin {
 	public function __construct() {
 		add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
+		add_action( 'admin_init', array( $this, 'check_database_errors' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_styles' ) );
 		add_action( 'admin_notices', array( $this, 'show_settings_update_notice' ) );
@@ -1062,6 +1067,58 @@ class GreenMetrics_Admin {
 			<p class="description"><?php esc_html_e( 'Font size for the metrics in the popover.', 'greenmetrics' ); ?></p>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Check for database errors and display admin notices.
+	 */
+	public function check_database_errors() {
+		// Check for database errors stored in options
+		$db_error = get_option( 'greenmetrics_db_error', false );
+		if ( $db_error ) {
+			\GreenMetrics\GreenMetrics_Error_Handler::admin_notice(
+				sprintf(
+					/* translators: %s: Database error message */
+					__( 'GreenMetrics: Database error detected. Some features may not work correctly. Error: %s', 'greenmetrics' ),
+					esc_html( $db_error )
+				),
+				'error',
+				false
+			);
+		}
+
+		// Check for aggregated table errors
+		$aggregated_db_error = get_option( 'greenmetrics_aggregated_db_error', false );
+		if ( $aggregated_db_error ) {
+			\GreenMetrics\GreenMetrics_Error_Handler::admin_notice(
+				sprintf(
+					/* translators: %s: Database error message */
+					__( 'GreenMetrics: Aggregated data table error detected. Data aggregation features may not work correctly. Error: %s', 'greenmetrics' ),
+					esc_html( $aggregated_db_error )
+				),
+				'warning',
+				false
+			);
+		}
+
+		// Check if tables exist
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'greenmetrics_stats';
+		$table_exists = GreenMetrics_DB_Helper::table_exists( $table_name );
+
+		if ( ! $table_exists && ! $db_error ) {
+			// Table doesn't exist but no error is stored - try to create it
+			\GreenMetrics\GreenMetrics_Error_Handler::admin_notice(
+				__( 'GreenMetrics: Database tables not found. Attempting to create them...', 'greenmetrics' ),
+				'warning',
+				true
+			);
+
+			// Try to create the table
+			$result = \GreenMetrics\GreenMetrics_DB_Helper::create_stats_table( true );
+
+			// No need to check the result here as the create_stats_table method will display appropriate notices
+		}
 	}
 
 	/**

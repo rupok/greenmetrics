@@ -177,10 +177,21 @@ class GreenMetrics_Upgrader {
 	private static function create_database_tables() {
 		greenmetrics_log( 'Creating database tables via upgrader' );
 
-		// Use the centralized table creation method from DB Helper
-		$result = GreenMetrics_DB_Helper::create_stats_table();
+		// Use the centralized table creation method from DB Helper with admin notices
+		$result = GreenMetrics_DB_Helper::create_stats_table( true );
 
-		greenmetrics_log( 'Database tables created via upgrader', $result );
+		// Check if table creation was successful
+		if ( is_wp_error( $result ) ) {
+			greenmetrics_log( 'Failed to create database tables via upgrader', $result->get_error_message(), 'error' );
+
+			// Store the error for reference
+			update_option( 'greenmetrics_db_error', $result->get_error_message() );
+		} else {
+			greenmetrics_log( 'Database tables created via upgrader', $result );
+
+			// Clear any previous database errors
+			delete_option( 'greenmetrics_db_error' );
+		}
 	}
 
 	/**

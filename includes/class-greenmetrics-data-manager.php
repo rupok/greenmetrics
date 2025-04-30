@@ -81,35 +81,106 @@ class GreenMetrics_Data_Manager {
 
 		$charset_collate = $wpdb->get_charset_collate();
 
-		$sql = "CREATE TABLE IF NOT EXISTS {$this->aggregated_table_name} (
-			id bigint(20) NOT NULL AUTO_INCREMENT,
-			page_id bigint(20) NOT NULL,
-			date_start datetime NOT NULL,
-			date_end datetime NOT NULL,
-			aggregation_type VARCHAR(10) NOT NULL,
-			views int(11) NOT NULL,
-			total_data_transfer bigint(20) NOT NULL,
-			avg_data_transfer bigint(20) NOT NULL,
-			total_load_time float NOT NULL,
-			avg_load_time float NOT NULL,
-			total_requests int(11) NOT NULL,
-			avg_requests float NOT NULL,
-			total_carbon_footprint float NOT NULL,
-			avg_carbon_footprint float NOT NULL,
-			total_energy_consumption float NOT NULL,
-			avg_energy_consumption float NOT NULL,
-			avg_performance_score float NOT NULL,
-			created_at datetime DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (id),
-			KEY page_id (page_id),
-			KEY date_start (date_start),
-			KEY aggregation_type (aggregation_type)
-		) $charset_collate;";
+		// Capture any PHP errors that might occur during table creation
+		$previous_error_reporting = error_reporting();
+		error_reporting( E_ALL );
+		$previous_error_handler = set_error_handler(
+			function ( $errno, $errstr, $errfile, $errline ) {
+				greenmetrics_log( "PHP Error during aggregated table creation: $errstr", array( 'file' => $errfile, 'line' => $errline ), 'error' );
+				return false; // Let the standard error handler continue
+			}
+		);
 
-		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-		$result = dbDelta( $sql );
+		try {
+			$sql = "CREATE TABLE IF NOT EXISTS {$this->aggregated_table_name} (
+				id bigint(20) NOT NULL AUTO_INCREMENT,
+				page_id bigint(20) NOT NULL,
+				date_start datetime NOT NULL,
+				date_end datetime NOT NULL,
+				aggregation_type VARCHAR(10) NOT NULL,
+				views int(11) NOT NULL,
+				total_data_transfer bigint(20) NOT NULL,
+				avg_data_transfer bigint(20) NOT NULL,
+				total_load_time float NOT NULL,
+				avg_load_time float NOT NULL,
+				total_requests int(11) NOT NULL,
+				avg_requests float NOT NULL,
+				total_carbon_footprint float NOT NULL,
+				avg_carbon_footprint float NOT NULL,
+				total_energy_consumption float NOT NULL,
+				avg_energy_consumption float NOT NULL,
+				avg_performance_score float NOT NULL,
+				created_at datetime DEFAULT CURRENT_TIMESTAMP,
+				PRIMARY KEY (id),
+				KEY page_id (page_id),
+				KEY date_start (date_start),
+				KEY aggregation_type (aggregation_type)
+			) $charset_collate;";
 
-		greenmetrics_log( 'Aggregated table creation result', $result );
+			require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+			$result = dbDelta( $sql );
+
+			// Check for MySQL errors
+			if ( ! empty( $wpdb->last_error ) ) {
+				$error_message = 'MySQL error during aggregated table creation: ' . $wpdb->last_error;
+				greenmetrics_log( $error_message, $wpdb->last_query, 'error' );
+
+				// Show admin notice about the error
+				GreenMetrics_Error_Handler::admin_notice(
+					sprintf(
+						/* translators: %s: Database error message */
+						__( 'GreenMetrics: Failed to create aggregated data table. Error: %s', 'greenmetrics' ),
+						esc_html( $wpdb->last_error )
+					),
+					'error',
+					false
+				);
+
+				// Store the error for reference
+				update_option( 'greenmetrics_aggregated_db_error', $wpdb->last_error );
+			} else {
+				greenmetrics_log( 'Aggregated table creation result', $result );
+
+				// Verify table was actually created
+				if ( ! GreenMetrics_DB_Helper::table_exists( $this->aggregated_table_name, true ) ) {
+					$error_message = 'Aggregated table creation failed: Table does not exist after dbDelta';
+					greenmetrics_log( $error_message, null, 'error' );
+
+					// Show admin notice about the error
+					GreenMetrics_Error_Handler::admin_notice(
+						__( 'GreenMetrics: Failed to create aggregated data table. Data aggregation will not be available.', 'greenmetrics' ),
+						'error',
+						false
+					);
+				} else {
+					// Clear any previous errors
+					delete_option( 'greenmetrics_aggregated_db_error' );
+				}
+			}
+		} catch ( \Exception $e ) {
+			$error_message = 'Exception during aggregated table creation: ' . $e->getMessage();
+			greenmetrics_log( $error_message, $e->getTraceAsString(), 'error' );
+
+			// Show admin notice about the error
+			GreenMetrics_Error_Handler::admin_notice(
+				sprintf(
+					/* translators: %s: Exception message */
+					__( 'GreenMetrics: Exception during aggregated table creation: %s', 'greenmetrics' ),
+					esc_html( $e->getMessage() )
+				),
+				'error',
+				false
+			);
+
+			// Store the error for reference
+			update_option( 'greenmetrics_aggregated_db_error', $e->getMessage() );
+		} finally {
+			// Restore previous error handler and reporting level
+			if ( $previous_error_handler ) {
+				restore_error_handler();
+			}
+			error_reporting( $previous_error_reporting );
+		}
 	}
 
 	/**

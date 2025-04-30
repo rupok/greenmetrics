@@ -44,9 +44,6 @@ $total_size = \GreenMetrics\GreenMetrics_Data_Manager::format_bytes($table_sizes
 		<!-- Left Column: Settings Form -->
 		<div class="greenmetrics-admin-settings-column">
 			<div class="greenmetrics-admin-card">
-				<h2><?php esc_html_e( 'Tracking Settings', 'greenmetrics' ); ?></h2>
-				<p><?php esc_html_e( 'Configure tracking settings to collect data about your website\'s environmental impact.', 'greenmetrics' ); ?></p>
-
 				<form method="post" action="options.php">
 					<?php settings_fields( 'greenmetrics_settings' ); ?>
 					<?php do_settings_sections( 'greenmetrics_data_management' ); ?>

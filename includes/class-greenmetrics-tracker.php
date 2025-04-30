@@ -452,13 +452,31 @@ class GreenMetrics_Tracker {
 			// Check if the table exists before attempting to insert
 			if ( ! $this->table_exists() ) {
 				greenmetrics_log( 'Table does not exist, attempting to create it', $this->table_name );
-				// Try to create the table
-				GreenMetrics_DB_Helper::create_stats_table();
+
+				// Try to create the table with admin notices
+				$result = GreenMetrics_DB_Helper::create_stats_table( true );
 
 				// Check if table creation was successful
-				if ( ! $this->table_exists() ) {
-					greenmetrics_log( 'Failed to create table', $this->table_name, 'error' );
-					return GreenMetrics_Error_Handler::create_error( 'table_not_found', 'Database table does not exist and could not be created' );
+				if ( is_wp_error( $result ) || ! $this->table_exists() ) {
+					greenmetrics_log( 'Failed to create table', array(
+						'table_name' => $this->table_name,
+						'result' => $result
+					), 'error' );
+
+					// Show admin notice about the error
+					GreenMetrics_Error_Handler::admin_notice(
+						__( 'GreenMetrics: Failed to create database table. Tracking data cannot be stored.', 'greenmetrics' ),
+						'error',
+						false
+					);
+
+					// Store the error for reference
+					update_option( 'greenmetrics_db_error', is_wp_error( $result ) ? $result->get_error_message() : 'Table creation failed' );
+
+					return GreenMetrics_Error_Handler::database_error(
+						'Database table does not exist and could not be created',
+						is_wp_error( $result ) ? $result->get_error_message() : null
+					);
 				}
 			}
 
