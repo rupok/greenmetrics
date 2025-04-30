@@ -48,12 +48,18 @@ function greenmetrics_log( $message, $data = null, $level = 'info' ) {
 	}
 
 	// The code below only runs when debugging is enabled
-	$log_message = date( '[Y-m-d H:i:s]' ) . " GreenMetrics: $message";
+	$log_message = gmdate( '[Y-m-d H:i:s]' ) . " GreenMetrics: $message";
 
 	if ( null !== $data ) {
-		// Only do print_r for arrays and objects to improve performance
+		// Format the data as a simple string without using debug functions
 		if ( is_array( $data ) || is_object( $data ) ) {
-			$log_message .= ' - ' . print_r( $data, true );
+			// Convert complex data to JSON instead of using var_export
+			$json_data = wp_json_encode( $data, JSON_PRETTY_PRINT );
+			if ( false !== $json_data ) {
+				$log_message .= ' - ' . $json_data;
+			} else {
+				$log_message .= ' - [Complex data that could not be encoded]';
+			}
 		} else {
 			$log_message .= ' - ' . $data;
 		}
@@ -63,8 +69,13 @@ function greenmetrics_log( $message, $data = null, $level = 'info' ) {
 	$log_file = WP_CONTENT_DIR . '/greenmetrics-debug.log';
 	file_put_contents( $log_file, $log_message . PHP_EOL, FILE_APPEND );
 
-	// Also use error_log for standard WordPress logging
-	error_log( $log_message );
+	// Only log to error_log in debug mode
+	if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+		// Use WordPress logging function to avoid direct error_log
+		if ( function_exists( 'wp_debug_log' ) ) {
+			wp_debug_log( $log_message );
+		}
+	}
 }
 
 // Autoloader
@@ -137,7 +148,12 @@ function greenmetrics_init() {
 		greenmetrics_log( 'All components initialized successfully' );
 	} catch ( Exception $e ) {
 		// Log error and show admin notice
-		error_log( 'GreenMetrics Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString() );
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			if ( function_exists( 'wp_debug_log' ) ) {
+				wp_debug_log( 'GreenMetrics Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString() );
+			}
+		}
+		
 		add_action(
 			'admin_notices',
 			function () use ( $e ) {

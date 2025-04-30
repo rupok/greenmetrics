@@ -984,13 +984,13 @@ class GreenMetrics_Public {
 	 */
 	public function handle_get_icon() {
 		// Verify nonce
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'greenmetrics_get_icon' ) ) {
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['nonce'] ) ), 'greenmetrics_get_icon' ) ) {
 			wp_send_json_error( 'Invalid nonce' );
 			return;
 		}
 
 		// Get the icon type from the request
-		$icon_type = isset( $_POST['icon_type'] ) ? sanitize_text_field( $_POST['icon_type'] ) : 'leaf';
+		$icon_type = isset( $_POST['icon_type'] ) ? sanitize_text_field( wp_unslash( $_POST['icon_type'] ) ) : 'leaf';
 
 		// Get the icon SVG
 		$icon_svg = $this->get_icon_svg( $icon_type );
