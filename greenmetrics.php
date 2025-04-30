@@ -124,6 +124,15 @@ spl_autoload_register(
 
 // Initialize the plugin
 function greenmetrics_init() {
+	// Use a static flag to ensure this function only runs once
+	static $initialized = false;
+
+	if ($initialized) {
+		return;
+	}
+
+	$initialized = true;
+
 	// Load text domain
 	load_plugin_textdomain( 'greenmetrics', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 
@@ -153,7 +162,7 @@ function greenmetrics_init() {
 				wp_debug_log( 'GreenMetrics Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString() );
 			}
 		}
-		
+
 		add_action(
 			'admin_notices',
 			function () use ( $e ) {
@@ -180,6 +189,13 @@ register_activation_hook(
 add_action(
 	'plugins_loaded',
 	function () {
+		static $upgrade_checked = false;
+
+		if ($upgrade_checked) {
+			return;
+		}
+
+		$upgrade_checked = true;
 		\GreenMetrics\GreenMetrics_Upgrader::check_for_upgrades();
 	}
 );
