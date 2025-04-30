@@ -38,25 +38,32 @@ class GreenMetrics_Settings_Manager {
 	 * Default settings values
 	 */
 	private $defaults = array(
-		'carbon_intensity'       => 0.475,         // Default carbon intensity factor (kg CO2/kWh)
-		'energy_per_byte'        => 0.000000000072, // Default energy per byte (kWh/byte)
-		'tracking_enabled'       => 1,             // Enable tracking by default
-		'enable_badge'           => 1,             // Enable badge display by default
-		'display_icon'           => 1,             // Display icon by default
-		'badge_position'         => 'bottom-right', // Default badge position
-		'badge_theme'            => 'light',       // Default badge theme
-		'badge_size'             => 'medium',      // Default badge size
-		'badge_text'             => 'Eco-Friendly Site', // Default badge text
-		'badge_icon_type'        => 'leaf',        // Default icon type
-		'badge_custom_icon'      => '',            // Custom icon path (empty by default)
-		'badge_background_color' => '#4CAF50',     // Default badge background color
-		'badge_text_color'       => '#ffffff',     // Default badge text color
-		'badge_icon_color'       => '#ffffff',     // Default badge icon color
-		'enable_popup'           => 0,             // Disable popup by default
-		'popup_delay'            => 3,             // Default popup delay (seconds)
-		'popup_session_views'    => 1,             // Show popup after X page views per session
-		'popup_title'            => 'Environmental Impact', // Default popup title
-		'popup_content'          => '',            // Default popup content
+		'carbon_intensity'                  => 0.475,         // Default carbon intensity factor (kg CO2/kWh)
+		'energy_per_byte'                   => 0.000000000072, // Default energy per byte (kWh/byte)
+		'tracking_enabled'                  => 1,             // Enable tracking by default
+		'enable_badge'                      => 1,             // Enable badge display by default
+		'display_icon'                      => 1,             // Display icon by default
+		'badge_position'                    => 'bottom-right', // Default badge position
+		'badge_theme'                       => 'light',       // Default badge theme
+		'badge_size'                        => 'medium',      // Default badge size
+		'badge_text'                        => 'Eco-Friendly Site', // Default badge text
+		'badge_icon_type'                   => 'leaf',        // Default icon type
+		'badge_custom_icon'                 => '',            // Custom icon path (empty by default)
+		'badge_background_color'            => '#4CAF50',     // Default badge background color
+		'badge_text_color'                  => '#ffffff',     // Default badge text color
+		'badge_icon_color'                  => '#ffffff',     // Default badge icon color
+		'enable_popup'                      => 0,             // Disable popup by default
+		'popup_delay'                       => 3,             // Default popup delay (seconds)
+		'popup_session_views'               => 1,             // Show popup after X page views per session
+		'popup_title'                       => 'Environmental Impact', // Default popup title
+		'popup_content'                     => '',            // Default popup content
+
+		// Data management settings
+		'data_management_enabled'           => 1,             // Enable data management by default
+		'aggregation_age'                   => 30,            // Aggregate data older than 30 days
+		'aggregation_type'                  => 'daily',       // Aggregate by day by default
+		'retention_period'                  => 90,            // Keep individual records for 90 days
+		'require_aggregation_before_pruning'=> 1,             // Only prune data that has been aggregated
 	);
 
 	/**
@@ -223,6 +230,8 @@ class GreenMetrics_Settings_Manager {
 			'tracking_enabled',
 			'enable_badge',
 			'display_icon',
+			'data_management_enabled',
+			'require_aggregation_before_pruning',
 		);
 
 		foreach ( $boolean_fields as $field ) {
@@ -251,6 +260,13 @@ class GreenMetrics_Settings_Manager {
 			$sanitized['badge_theme'] = in_array( $input['badge_theme'], $valid_themes, true )
 				? $input['badge_theme']
 				: 'light';
+		}
+
+		if ( isset( $input['aggregation_type'] ) ) {
+			$valid_types = array( 'daily', 'weekly', 'monthly' );
+			$sanitized['aggregation_type'] = in_array( $input['aggregation_type'], $valid_types, true )
+				? $input['aggregation_type']
+				: 'daily';
 		}
 
 		// Sanitize text fields
@@ -448,6 +464,18 @@ class GreenMetrics_Settings_Manager {
 				'max' => 0.0000001,
 				'default' => 0.000000000072,
 				'precision' => 12,
+			),
+			'aggregation_age' => array(
+				'min' => 1,
+				'max' => 365,
+				'default' => 30,
+				'precision' => 0,
+			),
+			'retention_period' => array(
+				'min' => 1,
+				'max' => 3650, // 10 years
+				'default' => 90,
+				'precision' => 0,
 			),
 		);
 

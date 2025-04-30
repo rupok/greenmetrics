@@ -149,10 +149,15 @@ function greenmetrics_init() {
 	// Initialize components
 	try {
 		// Initialize components
-		$admin    = new \GreenMetrics\Admin\GreenMetrics_Admin();
-		$public   = new \GreenMetrics\GreenMetrics_Public();
-		$tracker  = \GreenMetrics\GreenMetrics_Tracker::get_instance();
-		$rest_api = new \GreenMetrics\GreenMetrics_Rest_API();
+		$admin        = new \GreenMetrics\Admin\GreenMetrics_Admin();
+		$public       = new \GreenMetrics\GreenMetrics_Public();
+		$tracker      = \GreenMetrics\GreenMetrics_Tracker::get_instance();
+		$rest_api     = new \GreenMetrics\GreenMetrics_Rest_API();
+		$data_manager = \GreenMetrics\GreenMetrics_Data_Manager::get_instance();
+
+		// Schedule data management tasks
+		\GreenMetrics\GreenMetrics_Data_Manager::schedule_data_management();
+		\GreenMetrics\GreenMetrics_Data_Manager::register_cron_job();
 
 		greenmetrics_log( 'All components initialized successfully' );
 	} catch ( Exception $e ) {

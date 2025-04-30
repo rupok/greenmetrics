@@ -28,6 +28,9 @@ class GreenMetrics_Admin {
 		add_action( 'admin_notices', array( $this, 'show_settings_update_notice' ) );
 		add_action( 'admin_init', array( $this, 'handle_refresh_stats' ) );
 
+		// Admin post handlers
+		add_action( 'admin_post_greenmetrics_run_data_management', array( $this, 'handle_run_data_management' ) );
+
 		// AJAX handlers
 		add_action( 'wp_ajax_greenmetrics_refresh_stats', array( $this, 'handle_refresh_stats' ) );
 		add_action( 'wp_ajax_greenmetrics_get_icon', array( $this, 'handle_get_icon' ) );
@@ -95,6 +98,16 @@ class GreenMetrics_Admin {
 			'manage_options',
 			'greenmetrics_display',
 			array( $this, 'render_display_settings_page' )
+		);
+
+		// Add submenu for Data Management
+		add_submenu_page(
+			'greenmetrics',
+			__( 'Data Management', 'greenmetrics' ),
+			__( 'Data Management', 'greenmetrics' ),
+			'manage_options',
+			'greenmetrics_data_management',
+			array( $this, 'render_data_management_page' )
 		);
 	}
 
@@ -1328,6 +1341,79 @@ class GreenMetrics_Admin {
 		}
 
 		include GREENMETRICS_PLUGIN_DIR . 'includes/admin/partials/greenmetrics-display-settings.php';
+	}
+
+	/**
+	 * Render data management page.
+	 */
+	public function render_data_management_page() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		include GREENMETRICS_PLUGIN_DIR . 'includes/admin/partials/greenmetrics-data-management.php';
+	}
+
+	/**
+	 * Handle running data management tasks.
+	 */
+	public function handle_run_data_management() {
+		// Check nonce
+		if ( ! isset( $_POST['greenmetrics_data_management_nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['greenmetrics_data_management_nonce'] ), 'greenmetrics_run_data_management' ) ) {
+			wp_die( esc_html__( 'Security check failed.', 'greenmetrics' ) );
+		}
+
+		// Check permissions
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'greenmetrics' ) );
+		}
+
+		$data_manager = \GreenMetrics\GreenMetrics_Data_Manager::get_instance();
+		$settings = \GreenMetrics\GreenMetrics_Settings_Manager::get_instance()->get();
+		$message = '';
+
+		// Run aggregation if requested
+		if ( isset( $_POST['run_aggregation'] ) && $_POST['run_aggregation'] ) {
+			$aggregation_age = isset( $settings['aggregation_age'] ) ? intval( $settings['aggregation_age'] ) : 30;
+			$aggregation_type = isset( $settings['aggregation_type'] ) ? $settings['aggregation_type'] : 'daily';
+
+			$result = $data_manager->aggregate_old_data( $aggregation_age, $aggregation_type );
+
+			if ( $result['error'] ) {
+				$message = __( 'Error during data aggregation.', 'greenmetrics' );
+				add_settings_error( 'greenmetrics_data_management', 'aggregation_error', $message, 'error' );
+			} else {
+				$message = sprintf(
+					/* translators: %d: number of aggregated periods */
+					_n( 'Data aggregation completed successfully. %d period was aggregated.', 'Data aggregation completed successfully. %d periods were aggregated.', $result['aggregated'], 'greenmetrics' ),
+					$result['aggregated']
+				);
+				add_settings_error( 'greenmetrics_data_management', 'aggregation_success', $message, 'success' );
+			}
+		}
+
+		// Run pruning if requested
+		if ( isset( $_POST['run_pruning'] ) && $_POST['run_pruning'] ) {
+			$retention_period = isset( $settings['retention_period'] ) ? intval( $settings['retention_period'] ) : 90;
+
+			$result = $data_manager->prune_old_data( $retention_period );
+
+			if ( $result['error'] ) {
+				$message = __( 'Error during data pruning.', 'greenmetrics' );
+				add_settings_error( 'greenmetrics_data_management', 'pruning_error', $message, 'error' );
+			} else {
+				$message = sprintf(
+					/* translators: %d: number of pruned records */
+					_n( 'Data pruning completed successfully. %d record was deleted.', 'Data pruning completed successfully. %d records were deleted.', $result['pruned'], 'greenmetrics' ),
+					$result['pruned']
+				);
+				add_settings_error( 'greenmetrics_data_management', 'pruning_success', $message, 'success' );
+			}
+		}
+
+		// Redirect back to the data management page
+		wp_safe_redirect( add_query_arg( 'settings-updated', 'true', admin_url( 'admin.php?page=greenmetrics_data_management' ) ) );
+		exit;
 	}
 
 	/**

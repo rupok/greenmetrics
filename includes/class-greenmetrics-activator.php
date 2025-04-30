@@ -66,6 +66,14 @@ class GreenMetrics_Activator {
 		GreenMetrics_Tracker::schedule_daily_cache_refresh();
 		greenmetrics_log( 'Activator - Scheduled daily cache refresh' );
 
+		// Initialize data manager to create aggregated table
+		$data_manager = GreenMetrics_Data_Manager::get_instance();
+		greenmetrics_log( 'Activator - Initialized data manager' );
+
+		// Schedule data management tasks
+		GreenMetrics_Data_Manager::schedule_data_management();
+		greenmetrics_log( 'Activator - Scheduled data management tasks' );
+
 		// Store the current version in the database
 		update_option( 'greenmetrics_version', GREENMETRICS_VERSION );
 		greenmetrics_log( 'Activator - Version recorded', GREENMETRICS_VERSION );
