@@ -22,7 +22,7 @@ define( 'GREENMETRICS_VERSION', '1.0.0' );
 define( 'GREENMETRICS_PLUGIN_FILE', __FILE__ );
 define( 'GREENMETRICS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'GREENMETRICS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'GREENMETRICS_DEBUG', false ); // Disabled by default for production environments
+define( 'GREENMETRICS_DEBUG', true ); // Disabled by default for production environments
 
 // Define a constant that can be used for compile-time optimizations
 // When true, all logging calls will be completely bypassed
@@ -130,6 +130,9 @@ function greenmetrics_init() {
 
 	// Explicitly load the Icons class to avoid autoloading issues
 	require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-icons.php';
+
+	// Explicitly load the Formatter class to ensure it's available everywhere
+	require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-formatter.php';
 
 	// Debug and development settings should never run in production
 	if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG && defined( 'WP_DEBUG' ) && WP_DEBUG ) {

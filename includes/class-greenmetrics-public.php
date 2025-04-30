@@ -167,6 +167,15 @@ class GreenMetrics_Public {
 			)
 		);
 
+		// Enqueue the formatter utility
+		wp_enqueue_script(
+			'greenmetrics-formatter',
+			GREENMETRICS_PLUGIN_URL . 'public/js/utils/formatter.js',
+			array(),
+			GREENMETRICS_VERSION,
+			true
+		);
+
 		// Localize script with REST URL
 		wp_localize_script(
 			'greenmetrics-public',
@@ -376,13 +385,13 @@ class GreenMetrics_Public {
 			$wrapper_class = implode( ' ', $wrapper_classes );
 			$badge_class   = implode( ' ', $badge_classes );
 
-			// Format values with proper precision using formatting methods from the Calculator class
-			$carbon_formatted   = GreenMetrics_Calculator::format_carbon_emissions( $metrics['carbon_footprint'] );
-			$energy_formatted   = GreenMetrics_Calculator::format_energy_consumption( $metrics['energy_consumption'] );
-			$data_formatted     = GreenMetrics_Calculator::format_data_transfer( $metrics['data_transfer'] );
-			$views_formatted    = number_format( $metrics['total_views'] );
-			$requests_formatted = number_format( $metrics['requests'] );
-			$score_formatted    = number_format( $metrics['performance_score'], 2 ) . '%';
+			// Format values with proper precision using the Formatter class
+			$carbon_formatted   = GreenMetrics_Formatter::format_carbon_emissions( $metrics['carbon_footprint'] );
+			$energy_formatted   = GreenMetrics_Formatter::format_energy_consumption( $metrics['energy_consumption'] );
+			$data_formatted     = GreenMetrics_Formatter::format_data_transfer( $metrics['data_transfer'] );
+			$views_formatted    = GreenMetrics_Formatter::format_views( $metrics['total_views'] );
+			$requests_formatted = GreenMetrics_Formatter::format_requests( $metrics['requests'] );
+			$score_formatted    = GreenMetrics_Formatter::format_performance_score( $metrics['performance_score'] );
 
 			greenmetrics_log(
 				'Formatted metrics values',
@@ -522,27 +531,27 @@ class GreenMetrics_Public {
 								switch ( $metric ) {
 									case 'carbon_footprint':
 										$label = __( 'Carbon Footprint', 'greenmetrics' );
-										$value = GreenMetrics_Calculator::format_carbon_emissions( $metrics['carbon_footprint'] );
+										$value = GreenMetrics_Formatter::format_carbon_emissions( $metrics['carbon_footprint'] );
 										break;
 									case 'energy_consumption':
 										$label = __( 'Energy Consumption', 'greenmetrics' );
-										$value = GreenMetrics_Calculator::format_energy_consumption( $metrics['energy_consumption'] );
+										$value = GreenMetrics_Formatter::format_energy_consumption( $metrics['energy_consumption'] );
 										break;
 									case 'data_transfer':
 										$label = __( 'Data Transfer', 'greenmetrics' );
-										$value = GreenMetrics_Calculator::format_data_transfer( $metrics['data_transfer'] );
+										$value = GreenMetrics_Formatter::format_data_transfer( $metrics['data_transfer'] );
 										break;
 									case 'views':
 										$label = __( 'Page Views', 'greenmetrics' );
-										$value = number_format( $metrics['total_views'] );
+										$value = GreenMetrics_Formatter::format_views( $metrics['total_views'] );
 										break;
 									case 'http_requests':
 										$label = __( 'HTTP Requests', 'greenmetrics' );
-										$value = number_format( $metrics['requests'] );
+										$value = GreenMetrics_Formatter::format_requests( $metrics['requests'] );
 										break;
 									case 'performance_score':
 										$label = __( 'Performance Score', 'greenmetrics' );
-										$value = number_format( $metrics['performance_score'], 2 ) . '%';
+										$value = GreenMetrics_Formatter::format_performance_score( $metrics['performance_score'] );
 										break;
 								}
 								/* translators: %1$s: metric label, %2$s: metric value, %3$s: font family, %4$s: font size, %5$s: value font family, %6$s: value font size, %7$s: background color, %8$s: value background color, %9$s: value text color */

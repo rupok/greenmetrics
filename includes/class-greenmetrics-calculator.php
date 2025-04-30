@@ -85,20 +85,7 @@ class GreenMetrics_Calculator {
 	 * @return string Formatted string with appropriate unit.
 	 */
 	public static function format_carbon_emissions( $grams ) {
-		if ( ! is_numeric( $grams ) || $grams < 0 ) {
-			return '0 g';
-		}
-
-		if ( $grams >= 1000 ) {
-			return number_format( $grams / 1000, 2 ) . ' kg';
-		} elseif ( $grams >= 1 ) {
-			return number_format( $grams, 2 ) . ' g';
-		} elseif ( $grams >= 0.001 ) {
-			return number_format( $grams * 1000, 2 ) . ' mg';
-		} else {
-			// For extremely small values, increase precision to avoid showing 0
-			return number_format( $grams, 6 ) . ' g';
-		}
+		return GreenMetrics_Formatter::format_carbon_emissions( $grams );
 	}
 
 	/**
@@ -108,19 +95,7 @@ class GreenMetrics_Calculator {
 	 * @return string Formatted string with appropriate unit.
 	 */
 	public static function format_data_transfer( $bytes ) {
-		if ( ! is_numeric( $bytes ) || $bytes < 0 ) {
-			return '0 B';
-		}
-
-		if ( $bytes < 1024 ) {
-			return $bytes . ' B';
-		} elseif ( $bytes < 1048576 ) {
-			return round( $bytes / 1024, 2 ) . ' KB';
-		} elseif ( $bytes < 1073741824 ) {
-			return round( $bytes / 1048576, 2 ) . ' MB';
-		} else {
-			return round( $bytes / 1073741824, 2 ) . ' GB';
-		}
+		return GreenMetrics_Formatter::format_data_transfer( $bytes );
 	}
 
 	/**
@@ -130,11 +105,7 @@ class GreenMetrics_Calculator {
 	 * @return string Formatted string with appropriate unit.
 	 */
 	public static function format_energy_consumption( $kwh ) {
-		if ( ! is_numeric( $kwh ) || $kwh < 0 ) {
-			return '0 kWh';
-		}
-
-		return number_format( $kwh, 4 ) . ' kWh';
+		return GreenMetrics_Formatter::format_energy_consumption( $kwh );
 	}
 
 	/**
@@ -144,15 +115,7 @@ class GreenMetrics_Calculator {
 	 * @return string Formatted time with appropriate unit
 	 */
 	public static function format_load_time( $seconds ) {
-		if ( ! is_numeric( $seconds ) || $seconds < 0 ) {
-			return '0 ms';
-		}
-
-		if ( $seconds < 1 ) {
-			return round( $seconds * 1000, 2 ) . ' ms';
-		} else {
-			return round( $seconds, 2 ) . ' s';
-		}
+		return GreenMetrics_Formatter::format_load_time( $seconds );
 	}
 
 	/**
