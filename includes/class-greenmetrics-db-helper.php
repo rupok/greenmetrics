@@ -159,15 +159,48 @@ class GreenMetrics_DB_Helper {
 	/**
 	 * Create the greenmetrics_stats table if it doesn't exist.
 	 *
-	 * @return array Result of the dbDelta operation.
+	 * @param bool $show_admin_notice Whether to show an admin notice on failure.
+	 * @return array|WP_Error Result of the dbDelta operation or WP_Error on failure.
 	 */
-	public static function create_stats_table(): array {
+	public static function create_stats_table( $show_admin_notice = false ) {
 		global $wpdb;
 		$table_name      = $wpdb->prefix . 'greenmetrics_stats';
 		$charset_collate = $wpdb->get_charset_collate();
 
 		greenmetrics_log( 'Creating greenmetrics_stats table' );
 
+		// Check for necessary MySQL privileges
+		$has_create_privilege = false;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Necessary direct query for privilege check
+		$privileges = $wpdb->get_results( "SHOW GRANTS FOR CURRENT_USER()" );
+		if ( $privileges ) {
+			foreach ( $privileges as $privilege ) {
+				$grant = reset( get_object_vars( $privilege ) );
+				if ( strpos( $grant, 'ALL PRIVILEGES' ) !== false ||
+					 strpos( $grant, 'CREATE' ) !== false ) {
+					$has_create_privilege = true;
+					break;
+				}
+			}
+		}
+
+		if ( ! $has_create_privilege ) {
+			$error_message = 'Database user lacks CREATE privilege required to create tables';
+			greenmetrics_log( $error_message, null, 'error' );
+
+			if ( $show_admin_notice ) {
+				GreenMetrics_Error_Handler::admin_notice(
+					__( 'GreenMetrics: Database user lacks necessary privileges to create tables. Please contact your hosting provider.', 'greenmetrics' ),
+					'error',
+					false
+				);
+			}
+
+			return GreenMetrics_Error_Handler::database_error( $error_message );
+		}
+
+		// Prepare the SQL statement
 		$sql = "CREATE TABLE IF NOT EXISTS $table_name (
             id bigint(20) NOT NULL AUTO_INCREMENT,
             page_id bigint(20) NOT NULL,
@@ -182,22 +215,100 @@ class GreenMetrics_DB_Helper {
             KEY page_id (page_id)
         ) $charset_collate;";
 
-		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-		$result = dbDelta( $sql );
+		// Capture any PHP errors that might occur during table creation
+		$previous_error_reporting = error_reporting();
+		error_reporting( E_ALL );
+		$previous_error_handler = set_error_handler(
+			function ( $errno, $errstr, $errfile, $errline ) {
+				greenmetrics_log( "PHP Error during table creation: $errstr", array( 'file' => $errfile, 'line' => $errline ), 'error' );
+				return false; // Let the standard error handler continue
+			}
+		);
 
-		greenmetrics_log( 'Table creation result', $result );
+		try {
+			require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+			$result = dbDelta( $sql );
 
-		// Clear table existence caches
-		if ( isset( self::$table_exists_cache[ $table_name ] ) ) {
-			unset( self::$table_exists_cache[ $table_name ] );
-		}
-		delete_transient( 'greenmetrics_table_exists_' . $table_name );
+			// Check for MySQL errors
+			if ( ! empty( $wpdb->last_error ) ) {
+				$error_message = 'MySQL error during table creation: ' . $wpdb->last_error;
+				greenmetrics_log( $error_message, $wpdb->last_query, 'error' );
 
-		// Force refresh column cache after table creation
-		if ( self::table_exists( $table_name, true ) ) {
+				if ( $show_admin_notice ) {
+					GreenMetrics_Error_Handler::admin_notice(
+						sprintf(
+							/* translators: %s: Database error message */
+							__( 'GreenMetrics: Failed to create database tables. Error: %s', 'greenmetrics' ),
+							esc_html( $wpdb->last_error )
+						),
+						'error',
+						false
+					);
+				}
+
+				return GreenMetrics_Error_Handler::database_error( $error_message, $wpdb->last_error, $wpdb->last_query );
+			}
+
+			greenmetrics_log( 'Table creation result', $result );
+
+			// Clear table existence caches
+			if ( isset( self::$table_exists_cache[ $table_name ] ) ) {
+				unset( self::$table_exists_cache[ $table_name ] );
+			}
+			delete_transient( 'greenmetrics_table_exists_' . $table_name );
+
+			// Verify table was actually created
+			if ( ! self::table_exists( $table_name, true ) ) {
+				$error_message = 'Table creation failed: Table does not exist after dbDelta';
+				greenmetrics_log( $error_message, null, 'error' );
+
+				if ( $show_admin_notice ) {
+					GreenMetrics_Error_Handler::admin_notice(
+						__( 'GreenMetrics: Failed to create database tables. Please check server error logs for details.', 'greenmetrics' ),
+						'error',
+						false
+					);
+				}
+
+				return GreenMetrics_Error_Handler::database_error( $error_message );
+			}
+
+			// Force refresh column cache after table creation
 			self::get_table_columns( $table_name, true );
-		}
 
-		return $result;
+			// Show success notice if requested
+			if ( $show_admin_notice ) {
+				GreenMetrics_Error_Handler::admin_notice(
+					__( 'GreenMetrics: Database tables created successfully.', 'greenmetrics' ),
+					'success',
+					true
+				);
+			}
+
+			return $result;
+		} catch ( \Exception $e ) {
+			$error_message = 'Exception during table creation: ' . $e->getMessage();
+			greenmetrics_log( $error_message, $e->getTraceAsString(), 'error' );
+
+			if ( $show_admin_notice ) {
+				GreenMetrics_Error_Handler::admin_notice(
+					sprintf(
+						/* translators: %s: Exception message */
+						__( 'GreenMetrics: Exception during database table creation: %s', 'greenmetrics' ),
+						esc_html( $e->getMessage() )
+					),
+					'error',
+					false
+				);
+			}
+
+			return GreenMetrics_Error_Handler::handle_exception( $e, 'database_creation_exception' );
+		} finally {
+			// Restore previous error handler and reporting level
+			if ( $previous_error_handler ) {
+				restore_error_handler();
+			}
+			error_reporting( $previous_error_reporting );
+		}
 	}
 }

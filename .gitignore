@@ -71,3 +71,5 @@ lint-fix.sh
 phpcs.xml
 *.sh
 .buildignore
+docs/error-handling.md
+docs/javascript-organization.md

@@ -16,6 +16,13 @@ if ( ! defined( 'WPINC' ) ) {
 /**
  * The error handler for the plugin.
  * This class provides standardized error handling functions to be used throughout the plugin.
+ *
+ * Error handling guidelines:
+ * 1. Always use this class for error handling instead of direct error reporting
+ * 2. Use appropriate error codes that follow the naming convention: {context}_{error_type}
+ * 3. Provide descriptive error messages that are user-friendly
+ * 4. Include relevant data for debugging when appropriate
+ * 5. Use the appropriate method based on the context (REST, AJAX, admin, etc.)
  */
 class GreenMetrics_Error_Handler {
 	/**
@@ -155,5 +162,99 @@ class GreenMetrics_Error_Handler {
 
 		// For normal requests, return the error
 		return $error;
+	}
+
+	/**
+	 * Display an admin notice for an error.
+	 *
+	 * @param string $message The error message to display.
+	 * @param string $type The notice type (error, warning, success, info).
+	 * @param bool   $dismissible Whether the notice should be dismissible.
+	 * @return void
+	 */
+	public static function admin_notice( $message, $type = 'error', $dismissible = true ) {
+		add_action(
+			'admin_notices',
+			function () use ( $message, $type, $dismissible ) {
+				$class = 'notice notice-' . $type;
+				if ( $dismissible ) {
+					$class .= ' is-dismissible';
+				}
+				echo '<div class="' . esc_attr( $class ) . '"><p>' . esc_html( $message ) . '</p></div>';
+			}
+		);
+	}
+
+	/**
+	 * Create a database error with standardized format.
+	 *
+	 * @param string $message The error message.
+	 * @param mixed  $db_error The database error (usually $wpdb->last_error).
+	 * @param string $query The query that caused the error (usually $wpdb->last_query).
+	 * @param int    $status HTTP status code.
+	 * @return \WP_Error|array Error object.
+	 */
+	public static function database_error( $message, $db_error = null, $query = null, $status = 500 ) {
+		global $wpdb;
+
+		$data = array();
+
+		if ( null === $db_error && isset( $wpdb ) ) {
+			$db_error = $wpdb->last_error;
+		}
+
+		if ( null === $query && isset( $wpdb ) ) {
+			$query = $wpdb->last_query;
+		}
+
+		if ( $db_error ) {
+			$data['db_error'] = $db_error;
+		}
+
+		if ( $query ) {
+			$data['query'] = $query;
+		}
+
+		return self::create_error( 'database_error', $message, $data, $status );
+	}
+
+	/**
+	 * Create a validation error with standardized format.
+	 *
+	 * @param string $message The error message.
+	 * @param array  $validation_errors Array of validation errors.
+	 * @param int    $status HTTP status code.
+	 * @return \WP_Error|array Error object.
+	 */
+	public static function validation_error( $message, $validation_errors = array(), $status = 400 ) {
+		return self::create_error( 'validation_error', $message, array( 'validation_errors' => $validation_errors ), $status );
+	}
+
+	/**
+	 * Create a permission error with standardized format.
+	 *
+	 * @param string $message The error message.
+	 * @param int    $status HTTP status code.
+	 * @return \WP_Error|array Error object.
+	 */
+	public static function permission_error( $message = 'You do not have permission to perform this action.', $status = 403 ) {
+		return self::create_error( 'permission_error', $message, array(), $status );
+	}
+
+	/**
+	 * Create a not found error with standardized format.
+	 *
+	 * @param string $message The error message.
+	 * @param string $resource The resource that was not found.
+	 * @param int    $status HTTP status code.
+	 * @return \WP_Error|array Error object.
+	 */
+	public static function not_found_error( $message = 'Resource not found.', $resource = null, $status = 404 ) {
+		$data = array();
+		if ( $resource ) {
+			$data['resource'] = $resource;
+		}
+
+		return self::create_error( 'not_found', $message, $data, $status );
 	}
 }

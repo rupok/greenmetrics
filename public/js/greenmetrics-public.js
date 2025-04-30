@@ -87,37 +87,67 @@
                 if (!response.ok) {
                     // Get more detailed error information
                     return response.json().then(errorData => {
-                        // Throw an error with the message from the server if available
-                        throw new Error(errorData.message || 'Network response was not ok');
-                    }).catch(jsonError => {
-                        // If parsing JSON fails, throw the original error
-                        throw new Error('Network response was not ok');
+                        // Create a more detailed error object
+                        const error = new Error(errorData.message || 'Network response was not ok');
+                        error.status = response.status;
+                        error.statusText = response.statusText;
+                        error.code = errorData.code || 'unknown_error';
+                        error.data = errorData.data || {};
+                        throw error;
+                    }).catch(() => {
+                        // If parsing JSON fails, throw the original error with status info
+                        const error = new Error('Network response was not ok');
+                        error.status = response.status;
+                        error.statusText = response.statusText;
+                        throw error;
                     });
                 }
                 return response.json();
             })
-            .then(data => {
+            .then(() => {
                 // Success handling without console logs
                 if (greenmetricsPublic.debug) {
                     console.log('GreenMetrics: Tracking data sent successfully');
                 }
             })
             .catch(error => {
-                // Enhanced error handling
+                // Enhanced error handling with more context
                 if (greenmetricsPublic.debug) {
-                    console.error('GreenMetrics: Error sending tracking data', error.message);
+                    // Create a more detailed error log
+                    const errorContext = {
+                        message: error.message,
+                        status: error.status,
+                        statusText: error.statusText,
+                        code: error.code || 'unknown_error',
+                        data: error.data || {}
+                    };
+
+                    console.error('GreenMetrics: Error sending tracking data', errorContext);
+
+                    // Add specific guidance based on error type
+                    if (error.status === 403) {
+                        console.info('GreenMetrics: Tracking may be disabled in the plugin settings.');
+                    } else if (error.status === 500) {
+                        console.info('GreenMetrics: Server error occurred. This may be temporary.');
+                    } else if (error.status === 404) {
+                        console.info('GreenMetrics: API endpoint not found. The plugin may be misconfigured.');
+                    }
                 }
 
                 // If this is a security error, we might want to refresh the nonce
                 if (error.message && (
                     error.message.includes('Security verification failed') ||
-                    error.message.includes('Nonce')
+                    error.message.includes('Nonce') ||
+                    error.message.includes('rest_cookie_invalid_nonce')
                 )) {
                     // In a real implementation, we might want to refresh the nonce here
                     // or notify the user to refresh the page
                     if (greenmetricsPublic.debug) {
                         console.warn('GreenMetrics: Security verification failed. The page may need to be refreshed.');
                     }
+
+                    // For tracking errors, we don't want to disrupt the user experience,
+                    // so we silently fail without showing any visible errors
                 }
             });
         }
@@ -172,8 +202,11 @@
                         $icon.html(response.data);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function() {
                     // Error handling without console logs
+                    if (greenmetricsPublic.debug) {
+                        console.warn('GreenMetrics: Failed to load icon');
+                    }
                 }
             });
         });
@@ -181,10 +214,8 @@
         // Apply hover behavior for badge blocks as well
         $('.wp-block-greenmetrics-badge-wrapper').hover(
             function() {
-                // Preserve any custom properties when showing content
+                // Show content
                 const $content = $(this).find('.wp-block-greenmetrics-content');
-                const currentStyle = $content.attr('style') || '';
-
                 $content.css({
                     'opacity': '1',
                     'visibility': 'visible',
@@ -192,10 +223,8 @@
                 });
             },
             function() {
-                // Preserve any custom properties when hiding content
+                // Hide content
                 const $content = $(this).find('.wp-block-greenmetrics-content');
-                const currentStyle = $content.attr('style') || '';
-
                 $content.css({
                     'opacity': '0',
                     'visibility': 'hidden',

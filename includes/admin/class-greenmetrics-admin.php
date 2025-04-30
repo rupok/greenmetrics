@@ -13,6 +13,10 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
+// Import required classes from other namespaces
+use GreenMetrics\GreenMetrics_DB_Helper;
+use GreenMetrics\GreenMetrics_Error_Handler;
+
 /**
  * The admin-specific functionality of the plugin.
  */
@@ -23,6 +27,7 @@ class GreenMetrics_Admin {
 	public function __construct() {
 		add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
+		add_action( 'admin_init', array( $this, 'check_database_errors' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_styles' ) );
 		add_action( 'admin_notices', array( $this, 'show_settings_update_notice' ) );
@@ -1065,6 +1070,58 @@ class GreenMetrics_Admin {
 	}
 
 	/**
+	 * Check for database errors and display admin notices.
+	 */
+	public function check_database_errors() {
+		// Check for database errors stored in options
+		$db_error = get_option( 'greenmetrics_db_error', false );
+		if ( $db_error ) {
+			\GreenMetrics\GreenMetrics_Error_Handler::admin_notice(
+				sprintf(
+					/* translators: %s: Database error message */
+					__( 'GreenMetrics: Database error detected. Some features may not work correctly. Error: %s', 'greenmetrics' ),
+					esc_html( $db_error )
+				),
+				'error',
+				false
+			);
+		}
+
+		// Check for aggregated table errors
+		$aggregated_db_error = get_option( 'greenmetrics_aggregated_db_error', false );
+		if ( $aggregated_db_error ) {
+			\GreenMetrics\GreenMetrics_Error_Handler::admin_notice(
+				sprintf(
+					/* translators: %s: Database error message */
+					__( 'GreenMetrics: Aggregated data table error detected. Data aggregation features may not work correctly. Error: %s', 'greenmetrics' ),
+					esc_html( $aggregated_db_error )
+				),
+				'warning',
+				false
+			);
+		}
+
+		// Check if tables exist
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'greenmetrics_stats';
+		$table_exists = GreenMetrics_DB_Helper::table_exists( $table_name );
+
+		if ( ! $table_exists && ! $db_error ) {
+			// Table doesn't exist but no error is stored - try to create it
+			\GreenMetrics\GreenMetrics_Error_Handler::admin_notice(
+				__( 'GreenMetrics: Database tables not found. Attempting to create them...', 'greenmetrics' ),
+				'warning',
+				true
+			);
+
+			// Try to create the table
+			$result = \GreenMetrics\GreenMetrics_DB_Helper::create_stats_table( true );
+
+			// No need to check the result here as the create_stats_table method will display appropriate notices
+		}
+	}
+
+	/**
 	 * Register the stylesheets for the admin area.
 	 */
 	public function enqueue_styles() {
@@ -1221,11 +1278,38 @@ class GreenMetrics_Admin {
 		wp_enqueue_script( 'wp-color-picker' );
 		wp_enqueue_media(); // Add media uploader scripts
 
-		// First create a common namespace and utility functions - always needed
+		// First load the error handler - needed for all other modules
+		wp_enqueue_script(
+			'greenmetrics-error-handler',
+			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/error-handler.js',
+			array( 'jquery' ),
+			GREENMETRICS_VERSION,
+			true
+		);
+
+		// Then create a common namespace and utility functions - always needed
 		wp_enqueue_script(
 			'greenmetrics-admin-utils',
 			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/utils.js',
-			array( 'jquery' ),
+			array( 'jquery', 'greenmetrics-error-handler' ),
+			GREENMETRICS_VERSION,
+			true
+		);
+
+		// Load the configuration module
+		wp_enqueue_script(
+			'greenmetrics-admin-config',
+			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/config.js',
+			array( 'jquery', 'greenmetrics-admin-utils' ),
+			GREENMETRICS_VERSION,
+			true
+		);
+
+		// Load the API module
+		wp_enqueue_script(
+			'greenmetrics-admin-api',
+			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/api.js',
+			array( 'jquery', 'greenmetrics-admin-config', 'greenmetrics-error-handler' ),
 			GREENMETRICS_VERSION,
 			true
 		);
@@ -1256,7 +1340,7 @@ class GreenMetrics_Admin {
 		wp_enqueue_script(
 			'greenmetrics-admin-core',
 			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/core.js',
-			array( 'jquery', 'wp-color-picker', 'wp-util', 'greenmetrics-admin-utils' ),
+			array( 'jquery', 'wp-color-picker', 'wp-util', 'greenmetrics-admin-utils', 'greenmetrics-admin-config', 'greenmetrics-admin-api' ),
 			GREENMETRICS_VERSION,
 			true
 		);
@@ -1267,7 +1351,7 @@ class GreenMetrics_Admin {
 			wp_enqueue_script(
 				'greenmetrics-admin-preview',
 				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/preview.js',
-				array( 'greenmetrics-admin-core', 'greenmetrics-admin-utils' ),
+				array( 'greenmetrics-admin-core', 'greenmetrics-admin-utils', 'greenmetrics-admin-config' ),
 				GREENMETRICS_VERSION,
 				true
 			);
@@ -1286,7 +1370,7 @@ class GreenMetrics_Admin {
 			wp_enqueue_script(
 				'greenmetrics-admin-chart',
 				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/chart.js',
-				array( 'greenmetrics-admin-core', 'chart-js', 'greenmetrics-admin-utils' ),
+				array( 'greenmetrics-admin-core', 'chart-js', 'greenmetrics-admin-utils', 'greenmetrics-admin-config', 'greenmetrics-admin-api' ),
 				GREENMETRICS_VERSION,
 				true
 			);
@@ -1294,7 +1378,7 @@ class GreenMetrics_Admin {
 			wp_enqueue_script(
 				'greenmetrics-admin-dashboard',
 				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/dashboard.js',
-				array( 'greenmetrics-admin-core', 'greenmetrics-admin-utils' ),
+				array( 'greenmetrics-admin-core', 'greenmetrics-admin-utils', 'greenmetrics-admin-config', 'greenmetrics-admin-api' ),
 				GREENMETRICS_VERSION,
 				true
 			);

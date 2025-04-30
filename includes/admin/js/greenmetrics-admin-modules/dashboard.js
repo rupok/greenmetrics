@@ -1,6 +1,12 @@
 /**
  * GreenMetrics Admin Dashboard Module
- * Handles the dashboard functionality
+ * Handles the dashboard functionality and statistics display
+ *
+ * @module GreenMetricsAdmin.Dashboard
+ * @requires jQuery
+ * @requires GreenMetricsAdmin.Config
+ * @requires GreenMetricsAdmin.API
+ * @requires GreenMetricsErrorHandler
  */
 // Ensure namespace exists
 var GreenMetricsAdmin = GreenMetricsAdmin || {};
@@ -9,20 +15,32 @@ var GreenMetricsAdmin = GreenMetricsAdmin || {};
 GreenMetricsAdmin.Dashboard = (function ($) {
 	'use strict';
 
-	// Initialize the dashboard module
+	/**
+	 * Initialize the dashboard module
+	 *
+	 * @function init
+	 * @memberof GreenMetricsAdmin.Dashboard
+	 * @public
+	 */
 	function init() {
 		// Only proceed if we're on a dashboard page
-		if ( ! greenmetricsAdmin.is_dashboard_page) {
+		if (!GreenMetricsAdmin.Config.isDashboardPage) {
 			return;
 		}
 
 		// Only initialize if we're on the dashboard page
-		if ($( '#greenmetrics-stats' ).length) {
+		if ($('#greenmetrics-stats').length) {
 			initDashboard();
 		}
 	}
 
-	// Initialize dashboard
+	/**
+	 * Initialize dashboard components
+	 *
+	 * @function initDashboard
+	 * @memberof GreenMetricsAdmin.Dashboard
+	 * @private
+	 */
 	function initDashboard() {
 		// Load initial stats
 		getStats();
@@ -31,97 +49,127 @@ GreenMetricsAdmin.Dashboard = (function ($) {
 		setupEventListeners();
 	}
 
-	// Get stats via AJAX
+	/**
+	 * Get statistics data from the API
+	 *
+	 * @function getStats
+	 * @memberof GreenMetricsAdmin.Dashboard
+	 * @param {boolean} forceRefresh - Whether to force refresh the data
+	 * @public
+	 */
 	function getStats(forceRefresh) {
-		if (typeof greenmetricsAdmin !== 'undefined' && greenmetricsAdmin.rest_url) {
-			// For page loads, always force refresh to ensure latest data
-			if (forceRefresh === undefined) {
-				forceRefresh = true;
-			}
+		// For page loads, always force refresh to ensure latest data
+		if (forceRefresh === undefined) {
+			forceRefresh = true;
+		}
 
-			$.ajax(
-				{
-					url: greenmetricsAdmin.rest_url + 'greenmetrics/v1/metrics',
-					type: 'GET',
-					data: {
-						force_refresh: forceRefresh ? 'true' : 'false'
-					},
-					beforeSend: function (xhr) {
-						xhr.setRequestHeader( 'X-WP-Nonce', greenmetricsAdmin.rest_nonce );
-					},
-					success: function (response) {
-						updateStatsDisplay( response );
-					},
-					error: function (xhr, status, error) {
-						// Enhanced error handling
-						let errorMessage = 'Error loading stats. Please try again.';
-
-						// Try to get more detailed error message from response
-						if (xhr.responseJSON && xhr.responseJSON.message) {
-							errorMessage = xhr.responseJSON.message;
-						}
-
-						// Check for nonce/security errors
-						if (errorMessage.includes('Security verification failed') ||
-							errorMessage.includes('Nonce')) {
-							errorMessage += ' Please refresh the page and try again.';
-						}
-
-						// Display error message
-						$( '#greenmetrics-stats' ).html( '<p class="error">' + errorMessage + '</p>' );
-
-						// Log error in debug mode
-						if (greenmetricsAdmin.debug) {
-							console.error('GreenMetrics: Error loading stats', {
-								status: status,
-								error: error,
-								response: xhr.responseText
-							});
-						}
-					}
+		// Use the API module to get stats
+		if (GreenMetricsAdmin.API) {
+			GreenMetricsAdmin.API.getMetrics(
+				{ force_refresh: forceRefresh ? 'true' : 'false' },
+				updateStatsDisplay,
+				function(xhr, status, error) {
+					// Use enhanced error handling with admin notice for critical errors
+					const showAdminNotice = xhr.status >= 500; // Show admin notice for server errors
+					GreenMetricsErrorHandler.handleRestError(xhr, status, error, '#greenmetrics-stats', showAdminNotice);
 				}
 			);
+		} else {
+			// Fallback to direct AJAX if API module is not available
+			$.ajax({
+				url: greenmetricsAdmin.rest_url + 'greenmetrics/v1/metrics',
+				type: 'GET',
+				data: {
+					force_refresh: forceRefresh ? 'true' : 'false'
+				},
+				beforeSend: function (xhr) {
+					xhr.setRequestHeader('X-WP-Nonce', greenmetricsAdmin.rest_nonce);
+				},
+				success: function (response) {
+					updateStatsDisplay(response);
+				},
+				error: function (xhr, status, error) {
+					// Use enhanced error handling with admin notice for critical errors
+					const showAdminNotice = xhr.status >= 500; // Show admin notice for server errors
+					GreenMetricsErrorHandler.handleRestError(xhr, status, error, '#greenmetrics-stats', showAdminNotice);
+				}
+			});
 		}
 	}
 
-	// Update stats display with data
+	/**
+	 * Update statistics display with data
+	 *
+	 * @function updateStatsDisplay
+	 * @memberof GreenMetricsAdmin.Dashboard
+	 * @param {Object} stats - Statistics data
+	 * @private
+	 */
 	function updateStatsDisplay(stats) {
-		if ($( '#greenmetrics-stats' ).length && stats) {
-			const html  = `
-			< div class = "stats-grid" >
-			< div class = "stat-card" >
-			< h3 > Total Views < / h3 >
-			< p class   = "stat-value" > ${stats.total_views} < / p >
-			< / div >
-			< div class = "stat-card" >
-			< h3 > Carbon Footprint < / h3 >
-			< p class   = "stat-value" > ${stats.carbon_footprint.toFixed( 2 )} g CO2 < / p >
-			< / div >
-			< div class = "stat-card" >
-			< h3 > Energy Consumption < / h3 >
-			< p class   = "stat-value" > ${stats.energy_consumption.toFixed( 2 )} kWh < / p >
-			< / div >
-			< div class = "stat-card" >
-			< h3 > Data Transfer < / h3 >
-			< p class   = "stat-value" > ${stats.avg_data_transfer.toFixed( 2 )} KB < / p >
-			< / div >
-			< div class = "stat-card" >
-			< h3 > Requests < / h3 >
-			< p class   = "stat-value" > ${stats.requests} < / p >
-			< / div >
-			< div class = "stat-card" >
-			< h3 > Performance Score < / h3 >
-			< p class = "stat-value" > ${stats.performance_score.toFixed( 2 )} % < / p >
-			< / div >
-			< / div >
+		if ($('#greenmetrics-stats').length && stats) {
+			// Use the formatter for consistent display
+			const formattedStats = {
+				total_views: GreenMetricsAdmin.Utils.formatNumber(stats.total_views),
+				carbon_footprint: GreenMetricsFormatter ?
+					GreenMetricsFormatter.formatCarbonEmissions(stats.carbon_footprint) :
+					stats.carbon_footprint.toFixed(2) + ' g CO2',
+				energy_consumption: GreenMetricsFormatter ?
+					GreenMetricsFormatter.formatEnergyConsumption(stats.energy_consumption) :
+					stats.energy_consumption.toFixed(2) + ' kWh',
+				data_transfer: GreenMetricsFormatter ?
+					GreenMetricsFormatter.formatDataTransfer(stats.avg_data_transfer * 1024) :
+					stats.avg_data_transfer.toFixed(2) + ' KB',
+				requests: GreenMetricsAdmin.Utils.formatNumber(stats.requests),
+				performance_score: GreenMetricsFormatter ?
+					GreenMetricsFormatter.formatPerformanceScore(stats.performance_score) :
+					stats.performance_score.toFixed(2) + '%'
+			};
+
+			const html = `
+			<div class="stats-grid">
+				<div class="stat-card">
+					<h3>Total Views</h3>
+					<p class="stat-value">${formattedStats.total_views}</p>
+				</div>
+				<div class="stat-card">
+					<h3>Carbon Footprint</h3>
+					<p class="stat-value">${formattedStats.carbon_footprint}</p>
+				</div>
+				<div class="stat-card">
+					<h3>Energy Consumption</h3>
+					<p class="stat-value">${formattedStats.energy_consumption}</p>
+				</div>
+				<div class="stat-card">
+					<h3>Data Transfer</h3>
+					<p class="stat-value">${formattedStats.data_transfer}</p>
+				</div>
+				<div class="stat-card">
+					<h3>Requests</h3>
+					<p class="stat-value">${formattedStats.requests}</p>
+				</div>
+				<div class="stat-card">
+					<h3>Performance Score</h3>
+					<p class="stat-value">${formattedStats.performance_score}</p>
+				</div>
+			</div>
 			`;
-			$( '#greenmetrics-stats' ).html( html );
+			$('#greenmetrics-stats').html(html);
 		}
 	}
 
-	// Set up event listeners
+	/**
+	 * Set up event listeners for dashboard
+	 *
+	 * @function setupEventListeners
+	 * @memberof GreenMetricsAdmin.Dashboard
+	 * @private
+	 */
 	function setupEventListeners() {
-		// Add dashboard-specific event listeners if needed
+		// Refresh button if it exists
+		$('#greenmetrics-refresh-stats').on('click', function(e) {
+			e.preventDefault();
+			getStats(true);
+		});
 	}
 
 	// Public API
