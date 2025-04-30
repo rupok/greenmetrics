@@ -39,7 +39,15 @@ class GreenMetrics_Admin {
 	 */
 	public function show_settings_update_notice() {
 		// Display notice for settings update
-		if ( isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] ) {
+		if ( isset( $_GET['settings-updated'] ) && sanitize_text_field( wp_unslash( $_GET['settings-updated'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			// Check nonce is present and valid when handling settings update
+			if ( ! isset( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_REQUEST['_wpnonce'] ) ), 'greenmetrics-options' ) ) {
+				// Still show the message but log the issue
+				if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
+					greenmetrics_log( 'Settings updated but nonce verification failed', null, 'warning' );
+				}
+			}
+			
 			// Log the current settings after update
 			if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
 				$settings = get_option( 'greenmetrics_settings', array() );
@@ -50,7 +58,7 @@ class GreenMetrics_Admin {
 		}
 
 		// Display notice for stats refresh
-		if ( isset( $_GET['stats-refreshed'] ) && $_GET['stats-refreshed'] === 'true' ) {
+		if ( isset( $_GET['stats-refreshed'] ) && sanitize_text_field( wp_unslash( $_GET['stats-refreshed'] ) ) === 'true' ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Statistics refreshed successfully!', 'greenmetrics' ) . '</p></div>';
 		}
 	}
@@ -1046,7 +1054,6 @@ class GreenMetrics_Admin {
 	 * Register the stylesheets for the admin area.
 	 */
 	public function enqueue_styles() {
-		// Get current screen to determine which page we're on
 		$screen = get_current_screen();
 
 		// Early return if not on admin page or can't determine screen
@@ -1056,10 +1063,27 @@ class GreenMetrics_Admin {
 
 		// Only load our styles on GreenMetrics plugin pages
 		// This includes our plugin settings pages and any page with greenmetrics in the ID
+		$current_page = '';
+		if ( isset( $_GET['page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checking GET parameter only for conditional loading of styles, no data modification.
+			$current_page = sanitize_text_field( wp_unslash( $_GET['page'] ) );
+		}
+		
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Simply checking if on a plugin page for conditionally loading styles
 		if ( strpos( $screen->id, 'greenmetrics' ) === false &&
-			! isset( $_GET['page'] ) &&
-			( ! isset( $_GET['page'] ) || strpos( $_GET['page'], 'greenmetrics' ) === false ) ) {
+			empty( $current_page ) &&
+			( empty( $current_page ) || strpos( $current_page, 'greenmetrics' ) === false ) ) {
 			return;
+		}
+
+		// We're on a GreenMetrics page - set flags
+		$is_plugin_page    = true;
+		$is_dashboard_page = false;
+
+		// Check specifically if we're on the dashboard/stats page
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Simply checking screen ID for dashboard page detection
+		if ( strpos( $screen->id, 'greenmetrics-dashboard' ) !== false ||
+			( ! empty( $current_page ) && $current_page === 'greenmetrics' ) ) {
+			$is_dashboard_page = true;
 		}
 
 		wp_enqueue_style(
@@ -1155,9 +1179,15 @@ class GreenMetrics_Admin {
 
 		// Only load our scripts on GreenMetrics plugin pages
 		// This includes our plugin settings pages and any page with greenmetrics in the ID
+		$current_page = '';
+		if ( isset( $_GET['page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checking GET parameter only for conditional loading of scripts, no data modification.
+			$current_page = sanitize_text_field( wp_unslash( $_GET['page'] ) );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Simply checking if on a plugin page for conditionally loading scripts
 		if ( strpos( $screen->id, 'greenmetrics' ) === false &&
-			! isset( $_GET['page'] ) &&
-			( ! isset( $_GET['page'] ) || strpos( $_GET['page'], 'greenmetrics' ) === false ) ) {
+			empty( $current_page ) &&
+			( empty( $current_page ) || strpos( $current_page, 'greenmetrics' ) === false ) ) {
 			return;
 		}
 
@@ -1166,8 +1196,9 @@ class GreenMetrics_Admin {
 		$is_dashboard_page = false;
 
 		// Check specifically if we're on the dashboard/stats page
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Simply checking screen ID for dashboard page detection
 		if ( strpos( $screen->id, 'greenmetrics-dashboard' ) !== false ||
-			( isset( $_GET['page'] ) && $_GET['page'] === 'greenmetrics' ) ) {
+			( ! empty( $current_page ) && $current_page === 'greenmetrics' ) ) {
 			$is_dashboard_page = true;
 		}
 
@@ -1305,13 +1336,18 @@ class GreenMetrics_Admin {
 		// Check if the form was submitted and the refresh_stats action was set
 		if ( isset( $_POST['action'] ) && 'refresh_stats' === $_POST['action'] ) {
 			// Verify nonce
-			if ( isset( $_POST['greenmetrics_refresh_nonce'] ) && wp_verify_nonce( $_POST['greenmetrics_refresh_nonce'], 'greenmetrics_refresh_stats' ) ) {
+			if ( isset( $_POST['greenmetrics_refresh_nonce'] ) && 
+				wp_verify_nonce( 
+					sanitize_key( wp_unslash( $_POST['greenmetrics_refresh_nonce'] ) ), 
+					'greenmetrics_refresh_stats' 
+				) 
+			) {
 				// Trigger manual cache refresh
 				\GreenMetrics\GreenMetrics_Tracker::manual_cache_refresh();
 
 				// Redirect back to the same page with a simple parameter
 				$redirect_url = add_query_arg( 'stats-refreshed', 'true', remove_query_arg( 'settings-updated' ) );
-				wp_redirect( $redirect_url );
+				wp_safe_redirect( $redirect_url );
 				exit;
 			}
 		}
@@ -1322,13 +1358,18 @@ class GreenMetrics_Admin {
 	 */
 	public function handle_get_icon() {
 		// Verify nonce
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'greenmetrics_admin_nonce' ) ) {
+		if ( ! isset( $_POST['nonce'] ) || 
+			! wp_verify_nonce( 
+				sanitize_key( wp_unslash( $_POST['nonce'] ) ), 
+				'greenmetrics_admin_nonce' 
+			) 
+		) {
 			wp_send_json_error( 'Invalid nonce' );
 			return;
 		}
 
 		// Get the icon type from the request
-		$icon_type = isset( $_POST['icon_type'] ) ? sanitize_text_field( $_POST['icon_type'] ) : 'leaf';
+		$icon_type = isset( $_POST['icon_type'] ) ? sanitize_text_field( wp_unslash( $_POST['icon_type'] ) ) : 'leaf';
 
 		// Get the icon HTML
 		$icon_html = \GreenMetrics\GreenMetrics_Icons::get_icon( $icon_type );
