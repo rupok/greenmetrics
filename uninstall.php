@@ -26,6 +26,7 @@ delete_option( 'greenmetrics_table_columns' );
 delete_option( 'greenmetrics_version' );
 
 // Delete any transients
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Necessary cleanup during uninstallation
 global $wpdb;
 $wpdb->query(
 	$wpdb->prepare(
@@ -36,8 +37,9 @@ $wpdb->query(
 );
 
 // Drop the stats table
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange -- Necessary schema change during uninstallation
 $table_name = $wpdb->prefix . 'greenmetrics_stats';
-$wpdb->query( "DROP TABLE IF EXISTS {$table_name}" );
+$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %s', $table_name ) );
 
 // Clear any scheduled events
 $events = array(

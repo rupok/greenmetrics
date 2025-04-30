@@ -61,8 +61,10 @@ class GreenMetrics_DB_Helper {
 	 */
 	public static function get_table_columns( string $table_name, bool $force_db_check = false ): array {
 		// First try memory cache
-		if ( ! $force_db_check && isset( self::$table_columns_cache[ $table_name ] ) ) {
-			return self::$table_columns_cache[ $table_name ];
+		$cache_key = 'greenmetrics_table_columns_' . $table_name;
+		$cached_columns = wp_cache_get( $cache_key, 'greenmetrics' );
+		if ( ! $force_db_check && $cached_columns !== false ) {
+			return $cached_columns;
 		}
 
 		// Then try persistent cache in wp_options
@@ -70,14 +72,15 @@ class GreenMetrics_DB_Helper {
 			$cached_columns = self::get_cached_table_columns( $table_name );
 			if ( $cached_columns !== false ) {
 				self::$table_columns_cache[ $table_name ] = $cached_columns;
+				wp_cache_set( $cache_key, $cached_columns, 'greenmetrics' );
 				return $cached_columns;
 			}
 		}
 
 		// If no cache or forced refresh, query the database
 		global $wpdb;
-		$escaped = esc_sql( $table_name );
-		$results = $wpdb->get_results( "DESCRIBE $escaped" );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Necessary direct query for schema check
+		$results = $wpdb->get_results( $wpdb->prepare( 'DESCRIBE %s', $table_name ) );
 
 		if ( ! $results ) {
 			// Return empty array if no results (e.g., table doesn't exist)
@@ -92,6 +95,7 @@ class GreenMetrics_DB_Helper {
 		// Update both caches
 		self::$table_columns_cache[ $table_name ] = $columns;
 		self::update_cached_table_columns( $table_name, $columns );
+		wp_cache_set( $cache_key, $columns, 'greenmetrics' );
 
 		return $columns;
 	}
