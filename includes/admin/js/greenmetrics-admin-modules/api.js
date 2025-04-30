@@ -1,6 +1,6 @@
 /**
  * GreenMetrics Admin API Module
- * 
+ *
  * This module provides standardized methods for interacting with the
  * GreenMetrics REST API endpoints.
  */
@@ -11,7 +11,7 @@ GreenMetricsAdmin.API = (function($) {
 
     /**
      * Get statistics data from the API
-     * 
+     *
      * @param {Object} params - Query parameters
      * @param {Function} successCallback - Success callback function
      * @param {Function} errorCallback - Error callback function
@@ -33,8 +33,9 @@ GreenMetricsAdmin.API = (function($) {
                 if (typeof errorCallback === 'function') {
                     errorCallback(xhr, status, error);
                 } else {
-                    // Use the standardized error handler
-                    GreenMetricsErrorHandler.handleRestError(xhr, status, error, '#greenmetrics-stats');
+                    // Use the enhanced error handler with admin notice for critical errors
+                    const showAdminNotice = xhr.status >= 500; // Show admin notice for server errors
+                    GreenMetricsErrorHandler.handleRestError(xhr, status, error, '#greenmetrics-stats', showAdminNotice);
                 }
             }
         });
@@ -42,7 +43,7 @@ GreenMetricsAdmin.API = (function($) {
 
     /**
      * Get metrics data from the API
-     * 
+     *
      * @param {Object} params - Query parameters
      * @param {Function} successCallback - Success callback function
      * @param {Function} errorCallback - Error callback function
@@ -64,8 +65,9 @@ GreenMetricsAdmin.API = (function($) {
                 if (typeof errorCallback === 'function') {
                     errorCallback(xhr, status, error);
                 } else {
-                    // Use the standardized error handler
-                    GreenMetricsErrorHandler.handleRestError(xhr, status, error, '#greenmetrics-metrics');
+                    // Use the enhanced error handler with admin notice for critical errors
+                    const showAdminNotice = xhr.status >= 500; // Show admin notice for server errors
+                    GreenMetricsErrorHandler.handleRestError(xhr, status, error, '#greenmetrics-metrics', showAdminNotice);
                 }
             }
         });
@@ -73,7 +75,7 @@ GreenMetricsAdmin.API = (function($) {
 
     /**
      * Update settings via the API
-     * 
+     *
      * @param {Object} settings - Settings to update
      * @param {Function} successCallback - Success callback function
      * @param {Function} errorCallback - Error callback function
@@ -96,8 +98,9 @@ GreenMetricsAdmin.API = (function($) {
                 if (typeof errorCallback === 'function') {
                     errorCallback(xhr, status, error);
                 } else {
-                    // Use the standardized error handler
-                    GreenMetricsErrorHandler.handleRestError(xhr, status, error, '.greenmetrics-admin-notices');
+                    // Use the enhanced error handler with admin notice for critical errors
+                    const showAdminNotice = true; // Always show admin notice for settings errors
+                    GreenMetricsErrorHandler.handleRestError(xhr, status, error, '.greenmetrics-admin-notices', showAdminNotice);
                 }
             }
         });

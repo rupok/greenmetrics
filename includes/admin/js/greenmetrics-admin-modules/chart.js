@@ -202,8 +202,9 @@ GreenMetricsAdmin.Chart = (function ($) {
 						metricsChart.update();
 					}
 
-					// Use the standardized error handler
-					GreenMetricsErrorHandler.handleRestError(xhr, status, error, '.greenmetrics-chart-container');
+					// Use the enhanced error handler with admin notice for critical errors
+					const showAdminNotice = xhr.status >= 500; // Show admin notice for server errors
+					GreenMetricsErrorHandler.handleRestError(xhr, status, error, '.greenmetrics-chart-container', showAdminNotice);
 				},
 				complete: function () {
 					// Remove loading states
@@ -351,8 +352,9 @@ GreenMetricsAdmin.Chart = (function ($) {
 								metricsChart.update();
 							}
 
-							// Use the standardized error handler
-							GreenMetricsErrorHandler.handleRestError(xhr, status, error, '.greenmetrics-chart-container');
+							// Use the enhanced error handler with admin notice for critical errors
+							const showAdminNotice = xhr.status >= 500; // Show admin notice for server errors
+							GreenMetricsErrorHandler.handleRestError(xhr, status, error, '.greenmetrics-chart-container', showAdminNotice);
 						},
 						complete: function () {
 							// Remove loading states

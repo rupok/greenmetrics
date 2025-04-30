@@ -69,7 +69,9 @@ GreenMetricsAdmin.Dashboard = (function ($) {
 				{ force_refresh: forceRefresh ? 'true' : 'false' },
 				updateStatsDisplay,
 				function(xhr, status, error) {
-					GreenMetricsErrorHandler.handleRestError(xhr, status, error, '#greenmetrics-stats');
+					// Use enhanced error handling with admin notice for critical errors
+					const showAdminNotice = xhr.status >= 500; // Show admin notice for server errors
+					GreenMetricsErrorHandler.handleRestError(xhr, status, error, '#greenmetrics-stats', showAdminNotice);
 				}
 			);
 		} else {
@@ -87,8 +89,9 @@ GreenMetricsAdmin.Dashboard = (function ($) {
 					updateStatsDisplay(response);
 				},
 				error: function (xhr, status, error) {
-					// Use the standardized error handler
-					GreenMetricsErrorHandler.handleRestError(xhr, status, error, '#greenmetrics-stats');
+					// Use enhanced error handling with admin notice for critical errors
+					const showAdminNotice = xhr.status >= 500; // Show admin notice for server errors
+					GreenMetricsErrorHandler.handleRestError(xhr, status, error, '#greenmetrics-stats', showAdminNotice);
 				}
 			});
 		}
