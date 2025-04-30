@@ -44,6 +44,17 @@ $total_size = \GreenMetrics\GreenMetrics_Data_Manager::format_bytes($table_sizes
 		<!-- Left Column: Settings Form -->
 		<div class="greenmetrics-admin-settings-column">
 			<div class="greenmetrics-admin-card">
+				<h2><?php esc_html_e( 'Tracking Settings', 'greenmetrics' ); ?></h2>
+				<p><?php esc_html_e( 'Configure tracking settings to collect data about your website\'s environmental impact.', 'greenmetrics' ); ?></p>
+
+				<form method="post" action="options.php">
+					<?php settings_fields( 'greenmetrics_settings' ); ?>
+					<?php do_settings_sections( 'greenmetrics_data_management' ); ?>
+					<?php submit_button( __( 'Save Settings', 'greenmetrics' ) ); ?>
+				</form>
+			</div>
+
+			<div class="greenmetrics-admin-card">
 				<h2><?php esc_html_e( 'Data Management Settings', 'greenmetrics' ); ?></h2>
 				<p><?php esc_html_e( 'Configure how GreenMetrics manages your metrics data to prevent excessive database growth.', 'greenmetrics' ); ?></p>
 
@@ -67,7 +78,7 @@ $total_size = \GreenMetrics\GreenMetrics_Data_Manager::format_bytes($table_sizes
 								<label for="aggregation_age"><?php esc_html_e( 'Aggregate data older than', 'greenmetrics' ); ?></label>
 								<input type="number" id="aggregation_age" name="greenmetrics_settings[aggregation_age]" value="<?php echo esc_attr( isset( $settings['aggregation_age'] ) ? $settings['aggregation_age'] : 30 ); ?>" min="1" max="365" class="small-text"> <?php esc_html_e( 'days', 'greenmetrics' ); ?>
 								<p class="description"><?php esc_html_e( 'Individual page views older than this will be aggregated.', 'greenmetrics' ); ?></p>
-								
+
 								<div style="margin-top: 10px;">
 									<label for="aggregation_type"><?php esc_html_e( 'Aggregation type', 'greenmetrics' ); ?></label>
 									<select id="aggregation_type" name="greenmetrics_settings[aggregation_type]">
@@ -85,7 +96,7 @@ $total_size = \GreenMetrics\GreenMetrics_Data_Manager::format_bytes($table_sizes
 								<label for="retention_period"><?php esc_html_e( 'Delete individual records older than', 'greenmetrics' ); ?></label>
 								<input type="number" id="retention_period" name="greenmetrics_settings[retention_period]" value="<?php echo esc_attr( isset( $settings['retention_period'] ) ? $settings['retention_period'] : 90 ); ?>" min="1" max="3650" class="small-text"> <?php esc_html_e( 'days', 'greenmetrics' ); ?>
 								<p class="description"><?php esc_html_e( 'Individual page view records older than this will be permanently deleted.', 'greenmetrics' ); ?></p>
-								
+
 								<div style="margin-top: 10px;">
 									<label class="toggle-switch">
 										<input type="checkbox" id="require_aggregation_before_pruning" name="greenmetrics_settings[require_aggregation_before_pruning]" value="1" <?php checked( isset( $settings['require_aggregation_before_pruning'] ) ? $settings['require_aggregation_before_pruning'] : 1, 1 ); ?>>
@@ -109,7 +120,7 @@ $total_size = \GreenMetrics\GreenMetrics_Data_Manager::format_bytes($table_sizes
 				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 					<input type="hidden" name="action" value="greenmetrics_run_data_management">
 					<?php wp_nonce_field( 'greenmetrics_run_data_management', 'greenmetrics_data_management_nonce' ); ?>
-					
+
 					<table class="form-table">
 						<tr>
 							<th scope="row"><?php esc_html_e( 'Aggregate Data', 'greenmetrics' ); ?></th>
@@ -132,13 +143,36 @@ $total_size = \GreenMetrics\GreenMetrics_Data_Manager::format_bytes($table_sizes
 					</table>
 				</form>
 			</div>
+
+			<div class="greenmetrics-admin-card">
+				<h2><?php esc_html_e( 'Statistics Cache', 'greenmetrics' ); ?></h2>
+				<p><?php esc_html_e( 'Statistics are automatically cached for better performance. Use this button to refresh the statistics from the database if needed.', 'greenmetrics' ); ?></p>
+
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<input type="hidden" name="action" value="greenmetrics_refresh_stats">
+					<?php wp_nonce_field( 'greenmetrics_refresh_stats', 'greenmetrics_refresh_nonce' ); ?>
+
+					<table class="form-table">
+						<tr>
+							<th scope="row"><?php esc_html_e( 'Refresh Statistics', 'greenmetrics' ); ?></th>
+							<td>
+								<button type="submit" class="button button-secondary">
+									<span class="dashicons dashicons-update" style="vertical-align: middle; margin-top: -3px;"></span>
+									<?php esc_html_e( 'Refresh Statistics Cache', 'greenmetrics' ); ?>
+								</button>
+								<p class="description"><?php esc_html_e( 'Clear the statistics cache and recalculate all metrics from the database.', 'greenmetrics' ); ?></p>
+							</td>
+						</tr>
+					</table>
+				</form>
+			</div>
 		</div>
 
 		<!-- Right Column: Stats and Info -->
 		<div class="greenmetrics-admin-info-column">
 			<div class="greenmetrics-admin-card">
 				<h2><?php esc_html_e( 'Database Usage', 'greenmetrics' ); ?></h2>
-				
+
 				<table class="widefat">
 					<thead>
 						<tr>
@@ -169,15 +203,15 @@ $total_size = \GreenMetrics\GreenMetrics_Data_Manager::format_bytes($table_sizes
 
 			<div class="greenmetrics-admin-card">
 				<h2><?php esc_html_e( 'How Data Management Works', 'greenmetrics' ); ?></h2>
-				
+
 				<h3><?php esc_html_e( 'Data Aggregation', 'greenmetrics' ); ?></h3>
 				<p><?php esc_html_e( 'Data aggregation combines individual page view records into summary statistics, grouped by time period (daily, weekly, or monthly) and page.', 'greenmetrics' ); ?></p>
 				<p><?php esc_html_e( 'This preserves your historical metrics while significantly reducing database size.', 'greenmetrics' ); ?></p>
-				
+
 				<h3><?php esc_html_e( 'Data Pruning', 'greenmetrics' ); ?></h3>
 				<p><?php esc_html_e( 'Data pruning permanently removes old individual page view records from the database after they\'ve been aggregated.', 'greenmetrics' ); ?></p>
 				<p><?php esc_html_e( 'This prevents your database from growing too large over time.', 'greenmetrics' ); ?></p>
-				
+
 				<h3><?php esc_html_e( 'Automatic Scheduling', 'greenmetrics' ); ?></h3>
 				<p><?php esc_html_e( 'When data management is enabled, these processes run automatically once per day via WordPress cron.', 'greenmetrics' ); ?></p>
 				<p><?php esc_html_e( 'You can also run them manually using the buttons on this page.', 'greenmetrics' ); ?></p>

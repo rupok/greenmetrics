@@ -30,6 +30,7 @@ class GreenMetrics_Admin {
 
 		// Admin post handlers
 		add_action( 'admin_post_greenmetrics_run_data_management', array( $this, 'handle_run_data_management' ) );
+		add_action( 'admin_post_greenmetrics_refresh_stats', array( $this, 'handle_refresh_stats_redirect' ) );
 
 		// AJAX handlers
 		add_action( 'wp_ajax_greenmetrics_refresh_stats', array( $this, 'handle_refresh_stats' ) );
@@ -125,19 +126,19 @@ class GreenMetrics_Admin {
 			)
 		);
 
-		// Tracking Settings Section
+		// Tracking Settings Section - moved to data management page
 		add_settings_section(
 			'greenmetrics_tracking',
 			__( 'Tracking Settings', 'greenmetrics' ),
 			array( $this, 'render_tracking_section' ),
-			'greenmetrics'
+			'greenmetrics_data_management'
 		);
 
 		add_settings_field(
 			'tracking_enabled',
 			__( 'Enable Tracking', 'greenmetrics' ),
 			array( $this, 'render_tracking_field' ),
-			'greenmetrics',
+			'greenmetrics_data_management',
 			'greenmetrics_tracking',
 			array( 'label_for' => 'tracking_enabled' )
 		);
@@ -1438,6 +1439,31 @@ class GreenMetrics_Admin {
 				exit;
 			}
 		}
+	}
+
+	/**
+	 * Handle refresh statistics form submission from the data management page.
+	 */
+	public function handle_refresh_stats_redirect() {
+		// Verify nonce
+		if ( ! isset( $_POST['greenmetrics_refresh_nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['greenmetrics_refresh_nonce'] ), 'greenmetrics_refresh_stats' ) ) {
+			wp_die( esc_html__( 'Security check failed.', 'greenmetrics' ) );
+		}
+
+		// Check permissions
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'greenmetrics' ) );
+		}
+
+		// Trigger manual cache refresh
+		\GreenMetrics\GreenMetrics_Tracker::manual_cache_refresh();
+
+		// Add success message
+		add_settings_error( 'greenmetrics_data_management', 'stats_refreshed', __( 'Statistics cache refreshed successfully!', 'greenmetrics' ), 'success' );
+
+		// Redirect back to the data management page
+		wp_safe_redirect( add_query_arg( 'settings-updated', 'true', admin_url( 'admin.php?page=greenmetrics_data_management' ) ) );
+		exit;
 	}
 
 	/**

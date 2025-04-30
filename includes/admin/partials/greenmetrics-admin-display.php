@@ -349,42 +349,7 @@ $settings = get_option(
 				</div>
 			</div>
 
-			<div class="greenmetrics-admin-settings">
 
-				<!-- Tracking Settings Section -->
-				<form method="post" action="options.php">
-					<?php
-					settings_fields( 'greenmetrics_settings' );
-					do_settings_sections( 'greenmetrics' );
-					submit_button();
-					?>
-				</form>
-
-				<!-- Display Settings Link -->
-				<div style="margin: 20px 0;">
-					<p>
-						<a href="<?php echo esc_url( admin_url( 'admin.php?page=greenmetrics_display' ) ); ?>" class="button">
-							<span class="dashicons dashicons-visibility" style="vertical-align: middle; margin-top: -2px; margin-right: 5px;"></span>
-							<?php esc_html_e( 'Configure Display Settings', 'greenmetrics' ); ?>
-						</a>
-					</p>
-					<p class="description"><?php esc_html_e( 'Configure how the eco-friendly badge appears on your website.', 'greenmetrics' ); ?></p>
-				</div>
-
-				<!-- Statistics Cache Section -->
-				<div class="greenmetrics-refresh-stats" style="margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px;">
-					<h3><?php esc_html_e( 'Statistics Cache', 'greenmetrics' ); ?></h3>
-					<p class="description"><?php esc_html_e( 'Statistics are automatically cached for better performance. Use this button to refresh the statistics from the database if needed.', 'greenmetrics' ); ?></p>
-					<form method="post">
-						<?php wp_nonce_field( 'greenmetrics_refresh_stats', 'greenmetrics_refresh_nonce' ); ?>
-						<input type="hidden" name="action" value="refresh_stats">
-						<button type="submit" class="button button-secondary">
-							<span class="dashicons dashicons-update" style="vertical-align: middle; margin-top: -3px;"></span>
-							<?php esc_html_e( 'Refresh Statistics', 'greenmetrics' ); ?>
-						</button>
-					</form>
-				</div>
-			</div>
 
 			<!-- Optimization Suggestions -->
 			<div class="greenmetrics-admin-card optimization-suggestions">
