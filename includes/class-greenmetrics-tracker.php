@@ -330,6 +330,92 @@ class GreenMetrics_Tracker {
 	}
 
 	/**
+	 * Get stats for a specific time period.
+	 *
+	 * @param string   $start_date Start date in MySQL format (Y-m-d H:i:s).
+	 * @param string   $end_date End date in MySQL format (Y-m-d H:i:s).
+	 * @param int|null $page_id The page ID or null for all pages.
+	 * @return array The statistics for the specified time period.
+	 */
+	public function get_stats_for_period($start_date, $end_date, $page_id = null) {
+		global $wpdb;
+
+		// Get settings to use in SQL calculations
+		$settings = $this->get_settings();
+		$carbon_intensity = isset($settings['carbon_intensity']) ? floatval($settings['carbon_intensity']) : 0.475;
+		$energy_per_byte = isset($settings['energy_per_byte']) ? floatval($settings['energy_per_byte']) : 0.000000000072;
+
+		$table = esc_sql($this->table_name);
+
+		// Build the query with date range filter
+		if ($page_id) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$stats = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT
+						COUNT(*) as page_views,
+						SUM(data_transfer) as data_transfer,
+						AVG(load_time) as avg_load_time,
+						AVG(performance_score) as avg_performance_score,
+						SUM(requests) as total_requests,
+						SUM(energy_consumption) as energy_consumption,
+						SUM(carbon_footprint) as carbon_footprint
+					FROM {$table}
+					WHERE page_id = %d
+					AND created_at BETWEEN %s AND %s",
+					$page_id,
+					$start_date,
+					$end_date
+				),
+				ARRAY_A
+			);
+		} else {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$stats = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT
+						COUNT(*) as page_views,
+						SUM(data_transfer) as data_transfer,
+						AVG(load_time) as avg_load_time,
+						AVG(performance_score) as avg_performance_score,
+						SUM(requests) as total_requests,
+						SUM(energy_consumption) as energy_consumption,
+						SUM(carbon_footprint) as carbon_footprint
+					FROM {$table}
+					WHERE created_at BETWEEN %s AND %s",
+					$start_date,
+					$end_date
+				),
+				ARRAY_A
+			);
+		}
+
+		if (!$stats) {
+			// Return default values when no stats are found
+			return array(
+				'page_views' => 0,
+				'data_transfer' => 0,
+				'avg_load_time' => 0,
+				'performance_score' => 100, // Default to 100% when no data
+				'total_requests' => 0,
+				'energy_consumption' => 0,
+				'carbon_footprint' => 0,
+			);
+		}
+
+		// Format the results
+		return array(
+			'page_views' => max(0, intval($stats['page_views'])),
+			'data_transfer' => max(0, floatval($stats['data_transfer'])),
+			'avg_load_time' => max(0, floatval($stats['avg_load_time'])),
+			'performance_score' => isset($stats['avg_performance_score']) ? max(0, min(100, floatval($stats['avg_performance_score']))) : 100,
+			'total_requests' => max(0, intval($stats['total_requests'])),
+			'energy_consumption' => max(0, floatval($stats['energy_consumption'])),
+			'carbon_footprint' => max(0, floatval($stats['carbon_footprint'])),
+		);
+	}
+
+	/**
 	 * Calculate median load time efficiently using a single query.
 	 *
 	 * Uses a compatible approach for MySQL versions that don't support PERCENTILE_CONT.

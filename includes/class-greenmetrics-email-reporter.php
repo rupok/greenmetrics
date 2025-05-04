@@ -337,10 +337,24 @@ class GreenMetrics_Email_Reporter {
 		if (!class_exists('\GreenMetrics\GreenMetrics_Formatter')) {
 			throw new \Exception('GreenMetrics_Formatter class not found');
 		}
-		// Get tracker instance
+
+		// Get the frequency setting
+		$frequency = isset($settings['email_reporting_frequency']) ? $settings['email_reporting_frequency'] : 'weekly';
+
+		// Get stats based on the frequency
 		try {
 			$tracker = GreenMetrics_Tracker::get_instance();
-			$stats = $tracker->get_stats();
+
+			// Get time period based on frequency
+			$period = $this->get_time_period_for_frequency($frequency);
+
+			// Get stats for the specific time period
+			$stats = $tracker->get_stats_for_period($period['start_date'], $period['end_date']);
+
+			// If no period-specific stats, fall back to overall stats
+			if (empty($stats) || !is_array($stats)) {
+				$stats = $tracker->get_stats();
+			}
 
 			// Ensure stats is an array
 			if (!is_array($stats)) {
@@ -349,6 +363,7 @@ class GreenMetrics_Email_Reporter {
 					'energy_consumption' => 0,
 					'data_transfer' => 0,
 					'performance_score' => 0,
+					'page_views' => 0,
 				);
 			}
 		} catch (\Exception $e) {
@@ -365,6 +380,7 @@ class GreenMetrics_Email_Reporter {
 				'energy_consumption' => 0,
 				'data_transfer' => 0,
 				'performance_score' => 0,
+				'page_views' => 0,
 			);
 		}
 
@@ -447,6 +463,15 @@ class GreenMetrics_Email_Reporter {
 				color: #856404;
 				padding: 10px;
 				margin-bottom: 20px;
+				border-radius: 4px;
+				text-align: center;
+			}
+			.period-notice {
+				background-color: #f8f8f8;
+				color: #333333;
+				padding: 10px;
+				margin-bottom: 20px;
+				border-left: 4px solid ' . $primary_color . ';
 				border-radius: 4px;
 				text-align: center;
 			}
@@ -551,6 +576,28 @@ class GreenMetrics_Email_Reporter {
 			$content .= '<div class="test-notice">
 				<strong>This is a test email.</strong> This is how your scheduled reports will look.
 			</div>';
+		} else {
+			// Add period information based on frequency for scheduled emails
+			$frequency = isset($settings['email_reporting_frequency']) ? $settings['email_reporting_frequency'] : 'weekly';
+			$period_text = '';
+
+			switch ($frequency) {
+				case 'daily':
+					$period_text = 'Daily Report - Last 24 Hours';
+					break;
+				case 'weekly':
+					$period_text = 'Weekly Report - Last 7 Days';
+					break;
+				case 'monthly':
+					$period_text = 'Monthly Report - Last 30 Days';
+					break;
+				default:
+					$period_text = 'Report';
+			}
+
+			$content .= '<div class="period-notice">
+				<strong>' . esc_html($period_text) . '</strong>
+			</div>';
 		}
 
 		// Add custom header if provided, otherwise use default
@@ -568,8 +615,24 @@ class GreenMetrics_Email_Reporter {
 
 		// Add metrics if enabled
 		if ( ! empty( $settings['email_reporting_include_stats'] ) ) {
+			// Get timeframe text based on frequency
+			$timeframe_text = '';
+			$frequency = isset($settings['email_reporting_frequency']) ? $settings['email_reporting_frequency'] : 'weekly';
+
+			switch ($frequency) {
+				case 'daily':
+					$timeframe_text = ' (Yesterday)';
+					break;
+				case 'weekly':
+					$timeframe_text = ' (Last 7 Days)';
+					break;
+				case 'monthly':
+					$timeframe_text = ' (Last 30 Days)';
+					break;
+			}
+
 			$content .= '<div class="metrics-container">
-				<h2>Website Environmental Impact</h2>
+				<h2>Website Environmental Impact' . esc_html($timeframe_text) . '</h2>
 				<p>Here\'s a summary of your website\'s environmental metrics:</p>
 
 				<div class="metrics-grid">
@@ -609,9 +672,25 @@ class GreenMetrics_Email_Reporter {
 				$chart_image_url = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfQAAAEsCAYAAAA1u0HIAAAACXBIWXMAAAsTAAALEwEAmpwYAAAF0WlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDUgNzkuMTYzNDk5LCAyMDE4LzA4LzEzLTE2OjQwOjIyICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoTWFjaW50b3NoKSIgeG1wOkNyZWF0ZURhdGU9IjIwMjMtMDUtMDRUMTE6MzA6NDctMDQ6MDAiIHhtcDpNb2RpZnlEYXRlPSIyMDIzLTA1LTA0VDExOjMxOjI3LTA0OjAwIiB4bXA6TWV0YWRhdGFEYXRlPSIyMDIzLTA1LTA0VDExOjMxOjI3LTA0OjAwIiBkYzpmb3JtYXQ9ImltYWdlL3BuZyIgcGhvdG9zaG9wOkNvbG9yTW9kZT0iMyIgcGhvdG9zaG9wOklDQ1Byb2ZpbGU9InNSR0IgSUVDNjE5NjYtMi4xIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjRmYzFhNDY3LTBkMDctNDM5Ni1hYTM1LTkxZWYxODUzYjRkZSIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDo0ZmMxYTQ2Ny0wZDA3LTQzOTYtYWEzNS05MWVmMTg1M2I0ZGUiIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo0ZmMxYTQ2Ny0wZDA3LTQzOTYtYWEzNS05MWVmMTg1M2I0ZGUiPiA8eG1wTU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjcmVhdGVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjRmYzFhNDY3LTBkMDctNDM5Ni1hYTM1LTkxZWYxODUzYjRkZSIgc3RFdnQ6d2hlbj0iMjAyMy0wNS0wNFQxMTozMDo0Ny0wNDowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKE1hY2ludG9zaCkiLz4gPC9yZGY6U2VxPiA8L3htcE1NOkhpc3Rvcnk+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+Gy6NrQAABFdJREFUeJzt1DEBACAMwDDAv+dxIoEeiYKe3TMzAMCr/g4AAK4ZOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAEGDoABBg6AAQYOgAELAeYQQNYVnuFAAAAAElFTkSuQmCC';
 			}
 
+			// Get chart timeframe text based on frequency
+			$chart_timeframe_text = 'over the past 30 days';
+			$frequency = isset($settings['email_reporting_frequency']) ? $settings['email_reporting_frequency'] : 'weekly';
+
+			switch ($frequency) {
+				case 'daily':
+					$chart_timeframe_text = 'from yesterday';
+					break;
+				case 'weekly':
+					$chart_timeframe_text = 'over the past 7 days';
+					break;
+				case 'monthly':
+					$chart_timeframe_text = 'over the past 30 days';
+					break;
+			}
+
 			$content .= '<div class="chart-container">
-				<h2>Metrics Trend</h2>
-				<p>Your website\'s environmental metrics over the past 30 days:</p>
+				<h2>Metrics Trend' . esc_html(' ' . $chart_timeframe_text) . '</h2>
+				<p>Your website\'s environmental metrics trend:</p>
 				<img src="' . esc_url( $chart_image_url ) . '" alt="Metrics Chart" width="500" height="300">
 			</div>';
 		}
@@ -648,6 +727,43 @@ class GreenMetrics_Email_Reporter {
 	 */
 	public function send_test_email() {
 		return $this->generate_and_send_report( true );
+	}
+
+	/**
+	 * Get the appropriate time period based on the email frequency.
+	 *
+	 * @param string $frequency The email frequency (daily, weekly, monthly).
+	 * @return array An array with start_date and end_date keys.
+	 */
+	private function get_time_period_for_frequency($frequency) {
+		$end_date = current_time('mysql');
+		$start_date = '';
+
+		switch ($frequency) {
+			case 'daily':
+				// Last 24 hours
+				$start_date = date('Y-m-d H:i:s', strtotime('-1 day', strtotime($end_date)));
+				break;
+
+			case 'weekly':
+				// Last 7 days
+				$start_date = date('Y-m-d H:i:s', strtotime('-7 days', strtotime($end_date)));
+				break;
+
+			case 'monthly':
+				// Last 30 days
+				$start_date = date('Y-m-d H:i:s', strtotime('-30 days', strtotime($end_date)));
+				break;
+
+			default:
+				// Default to weekly
+				$start_date = date('Y-m-d H:i:s', strtotime('-7 days', strtotime($end_date)));
+		}
+
+		return array(
+			'start_date' => $start_date,
+			'end_date' => $end_date
+		);
 	}
 
 	/**
