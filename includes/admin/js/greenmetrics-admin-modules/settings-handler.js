@@ -22,7 +22,7 @@ GreenMetricsAdmin.SettingsHandler = (function ($) {
      * @public
      */
     function init() {
-        console.log('GreenMetrics: Settings handler initialized');
+        // Initialize settings handler
 
         // Check if we have a settings-updated parameter in the URL
         if (window.location.search.indexOf('settings-updated=true') > -1) {
@@ -71,8 +71,7 @@ GreenMetricsAdmin.SettingsHandler = (function ($) {
                 }
             }
 
-            // Log form data for debugging
-            console.log('Form data before submit:', $(this).serialize());
+            // Process form submission
 
             // Let the form submit normally
             return true;

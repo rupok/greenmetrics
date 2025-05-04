@@ -1,0 +1,147 @@
+/**
+ * GreenMetrics Email Reporting Styles
+ */
+
+/* Email Preview Container */
+.email-preview-container {
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-top: 15px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.email-preview-container:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.email-preview-header {
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #ddd;
+    padding: 15px;
+}
+
+.email-preview-subject,
+.email-preview-recipients {
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.email-preview-subject strong,
+.email-preview-recipients strong {
+    display: inline-block;
+    width: 70px;
+    color: #555;
+    font-weight: 600;
+}
+
+.email-preview-content {
+    background-color: #fff;
+}
+
+.email-preview-frame {
+    width: 100%;
+    height: 600px;
+    border: none;
+    border-radius: 0 0 4px 4px;
+    transition: all 0.3s ease;
+}
+
+.email-preview-note {
+    text-align: center;
+    padding: 8px 0;
+    color: #666;
+    font-size: 13px;
+    font-style: italic;
+}
+
+/* Test Email Section */
+.test-email-section {
+    margin-top: 20px;
+}
+
+.test-email-result {
+    margin-left: 10px;
+    padding: 5px 10px;
+    border-radius: 3px;
+    display: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.test-email-result.success {
+    background-color: #f0f9eb;
+    color: #46b450;
+    border: 1px solid #c6e6b1;
+}
+
+.test-email-result.error {
+    background-color: #fef0f0;
+    color: #dc3232;
+    border: 1px solid #fac4c4;
+}
+
+/* Form Styling */
+.email-settings-form .form-table th {
+    width: 200px;
+    padding: 20px 10px 20px 0;
+}
+
+.email-template-textarea {
+    font-family: Consolas, Monaco, monospace;
+    font-size: 13px;
+    line-height: 1.4;
+    resize: vertical;
+}
+
+.checkbox-label {
+    margin-bottom: 8px;
+    display: inline-block;
+    padding: 3px 0;
+}
+
+/* Help Section */
+.email-help-section h3 {
+    margin: 1.5em 0 0.5em;
+    font-size: 16px;
+    color: #23282d;
+}
+
+.email-help-section p {
+    margin: 0.5em 0 1em;
+    line-height: 1.6;
+}
+
+.email-help-section ul {
+    margin-left: 20px;
+}
+
+.email-help-section code {
+    background: #f0f0f1;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 13px;
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 782px) {
+    .greenmetrics-admin-content-wrapper {
+        display: block;
+    }
+
+    .greenmetrics-admin-settings-column,
+    .greenmetrics-admin-info-column {
+        width: 100%;
+    }
+
+    .email-preview-frame {
+        height: 400px;
+    }
+
+    .email-preview-subject strong,
+    .email-preview-recipients strong {
+        display: block;
+        margin-bottom: 3px;
+    }
+}

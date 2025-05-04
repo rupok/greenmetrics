@@ -1504,6 +1504,18 @@ class GreenMetrics_Admin {
 			);
 		}
 
+		// Check if we're on the email reporting page
+		if ( ! empty( $current_page ) && $current_page === 'greenmetrics_email_reporting' ) {
+			// Enqueue email reporting-specific styles
+			wp_enqueue_style(
+				'greenmetrics-email-reporting',
+				GREENMETRICS_PLUGIN_URL . 'includes/admin/css/greenmetrics-email-reporting.css',
+				array( 'greenmetrics-admin' ),
+				GREENMETRICS_VERSION,
+				'all'
+			);
+		}
+
 		// Add inline styles for the font size inputs
 		$font_size_styles = '
 		.greenmetrics-font-size-wrapper {
@@ -1883,8 +1895,7 @@ class GreenMetrics_Admin {
 		ob_start();
 
 		try {
-			// Debug output
-			error_log('Test Email AJAX Request: ' . json_encode($_POST));
+			// Process test email request
 
 			// Check nonce
 			if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['nonce'] ), 'greenmetrics_admin_nonce' ) ) {
@@ -1906,9 +1917,6 @@ class GreenMetrics_Admin {
 
 			// Clean output buffer before proceeding
 			$output = ob_get_clean();
-			if (!empty($output)) {
-				error_log('Captured output before email sending: ' . $output);
-			}
 
 			// Start a new output buffer for the email sending process
 			ob_start();
@@ -1918,21 +1926,11 @@ class GreenMetrics_Admin {
 
 			// Send the test email
 			try {
-				// Log that we're about to send the test email
-				error_log('Attempting to send test email...');
-
+				// Send the test email
 				$result = $email_reporter->send_test_email();
-
-				// Log the result
-				error_log('Test email result: ' . ($result === true ? 'Success' : 'Failed'));
-
-				// If result is a WP_Error, get the error message
-				if (is_wp_error($result)) {
-					error_log('WP_Error: ' . $result->get_error_message());
-				}
 			} catch ( \Exception $e ) {
-				// Log the exception
-				error_log('Exception sending test email: ' . $e->getMessage());
+				// Log critical errors only
+				error_log('GreenMetrics - Error sending test email: ' . $e->getMessage());
 
 				// Clean output buffer
 				ob_end_clean();
@@ -1942,9 +1940,6 @@ class GreenMetrics_Admin {
 
 			// Clean output buffer
 			$output = ob_get_clean();
-			if (!empty($output)) {
-				error_log('Captured output during email sending: ' . $output);
-			}
 
 			if ( $result === true ) {
 				wp_send_json_success( array( 'message' => __( 'Test email sent successfully! Please check your inbox.', 'greenmetrics' ) ) );
@@ -1968,9 +1963,6 @@ class GreenMetrics_Admin {
 		ob_start();
 
 		try {
-			// Debug output
-			error_log('Email Preview AJAX Request: ' . json_encode($_POST));
-
 			// Check nonce
 			if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['nonce'] ), 'greenmetrics_admin_nonce' ) ) {
 				// Clean output buffer
@@ -1997,26 +1989,24 @@ class GreenMetrics_Admin {
 			$settings['email_reporting_footer'] = isset( $_POST['footer'] ) ? wp_kses_post( wp_unslash( $_POST['footer'] ) ) : '';
 			$settings['email_reporting_css'] = isset( $_POST['custom_css'] ) ? wp_strip_all_tags( wp_unslash( $_POST['custom_css'] ) ) : '';
 
-			// Create a simple fallback content in case of error
-			$fallback_content = '<!DOCTYPE html><html><head><title>Email Preview</title></head><body><h1>Simple Email Preview</h1><p>This is a simple fallback preview.</p></body></html>';
+			// Create a fallback content in case of error
+			$fallback_content = '<!DOCTYPE html><html><head><title>Email Preview</title><style>body{font-family:sans-serif;padding:20px;color:#444;} .error{color:#cc0000;}</style></head><body><h1>Email Preview</h1><p>Unable to generate preview. Please check your settings and try again.</p></body></html>';
 
 			// Get the email content
 			try {
-				// Try a simple test first
-				$content = '<!DOCTYPE html><html><head><title>Email Preview Test</title></head><body><h1>Simple Email Preview Test</h1><p>This is a test preview to check if AJAX is working.</p></body></html>';
+				// Get the email reporter instance
+				$email_reporter = \GreenMetrics\GreenMetrics_Email_Reporter::get_instance();
 
-				// Only try to generate the real preview if the test works
-				if (isset($_POST['full_preview']) && $_POST['full_preview'] == 1) {
-					// Get the email reporter instance - only if we need it
-					$email_reporter = \GreenMetrics\GreenMetrics_Email_Reporter::get_instance();
+				// Generate the real preview
+				$content = $email_reporter->generate_preview_email( $settings );
 
-					$real_content = $email_reporter->generate_preview_email( $settings );
-					if (!empty($real_content)) {
-						$content = $real_content;
-					}
+				// If content is empty, use fallback
+				if (empty($content)) {
+					$content = $fallback_content;
 				}
 			} catch ( \Exception $e ) {
-				error_log('Error generating preview: ' . $e->getMessage());
+				// Log critical errors only
+				error_log('GreenMetrics - Error generating email preview: ' . $e->getMessage());
 				// Clean output buffer
 				ob_end_clean();
 				wp_send_json_error( array( 'message' => 'Error generating preview: ' . $e->getMessage() ) );
@@ -2038,9 +2028,6 @@ class GreenMetrics_Admin {
 
 			// Clean output buffer
 			$output = ob_get_clean();
-			if (!empty($output)) {
-				error_log('Captured output before JSON response: ' . $output);
-			}
 
 			wp_send_json_success( array(
 				'content'    => $content,

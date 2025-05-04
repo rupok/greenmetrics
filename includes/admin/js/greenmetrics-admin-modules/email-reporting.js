@@ -15,13 +15,15 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 	 * @public
 	 */
 	function init() {
-		// Only proceed if we're on an email reporting page
-		if (!GreenMetricsAdmin.Config.isEmailReportingPage) {
-			return;
-		}
+		// Check if we're on an email reporting page
+		if (typeof GreenMetricsAdmin.Config === 'undefined' ||
+			!GreenMetricsAdmin.Config ||
+			GreenMetricsAdmin.Config.isEmailReportingPage ||
+			window.location.href.indexOf('page=greenmetrics_email_reporting') > -1) {
 
-		// Initialize email reporting components
-		initEmailReporting();
+			// Initialize email reporting components
+			initEmailReporting();
+		}
 	}
 
 	/**
@@ -59,108 +61,29 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 			sendTestEmail();
 		});
 
-		// Handle full preview button
-		$('#try_full_preview').on('click', function() {
-			var $button = $(this);
-			var $result = $('#preview_result');
-
-			// Disable button and show loading
-			$button.prop('disabled', true).text('Loading...');
-			$result.text('').hide();
-
-			// Get the email content from the server
-			$.ajax({
-				url: ajaxurl,
-				type: 'POST',
-				data: {
-					action: 'greenmetrics_get_email_preview',
-					nonce: $('#greenmetrics_nonce').val(),
-					include_stats: $('#email_reporting_include_stats').is(':checked') ? 1 : 0,
-					include_chart: $('#email_reporting_include_chart').is(':checked') ? 1 : 0,
-					header: $('#email_reporting_header').val(),
-					footer: $('#email_reporting_footer').val(),
-					custom_css: $('#email_reporting_css').val(),
-					full_preview: 1 // Request full preview
-				},
-				success: function(response) {
-					if (response && response.success) {
-						// Update the iframe content
-						var iframe = document.getElementById('email-preview-frame');
-						if (iframe) {
-							var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-							iframeDoc.open();
-							iframeDoc.write(response.data.content);
-							iframeDoc.close();
-
-							// Update subject preview
-							$('#preview-subject').text(response.data.subject);
-
-							// Update recipients preview
-							$('#preview-recipients').text(response.data.recipients);
-
-							// Show success message
-							$result.removeClass('error').addClass('success').text('Full preview loaded successfully!').show();
-						}
-					} else {
-						console.log('Error in email preview response:', response);
-						$result.removeClass('success').addClass('error').text('Error loading full preview.').show();
-					}
-				},
-				error: function(xhr, status, error) {
-					console.log('Error fetching email preview:', status, error);
-
-					// Try to get more detailed error information
-					var errorMessage = 'AJAX request failed. Please try again.';
-
-					try {
-						if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
-							errorMessage = xhr.responseJSON.data.message;
-						} else if (xhr.responseText) {
-							// Check if the response is HTML (likely a PHP error)
-							if (xhr.responseText.indexOf('<!DOCTYPE html>') !== -1 ||
-								xhr.responseText.indexOf('<html') !== -1 ||
-								xhr.responseText.indexOf('<body') !== -1 ||
-								xhr.responseText.indexOf('<br') !== -1) {
-
-								console.log('Received HTML response instead of JSON:', xhr.responseText.substring(0, 500));
-								errorMessage = 'Server returned HTML instead of JSON. Check server logs for PHP errors.';
-							} else {
-								// Try to parse the response text
-								try {
-									var response = JSON.parse(xhr.responseText);
-									if (response && response.data && response.data.message) {
-										errorMessage = response.data.message;
-									}
-								} catch (parseError) {
-									console.log('Error parsing JSON response:', parseError);
-									// Show the first 100 characters of the response for debugging
-									errorMessage = 'Invalid JSON response: ' + xhr.responseText.substring(0, 100) + '...';
-								}
-							}
-						}
-					} catch (e) {
-						console.log('Error handling error response:', e);
-					}
-
-					$result.removeClass('success').addClass('error').text(errorMessage).show();
-				},
-				complete: function() {
-					// Re-enable button
-					$button.prop('disabled', false).text('Try Full Preview');
-
-					// Hide result after 5 seconds
-					setTimeout(function() {
-						$result.fadeOut();
-					}, 5000);
-				}
-			});
-		});
-
-		// Initialize day options
+		// Initialize day options immediately
 		updateDayOptions();
 
-		// Initialize email preview
+		// Initialize email preview with loading indicator
+		showPreviewLoading();
 		updateEmailPreview();
+	}
+
+	/**
+	 * Show loading indicator in the preview iframe
+	 *
+	 * @function showPreviewLoading
+	 * @memberof GreenMetricsAdmin.EmailReporting
+	 * @private
+	 */
+	function showPreviewLoading() {
+		var iframe = document.getElementById('email-preview-frame');
+		if (iframe) {
+			var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+			iframeDoc.open();
+			iframeDoc.write('<html><head><style>body{font-family:sans-serif;padding:20px;color:#444;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;flex-direction:column;} .loading{text-align:center;} .spinner{border:4px solid rgba(0,0,0,.1);width:36px;height:36px;border-radius:50%;border-left-color:#4CAF50;animation:spin 1s linear infinite;margin:0 auto 15px;} @keyframes spin{0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)}}</style></head><body><div class="loading"><div class="spinner"></div><p>Loading email preview...</p></div></body></html>');
+			iframeDoc.close();
+		}
 	}
 
 	/**
@@ -172,48 +95,71 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 	 */
 	function updateDayOptions() {
 		var frequency = $('#email_reporting_frequency').val();
-		var $dayRow = $('#email_reporting_day_row');
 
+		// Find the day field row
+		var $dayRow = $('#email_reporting_day').closest('tr');
+
+		// If we can't find the row, try to find it by ID
+		if (!$dayRow.length) {
+			$dayRow = $('#email_reporting_day_row');
+		}
+
+		// If we still can't find the row, exit
+		if (!$dayRow.length) {
+			return;
+		}
+
+		var $dayCell = $dayRow.find('td');
+
+		// Update day options based on frequency
 		if (frequency === 'daily') {
-			$dayRow.hide();
+			// For daily, show the row but with a hidden input and simple description
+			$dayRow.show();
+			$dayCell.html('<input type="hidden" id="email_reporting_day" name="greenmetrics_settings[email_reporting_day]" value="1">' +
+				'<p class="description">Reports will be sent daily at midnight.</p>');
 		} else {
+			// For weekly or monthly, show the row and update content
 			$dayRow.show();
 
-			// Update day options based on frequency
-			var $dayField = $('#email_reporting_day');
-			$dayField.empty();
+			var selectHtml = '<select id="email_reporting_day" name="greenmetrics_settings[email_reporting_day]">';
+			var description = '';
+
+			// Get the saved value from the hidden input or the current select value
+			var currentValue = $('#email_reporting_day_saved_value').val() || $('#email_reporting_day').val() || 1;
 
 			if (frequency === 'weekly') {
 				// Days of week
 				var days = [
-					{ value: 0, label: GreenMetricsAdmin.Utils.i18n('sunday') },
-					{ value: 1, label: GreenMetricsAdmin.Utils.i18n('monday') },
-					{ value: 2, label: GreenMetricsAdmin.Utils.i18n('tuesday') },
-					{ value: 3, label: GreenMetricsAdmin.Utils.i18n('wednesday') },
-					{ value: 4, label: GreenMetricsAdmin.Utils.i18n('thursday') },
-					{ value: 5, label: GreenMetricsAdmin.Utils.i18n('friday') },
-					{ value: 6, label: GreenMetricsAdmin.Utils.i18n('saturday') }
+					{ value: 0, label: 'Sunday' },
+					{ value: 1, label: 'Monday' },
+					{ value: 2, label: 'Tuesday' },
+					{ value: 3, label: 'Wednesday' },
+					{ value: 4, label: 'Thursday' },
+					{ value: 5, label: 'Friday' },
+					{ value: 6, label: 'Saturday' }
 				];
 
-				$.each(days, function(i, day) {
-					$dayField.append($('<option></option>').val(day.value).text(day.label));
-				});
+				// Add options to select
+				for (var i = 0; i < days.length; i++) {
+					var selected = (parseInt(currentValue) === days[i].value) ? ' selected' : '';
+					selectHtml += '<option value="' + days[i].value + '"' + selected + '>' + days[i].label + '</option>';
+				}
 
-				// Get the saved value from the PHP template
-				var savedValue = parseInt($('#email_reporting_day_saved_value').val() || 1, 10);
-				// Use the saved value if it's valid for weekly (0-6), otherwise default to Monday (1)
-				$dayField.val(savedValue >= 0 && savedValue <= 6 ? savedValue : 1);
+				description = '<p class="description">Day of the week to send reports.</p>';
 			} else if (frequency === 'monthly') {
 				// Days of month (1-28)
 				for (var i = 1; i <= 28; i++) {
-					$dayField.append($('<option></option>').val(i).text(i));
+					var selected = (parseInt(currentValue) === i) ? ' selected' : '';
+					selectHtml += '<option value="' + i + '"' + selected + '>' + i + '</option>';
 				}
 
-				// Get the saved value from the PHP template
-				var savedValue = parseInt($('#email_reporting_day_saved_value').val() || 1, 10);
-				// Use the saved value if it's valid for monthly (1-28), otherwise default to 1st
-				$dayField.val(savedValue >= 1 && savedValue <= 28 ? savedValue : 1);
+				description = '<p class="description">Day of the month to send reports (1-28).</p>';
 			}
+
+			selectHtml += '</select>';
+
+			// Update the cell content
+			$dayCell.html(selectHtml + description);
 		}
 	}
 
@@ -225,6 +171,9 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 	 * @private
 	 */
 	function updateEmailPreview() {
+		// Show loading indicator
+		showPreviewLoading();
+
 		// Get the email content from the server
 		$.ajax({
 			url: ajaxurl,
@@ -236,8 +185,7 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 				include_chart: $('#email_reporting_include_chart').is(':checked') ? 1 : 0,
 				header: $('#email_reporting_header').val(),
 				footer: $('#email_reporting_footer').val(),
-				custom_css: $('#email_reporting_css').val(),
-				full_preview: 0 // Start with simple preview first
+				custom_css: $('#email_reporting_css').val()
 			},
 			success: function(response) {
 				if (response && response.success) {
@@ -256,15 +204,13 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 						$('#preview-recipients').text(response.data.recipients);
 					}
 				} else {
-					console.log('Error in email preview response:', response);
+					showPreviewError('Error loading preview', 'The server returned an error response.');
 				}
 			},
-			error: function(xhr, status, error) {
-				console.log('Error fetching email preview:', status, error);
-
+			error: function(xhr) {
 				// Try to get more detailed error information
 				var errorMessage = 'There was an error generating the email preview. Please check your settings and try again.';
-				var technicalDetails = status + ' - ' + error;
+				var technicalDetails = 'AJAX Error';
 
 				try {
 					if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
@@ -276,7 +222,6 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 							xhr.responseText.indexOf('<body') !== -1 ||
 							xhr.responseText.indexOf('<br') !== -1) {
 
-							console.log('Received HTML response instead of JSON:', xhr.responseText.substring(0, 500));
 							errorMessage = 'Server returned HTML instead of JSON. Check server logs for PHP errors.';
 							technicalDetails = 'HTML response received';
 						} else {
@@ -287,27 +232,38 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 									errorMessage = response.data.message;
 								}
 							} catch (parseError) {
-								console.log('Error parsing JSON response:', parseError);
-								// Show the first 100 characters of the response for debugging
 								errorMessage = 'Invalid JSON response';
 								technicalDetails = xhr.responseText.substring(0, 100) + '...';
 							}
 						}
 					}
 				} catch (e) {
-					console.log('Error handling error response:', e);
+					// Silent catch - just use default error message
 				}
 
-				// Show a simple preview with error message
-				var iframe = document.getElementById('email-preview-frame');
-				if (iframe) {
-					var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-					iframeDoc.open();
-					iframeDoc.write('<html><head><style>body{font-family:sans-serif;padding:20px;color:#444;} .error{color:#cc0000;} pre{background:#f5f5f5;padding:10px;overflow:auto;max-height:200px;}</style></head><body><h2>Preview Error</h2><p>' + errorMessage + '</p><p class="error">Technical details: ' + technicalDetails + '</p></body></html>');
-					iframeDoc.close();
-				}
+				// Show error in preview
+				showPreviewError(errorMessage, technicalDetails);
 			}
 		});
+	}
+
+	/**
+	 * Show error message in the preview iframe
+	 *
+	 * @function showPreviewError
+	 * @memberof GreenMetricsAdmin.EmailReporting
+	 * @private
+	 * @param {string} message - The error message
+	 * @param {string} details - Technical details about the error
+	 */
+	function showPreviewError(message, details) {
+		var iframe = document.getElementById('email-preview-frame');
+		if (iframe) {
+			var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+			iframeDoc.open();
+			iframeDoc.write('<html><head><style>body{font-family:sans-serif;padding:20px;color:#444;} .error-container{max-width:600px;margin:40px auto;background:#fff;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1);padding:25px;} .error-icon{color:#cc0000;font-size:48px;text-align:center;margin-bottom:20px;} .error-title{color:#cc0000;margin-top:0;} .error-message{margin-bottom:20px;line-height:1.5;} .technical-details{background:#f5f5f5;padding:15px;border-radius:4px;font-family:monospace;font-size:12px;overflow:auto;max-height:150px;}</style></head><body><div class="error-container"><div class="error-icon">⚠️</div><h2 class="error-title">Preview Error</h2><div class="error-message">' + message + '</div><div class="technical-details">' + details + '</div></div></body></html>');
+			iframeDoc.close();
+		}
 	}
 
 	/**
@@ -342,9 +298,7 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 					$result.removeClass('success').addClass('error').text(errorMsg).show();
 				}
 			},
-			error: function(xhr, status, error) {
-				console.log('Error sending test email:', status, error);
-
+			error: function(xhr) {
 				// Try to get more detailed error information
 				var errorMessage = 'AJAX request failed. Please try again.';
 
@@ -358,7 +312,6 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 							xhr.responseText.indexOf('<body') !== -1 ||
 							xhr.responseText.indexOf('<br') !== -1) {
 
-							console.log('Received HTML response instead of JSON:', xhr.responseText.substring(0, 500));
 							errorMessage = 'Server returned HTML instead of JSON. Check server logs for PHP errors.';
 						} else {
 							// Try to parse the response text
@@ -368,14 +321,12 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 									errorMessage = response.data.message;
 								}
 							} catch (parseError) {
-								console.log('Error parsing JSON response:', parseError);
-								// Show the first 100 characters of the response for debugging
-								errorMessage = 'Invalid JSON response: ' + xhr.responseText.substring(0, 100) + '...';
+								errorMessage = 'Invalid JSON response';
 							}
 						}
 					}
 				} catch (e) {
-					console.log('Error handling error response:', e);
+					// Silent catch - just use default error message
 				}
 
 				$result.removeClass('success').addClass('error').text(errorMessage).show();

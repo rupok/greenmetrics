@@ -46,7 +46,7 @@ $stats   = $tracker->get_stats();
 				<h2><?php esc_html_e( 'Email Report Settings', 'greenmetrics' ); ?></h2>
 				<p><?php esc_html_e( 'Configure scheduled email reports to keep track of your website\'s environmental impact.', 'greenmetrics' ); ?></p>
 
-				<form method="post" action="options.php">
+				<form method="post" action="options.php" class="email-settings-form">
 					<?php settings_fields( 'greenmetrics_settings' ); ?>
 
 					<table class="form-table">
@@ -160,7 +160,7 @@ $stats   = $tracker->get_stats();
 						<tr>
 							<th scope="row"><?php esc_html_e( 'Email Header', 'greenmetrics' ); ?></th>
 							<td>
-								<textarea id="email_reporting_header" name="greenmetrics_settings[email_reporting_header]" rows="4" class="large-text code"><?php echo esc_textarea( isset( $settings['email_reporting_header'] ) ? $settings['email_reporting_header'] : '' ); ?></textarea>
+								<textarea id="email_reporting_header" name="greenmetrics_settings[email_reporting_header]" rows="4" class="large-text code email-template-textarea"><?php echo esc_textarea( isset( $settings['email_reporting_header'] ) ? $settings['email_reporting_header'] : '' ); ?></textarea>
 								<p class="description">
 									<?php esc_html_e( 'Custom HTML to include at the top of the email. Leave empty to use the default header.', 'greenmetrics' ); ?>
 								</p>
@@ -169,7 +169,7 @@ $stats   = $tracker->get_stats();
 						<tr>
 							<th scope="row"><?php esc_html_e( 'Email Footer', 'greenmetrics' ); ?></th>
 							<td>
-								<textarea id="email_reporting_footer" name="greenmetrics_settings[email_reporting_footer]" rows="4" class="large-text code"><?php echo esc_textarea( isset( $settings['email_reporting_footer'] ) ? $settings['email_reporting_footer'] : '' ); ?></textarea>
+								<textarea id="email_reporting_footer" name="greenmetrics_settings[email_reporting_footer]" rows="4" class="large-text code email-template-textarea"><?php echo esc_textarea( isset( $settings['email_reporting_footer'] ) ? $settings['email_reporting_footer'] : '' ); ?></textarea>
 								<p class="description">
 									<?php esc_html_e( 'Custom HTML to include at the bottom of the email. Leave empty to use the default footer.', 'greenmetrics' ); ?>
 								</p>
@@ -178,7 +178,7 @@ $stats   = $tracker->get_stats();
 						<tr>
 							<th scope="row"><?php esc_html_e( 'Custom CSS', 'greenmetrics' ); ?></th>
 							<td>
-								<textarea id="email_reporting_css" name="greenmetrics_settings[email_reporting_css]" rows="6" class="large-text code"><?php echo esc_textarea( isset( $settings['email_reporting_css'] ) ? $settings['email_reporting_css'] : '' ); ?></textarea>
+								<textarea id="email_reporting_css" name="greenmetrics_settings[email_reporting_css]" rows="6" class="large-text code email-template-textarea"><?php echo esc_textarea( isset( $settings['email_reporting_css'] ) ? $settings['email_reporting_css'] : '' ); ?></textarea>
 								<p class="description">
 									<?php esc_html_e( 'Custom CSS to include in the email. This will override the default styles.', 'greenmetrics' ); ?>
 								</p>
@@ -190,7 +190,7 @@ $stats   = $tracker->get_stats();
 				</form>
 			</div>
 
-			<div class="greenmetrics-admin-card">
+			<div class="greenmetrics-admin-card test-email-section">
 				<h2><?php esc_html_e( 'Test Email', 'greenmetrics' ); ?></h2>
 				<p><?php esc_html_e( 'Send a test email to verify your settings.', 'greenmetrics' ); ?></p>
 
@@ -201,7 +201,7 @@ $stats   = $tracker->get_stats();
 							<button type="button" id="send_test_email" class="button button-primary">
 								<?php esc_html_e( 'Send Test Email', 'greenmetrics' ); ?>
 							</button>
-							<span id="test_email_result" style="margin-left: 10px; display: none;"></span>
+							<span id="test_email_result" class="test-email-result"></span>
 							<p class="description"><?php esc_html_e( 'Send a test email to the recipients specified above.', 'greenmetrics' ); ?></p>
 						</td>
 					</tr>
@@ -247,19 +247,16 @@ $stats   = $tracker->get_stats();
 					</div>
 
 					<div class="email-preview-content">
-						<iframe id="email-preview-frame" style="width: 100%; height: 600px; border: 1px solid #ddd;"></iframe>
+						<iframe id="email-preview-frame" class="email-preview-frame"></iframe>
 					</div>
 
-					<div class="email-preview-controls" style="margin-top: 10px;">
-						<button type="button" id="try_full_preview" class="button">
-							<?php esc_html_e( 'Try Full Preview', 'greenmetrics' ); ?>
-						</button>
-						<span id="preview_result" style="margin-left: 10px; display: none;"></span>
+					<div class="email-preview-note">
+						<?php esc_html_e( 'Preview updates automatically when settings are changed.', 'greenmetrics' ); ?>
 					</div>
 				</div>
 			</div>
 
-			<div class="greenmetrics-admin-card">
+			<div class="greenmetrics-admin-card email-help-section">
 				<h2><?php esc_html_e( 'Email Reporting Help', 'greenmetrics' ); ?></h2>
 
 				<h3><?php esc_html_e( 'About Email Reports', 'greenmetrics' ); ?></h3>
@@ -284,38 +281,4 @@ $stats   = $tracker->get_stats();
 
 <!-- JavaScript functionality is now handled by the email-reporting.js module -->
 
-<style>
-.email-preview-container {
-	background-color: #f9f9f9;
-	border: 1px solid #ddd;
-	border-radius: 4px;
-	padding: 15px;
-	margin-top: 15px;
-}
 
-.email-preview-header {
-	background-color: #f0f0f0;
-	border: 1px solid #ddd;
-	border-radius: 4px 4px 0 0;
-	padding: 10px;
-	margin-bottom: 15px;
-}
-
-.email-preview-subject,
-.email-preview-recipients {
-	margin-bottom: 5px;
-}
-
-.checkbox-label {
-	margin-bottom: 8px;
-	display: inline-block;
-}
-
-.success {
-	color: #46b450;
-}
-
-.error {
-	color: #dc3232;
-}
-</style>
