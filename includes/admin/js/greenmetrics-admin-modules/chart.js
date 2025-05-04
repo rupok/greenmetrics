@@ -343,6 +343,7 @@ GreenMetricsAdmin.Chart = (function ($) {
 						},
 						success: function (response) {
 							updateChart(response);
+							// No notice needed for dashboard refresh
 						},
 						error: function (xhr, status, error) {
 							// Reset chart data

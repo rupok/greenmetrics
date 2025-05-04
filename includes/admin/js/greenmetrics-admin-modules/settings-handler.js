@@ -26,14 +26,7 @@ GreenMetricsAdmin.SettingsHandler = (function ($) {
 
         // Check if we have a settings-updated parameter in the URL
         if (window.location.search.indexOf('settings-updated=true') > -1) {
-            // Show a success message
-            GreenMetricsErrorHandler.displayAdminNotice(
-                'Settings saved successfully.',
-                'success',
-                true
-            );
-
-            // Update preview if available
+            // Update preview if available (but don't show a notice - the PHP code already does that)
             if (typeof GreenMetricsAdmin.Preview !== 'undefined' &&
                 typeof GreenMetricsAdmin.Preview.updatePreview === 'function') {
                 GreenMetricsAdmin.Preview.updatePreview();

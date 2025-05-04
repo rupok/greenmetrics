@@ -199,23 +199,43 @@ var GreenMetricsAdmin = GreenMetricsAdmin || {};
 				$( '.notice-success.is-dismissible' ).fadeOut(
 					500,
 					function () {
-						$( this ).remove();
+						$( this ).hide();
 					}
 				);
-
-				// For URL parameter specific notices
-				if (window.location.search.indexOf( 'settings-updated=true' ) > -1 ||
-				window.location.search.indexOf( 'settings-updated=1' ) > -1) {
-					$( '.notice' ).fadeOut(
-						500,
-						function () {
-							$( this ).remove();
-						}
-					);
-				}
 			},
 			5000
 		);
+
+		// Simple approach to remove notice parameters from URL
+		if (window.location.search.indexOf('stats-refreshed=true') > -1 ||
+			window.location.search.indexOf('data-management-updated=true') > -1 ||
+			window.location.search.indexOf('aggregation=true') > -1 ||
+			window.location.search.indexOf('pruning=true') > -1) {
+
+			// Get current URL without parameters
+			var baseUrl = window.location.pathname;
+
+			// Get current search params
+			var params = new URLSearchParams(window.location.search);
+
+			// Remove notice-related parameters
+			params.delete('stats-refreshed');
+			params.delete('data-management-updated');
+			params.delete('aggregation');
+			params.delete('pruning');
+
+			// Build new URL
+			var newUrl = baseUrl;
+
+			// Add remaining parameters if any
+			var remainingParams = params.toString();
+			if (remainingParams) {
+				newUrl += '?' + remainingParams;
+			}
+
+			// Update URL without reloading
+			window.history.replaceState(null, '', newUrl);
+		}
 
 		// Settings triggers if they exist
 		if ($( '.greenmetrics-settings-trigger' ).length) {

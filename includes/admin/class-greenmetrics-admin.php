@@ -49,11 +49,14 @@ class GreenMetrics_Admin {
 	 * Display notices for settings updates
 	 */
 	public function show_settings_update_notice() {
-		// Display notice for settings update
+		// We don't need to show a custom notice for settings updates
+		// WordPress core already handles this with the "Settings saved." notice
+
+		// But we still log the update if debugging is enabled
 		if ( isset( $_GET['settings-updated'] ) && sanitize_text_field( wp_unslash( $_GET['settings-updated'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			// Check nonce is present and valid when handling settings update
 			if ( ! isset( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_REQUEST['_wpnonce'] ) ), 'greenmetrics-options' ) ) {
-				// Still show the message but log the issue
+				// Log the issue
 				if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
 					greenmetrics_log( 'Settings updated but nonce verification failed', null, 'warning' );
 				}
@@ -64,13 +67,23 @@ class GreenMetrics_Admin {
 				$settings = get_option( 'greenmetrics_settings', array() );
 				greenmetrics_log( 'Settings updated via WP Settings API', $settings );
 			}
-
-			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved successfully!', 'greenmetrics' ) . '</p></div>';
 		}
 
 		// Display notice for stats refresh
 		if ( isset( $_GET['stats-refreshed'] ) && sanitize_text_field( wp_unslash( $_GET['stats-refreshed'] ) ) === 'true' ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Statistics refreshed successfully!', 'greenmetrics' ) . '</p></div>';
+		}
+
+		// Display notice for data management tasks
+		if ( isset( $_GET['data-management-updated'] ) && sanitize_text_field( wp_unslash( $_GET['data-management-updated'] ) ) === 'true' ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			// Check if we have aggregation or pruning parameters
+			if ( isset( $_GET['aggregation'] ) && sanitize_text_field( wp_unslash( $_GET['aggregation'] ) ) === 'true' ) {
+				echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Data aggregation completed successfully!', 'greenmetrics' ) . '</p></div>';
+			}
+
+			if ( isset( $_GET['pruning'] ) && sanitize_text_field( wp_unslash( $_GET['pruning'] ) ) === 'true' ) {
+				echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Data pruning completed successfully!', 'greenmetrics' ) . '</p></div>';
+			}
 		}
 	}
 
@@ -2099,8 +2112,22 @@ class GreenMetrics_Admin {
 			}
 		}
 
-		// Redirect back to the data management page
-		wp_safe_redirect( add_query_arg( 'settings-updated', 'true', admin_url( 'admin.php?page=greenmetrics_data_management' ) ) );
+		// Prepare redirect URL with appropriate parameters
+		$redirect_url = admin_url( 'admin.php?page=greenmetrics_data_management' );
+		$redirect_url = add_query_arg( 'data-management-updated', 'true', $redirect_url );
+
+		// Add aggregation parameter if aggregation was run
+		if ( isset( $_POST['run_aggregation'] ) && $_POST['run_aggregation'] ) {
+			$redirect_url = add_query_arg( 'aggregation', 'true', $redirect_url );
+		}
+
+		// Add pruning parameter if pruning was run
+		if ( isset( $_POST['run_pruning'] ) && $_POST['run_pruning'] ) {
+			$redirect_url = add_query_arg( 'pruning', 'true', $redirect_url );
+		}
+
+		// Redirect to the data management page
+		wp_safe_redirect( $redirect_url );
 		exit;
 	}
 
@@ -2148,8 +2175,8 @@ class GreenMetrics_Admin {
 		// Add success message
 		add_settings_error( 'greenmetrics_data_management', 'stats_refreshed', __( 'Statistics cache refreshed successfully!', 'greenmetrics' ), 'success' );
 
-		// Redirect back to the data management page
-		wp_safe_redirect( add_query_arg( 'settings-updated', 'true', admin_url( 'admin.php?page=greenmetrics_data_management' ) ) );
+		// Redirect back to the data management page with stats-refreshed parameter
+		wp_safe_redirect( add_query_arg( 'stats-refreshed', 'true', admin_url( 'admin.php?page=greenmetrics_data_management' ) ) );
 		exit;
 	}
 
