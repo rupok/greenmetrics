@@ -168,11 +168,20 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 	 *
 	 * @function updateEmailPreview
 	 * @memberof GreenMetricsAdmin.EmailReporting
-	 * @private
+	 * @public
 	 */
 	function updateEmailPreview() {
 		// Show loading indicator
 		showPreviewLoading();
+
+		// Get color values
+		var colors = {
+			primary: $('#email_color_primary').val() || '#4CAF50',
+			secondary: $('#email_color_secondary').val() || '#f9f9f9',
+			accent: $('#email_color_accent').val() || '#333333',
+			text: $('#email_color_text').val() || '#333333',
+			background: $('#email_color_background').val() || '#ffffff'
+		};
 
 		// Get the email content from the server
 		$.ajax({
@@ -185,7 +194,9 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 				include_chart: $('#email_reporting_include_chart').is(':checked') ? 1 : 0,
 				header: $('#email_reporting_header').val(),
 				footer: $('#email_reporting_footer').val(),
-				custom_css: $('#email_reporting_css').val()
+				custom_css: $('#email_reporting_css').val(),
+				colors: colors,
+				template_style: $('#email_template_selector').val() || 'default'
 			},
 			success: function(response) {
 				if (response && response.success) {
@@ -345,6 +356,7 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 
 	// Public API
 	return {
-		init: init
+		init: init,
+		updateEmailPreview: updateEmailPreview
 	};
 })(jQuery);

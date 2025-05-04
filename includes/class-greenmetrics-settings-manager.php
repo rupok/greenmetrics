@@ -76,6 +76,12 @@ class GreenMetrics_Settings_Manager {
 		'email_reporting_header'            => '',            // Custom email header (empty means use default)
 		'email_reporting_footer'            => '',            // Custom email footer (empty means use default)
 		'email_reporting_css'               => '',            // Custom email CSS (empty means use default)
+		'email_template_style'              => 'default',     // Default email template style
+		'email_color_primary'               => '#4CAF50',     // Default primary color for email template
+		'email_color_secondary'             => '#f9f9f9',     // Default secondary color for email template
+		'email_color_accent'                => '#333333',     // Default accent color for email template
+		'email_color_text'                  => '#333333',     // Default text color for email template
+		'email_color_background'            => '#ffffff',     // Default background color for email template
 	);
 
 	/**
@@ -291,6 +297,13 @@ class GreenMetrics_Settings_Manager {
 				: 'weekly';
 		}
 
+		if ( isset( $input['email_template_style'] ) ) {
+			$valid_templates = array( 'default', 'minimal', 'modern', 'eco' );
+			$sanitized['email_template_style'] = in_array( $input['email_template_style'], $valid_templates, true )
+				? $input['email_template_style']
+				: 'default';
+		}
+
 		// Sanitize text fields
 		$text_fields = array(
 			'badge_text',
@@ -440,6 +453,11 @@ class GreenMetrics_Settings_Manager {
 			'popover_metrics_color',
 			'popover_metrics_list_bg_color',
 			'popover_metrics_list_hover_bg_color',
+			'email_color_primary',
+			'email_color_secondary',
+			'email_color_accent',
+			'email_color_text',
+			'email_color_background',
 		);
 
 		foreach ( $color_fields as $field ) {
@@ -512,6 +530,21 @@ class GreenMetrics_Settings_Manager {
 								break;
 							case 'popover_metrics_list_hover_bg_color':
 								$sanitized[ $field ] = '#f0f0f0';
+								break;
+							case 'email_color_primary':
+								$sanitized[ $field ] = '#4CAF50';
+								break;
+							case 'email_color_secondary':
+								$sanitized[ $field ] = '#f9f9f9';
+								break;
+							case 'email_color_accent':
+								$sanitized[ $field ] = '#333333';
+								break;
+							case 'email_color_text':
+								$sanitized[ $field ] = '#333333';
+								break;
+							case 'email_color_background':
+								$sanitized[ $field ] = '#ffffff';
 								break;
 							default:
 								$sanitized[ $field ] = '#000000';

@@ -282,6 +282,46 @@ class GreenMetrics_Email_Reporter {
 	}
 
 	/**
+	 * Replace placeholders in content with actual values.
+	 *
+	 * @param string $content The content with placeholders.
+	 * @return string The content with placeholders replaced.
+	 */
+	private function replace_placeholders( $content ) {
+		// Basic site info
+		$content = str_replace( '[site_name]', get_bloginfo( 'name' ), $content );
+		$content = str_replace( '[site_url]', get_bloginfo( 'url' ), $content );
+		$content = str_replace( '[admin_url]', admin_url(), $content );
+
+		// Date and time
+		$content = str_replace( '[date]', date_i18n( get_option( 'date_format' ) ), $content );
+		$content = str_replace( '[time]', date_i18n( get_option( 'time_format' ) ), $content );
+		$content = str_replace( '[year]', date_i18n( 'Y' ), $content );
+		$content = str_replace( '[month]', date_i18n( 'F' ), $content );
+		$content = str_replace( '[day]', date_i18n( 'j' ), $content );
+
+		// Get stats for metrics placeholders
+		try {
+			$tracker = GreenMetrics_Tracker::get_instance();
+			$stats = $tracker->get_stats();
+
+			// Replace metrics placeholders
+			$content = str_replace( '[carbon_total]', $this->safe_format('carbon', $stats['carbon_footprint']), $content );
+			$content = str_replace( '[energy_total]', $this->safe_format('energy', $stats['energy_consumption']), $content );
+			$content = str_replace( '[data_total]', $this->safe_format('bytes', $stats['data_transfer']), $content );
+			$content = str_replace( '[views_total]', number_format($stats['page_views']), $content );
+		} catch (\Exception $e) {
+			// If there's an error, replace with zeros
+			$content = str_replace( '[carbon_total]', '0 kg CO2', $content );
+			$content = str_replace( '[energy_total]', '0 kWh', $content );
+			$content = str_replace( '[data_total]', '0 B', $content );
+			$content = str_replace( '[views_total]', '0', $content );
+		}
+
+		return $content;
+	}
+
+	/**
 	 * Generate the email content.
 	 *
 	 * @param array $settings The plugin settings.
@@ -328,20 +368,27 @@ class GreenMetrics_Email_Reporter {
 			);
 		}
 
-		// Default styles
+		// Get color settings
+		$primary_color = ! empty( $settings['email_color_primary'] ) ? $settings['email_color_primary'] : '#4CAF50';
+		$secondary_color = ! empty( $settings['email_color_secondary'] ) ? $settings['email_color_secondary'] : '#f9f9f9';
+		$accent_color = ! empty( $settings['email_color_accent'] ) ? $settings['email_color_accent'] : '#333333';
+		$text_color = ! empty( $settings['email_color_text'] ) ? $settings['email_color_text'] : '#333333';
+		$background_color = ! empty( $settings['email_color_background'] ) ? $settings['email_color_background'] : '#ffffff';
+
+		// Default styles with dynamic colors
 		$default_styles = '
 			body {
 				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 				line-height: 1.6;
-				color: #333;
-				background-color: #f9f9f9;
+				color: ' . $text_color . ';
+				background-color: ' . $secondary_color . ';
 				margin: 0;
 				padding: 0;
 			}
 			.container {
 				max-width: 600px;
 				margin: 0 auto;
-				background-color: #ffffff;
+				background-color: ' . $background_color . ';
 				padding: 20px;
 				border-radius: 5px;
 				box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -353,7 +400,7 @@ class GreenMetrics_Email_Reporter {
 				margin-bottom: 20px;
 			}
 			.header h1 {
-				color: #4CAF50;
+				color: ' . $primary_color . ';
 				margin: 0;
 				padding: 0;
 				font-size: 24px;
@@ -372,7 +419,7 @@ class GreenMetrics_Email_Reporter {
 				margin-top: 20px;
 			}
 			.metric-card {
-				background-color: #f5f5f5;
+				background-color: ' . $secondary_color . ';
 				border-radius: 4px;
 				padding: 15px;
 				text-align: center;
@@ -380,12 +427,12 @@ class GreenMetrics_Email_Reporter {
 			.metric-value {
 				font-size: 24px;
 				font-weight: bold;
-				color: #4CAF50;
+				color: ' . $primary_color . ';
 				margin: 10px 0;
 			}
 			.metric-label {
 				font-size: 14px;
-				color: #666;
+				color: ' . $text_color . ';
 			}
 			.footer {
 				text-align: center;
@@ -405,7 +452,7 @@ class GreenMetrics_Email_Reporter {
 			}
 			.button {
 				display: inline-block;
-				background-color: #4CAF50;
+				background-color: ' . $primary_color . ';
 				color: white;
 				padding: 10px 20px;
 				text-decoration: none;
@@ -421,6 +468,64 @@ class GreenMetrics_Email_Reporter {
 				height: auto;
 				border-radius: 4px;
 				box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+			}
+
+			/* Additional styles for modern template */
+			.modern-header {
+				text-align: left;
+				padding: 20px 0;
+			}
+			.modern-header h1 {
+				color: ' . $primary_color . ';
+				font-size: 28px;
+				margin-bottom: 5px;
+			}
+			.modern-header h2 {
+				color: ' . $accent_color . ';
+				font-size: 20px;
+				margin-top: 0;
+			}
+			.modern-footer {
+				background-color: ' . $secondary_color . ';
+				padding: 15px;
+				text-align: center;
+				border-radius: 0 0 5px 5px;
+			}
+
+			/* Additional styles for eco template */
+			.eco-header {
+				background-color: ' . $secondary_color . ';
+				padding: 20px;
+				border-radius: 5px 5px 0 0;
+				text-align: center;
+			}
+			.eco-logo {
+				font-size: 36px;
+				margin-bottom: 10px;
+			}
+			.eco-tagline {
+				font-style: italic;
+				color: ' . $accent_color . ';
+				margin-top: 10px;
+			}
+			.eco-footer {
+				background-color: ' . $secondary_color . ';
+				padding: 15px;
+				border-radius: 0 0 5px 5px;
+				text-align: center;
+				color: ' . $text_color . ';
+			}
+
+			/* Additional styles for minimal template */
+			.minimal-header {
+				border-bottom: 1px solid #eee;
+				padding-bottom: 15px;
+			}
+			.minimal-footer {
+				border-top: 1px solid #eee;
+				padding-top: 15px;
+				text-align: center;
+				font-size: 12px;
 			}
 		';
 
@@ -450,7 +555,10 @@ class GreenMetrics_Email_Reporter {
 
 		// Add custom header if provided, otherwise use default
 		if ( ! empty( $settings['email_reporting_header'] ) ) {
-			$content .= wp_kses_post( $settings['email_reporting_header'] );
+			$header_content = $settings['email_reporting_header'];
+			// Replace placeholders in the header
+			$header_content = $this->replace_placeholders($header_content);
+			$content .= wp_kses_post( $header_content );
 		} else {
 			$content .= '<div class="header">
 				<h1>GreenMetrics Report</h1>
@@ -515,7 +623,10 @@ class GreenMetrics_Email_Reporter {
 
 		// Add custom footer if provided, otherwise use default
 		if ( ! empty( $settings['email_reporting_footer'] ) ) {
-			$content .= wp_kses_post( $settings['email_reporting_footer'] );
+			$footer_content = $settings['email_reporting_footer'];
+			// Replace placeholders in the footer
+			$footer_content = $this->replace_placeholders($footer_content);
+			$content .= wp_kses_post( $footer_content );
 		} else {
 			$content .= '<div class="footer">
 				<p>This report was generated by the GreenMetrics WordPress plugin.</p>
@@ -547,6 +658,22 @@ class GreenMetrics_Email_Reporter {
 	 * @return string The formatted value or a default value if formatting fails.
 	 */
 	private function safe_format($type, $value) {
+		// Handle null, empty, or false values
+		if ( null === $value || '' === $value || false === $value ) {
+			switch ($type) {
+				case 'carbon':
+					return '0 kg CO2';
+				case 'energy':
+					return '0 kWh';
+				case 'bytes':
+					return '0 B';
+				case 'score':
+					return '0%';
+				default:
+					return '0';
+			}
+		}
+
 		try {
 			switch ($type) {
 				case 'carbon':

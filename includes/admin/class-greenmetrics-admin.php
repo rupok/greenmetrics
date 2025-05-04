@@ -1813,13 +1813,22 @@ class GreenMetrics_Admin {
 
 		if ( $is_email_reporting_page ) {
 			wp_enqueue_script(
-				'greenmetrics-admin-email-reporting',
-				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/email-reporting.js',
-				array( 'greenmetrics-admin-core', 'greenmetrics-admin-utils', 'greenmetrics-admin-config' ),
+				'greenmetrics-admin-email-template-editor',
+				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/email-template-editor.js',
+				array( 'jquery', 'wp-color-picker', 'greenmetrics-admin-core', 'greenmetrics-admin-utils', 'greenmetrics-admin-config' ),
 				GREENMETRICS_VERSION,
 				true
 			);
 
+			wp_enqueue_script(
+				'greenmetrics-admin-email-reporting',
+				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/email-reporting.js',
+				array( 'greenmetrics-admin-core', 'greenmetrics-admin-utils', 'greenmetrics-admin-config', 'greenmetrics-admin-email-template-editor' ),
+				GREENMETRICS_VERSION,
+				true
+			);
+
+			$main_dependencies[] = 'greenmetrics-admin-email-template-editor';
 			$main_dependencies[] = 'greenmetrics-admin-email-reporting';
 		}
 
@@ -1988,6 +1997,17 @@ class GreenMetrics_Admin {
 			$settings['email_reporting_header'] = isset( $_POST['header'] ) ? wp_kses_post( wp_unslash( $_POST['header'] ) ) : '';
 			$settings['email_reporting_footer'] = isset( $_POST['footer'] ) ? wp_kses_post( wp_unslash( $_POST['footer'] ) ) : '';
 			$settings['email_reporting_css'] = isset( $_POST['custom_css'] ) ? wp_strip_all_tags( wp_unslash( $_POST['custom_css'] ) ) : '';
+			$settings['email_template_style'] = isset( $_POST['template_style'] ) ? sanitize_text_field( wp_unslash( $_POST['template_style'] ) ) : 'default';
+
+			// Handle color settings
+			if ( isset( $_POST['colors'] ) && is_array( $_POST['colors'] ) ) {
+				$colors = $_POST['colors'];
+				$settings['email_color_primary'] = isset( $colors['primary'] ) ? sanitize_hex_color( $colors['primary'] ) : '#4CAF50';
+				$settings['email_color_secondary'] = isset( $colors['secondary'] ) ? sanitize_hex_color( $colors['secondary'] ) : '#f9f9f9';
+				$settings['email_color_accent'] = isset( $colors['accent'] ) ? sanitize_hex_color( $colors['accent'] ) : '#333333';
+				$settings['email_color_text'] = isset( $colors['text'] ) ? sanitize_hex_color( $colors['text'] ) : '#333333';
+				$settings['email_color_background'] = isset( $colors['background'] ) ? sanitize_hex_color( $colors['background'] ) : '#ffffff';
+			}
 
 			// Create a fallback content in case of error
 			$fallback_content = '<!DOCTYPE html><html><head><title>Email Preview</title><style>body{font-family:sans-serif;padding:20px;color:#444;} .error{color:#cc0000;}</style></head><body><h1>Email Preview</h1><p>Unable to generate preview. Please check your settings and try again.</p></body></html>';

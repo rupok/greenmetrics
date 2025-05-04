@@ -149,42 +149,164 @@ $stats   = $tracker->get_stats();
 				</form>
 			</div>
 
-			<div class="greenmetrics-admin-card">
+			<div class="greenmetrics-admin-card" id="email-template-editor">
 				<h2><?php esc_html_e( 'Email Template', 'greenmetrics' ); ?></h2>
 				<p><?php esc_html_e( 'Customize the appearance of your email reports.', 'greenmetrics' ); ?></p>
 
 				<form method="post" action="options.php">
 					<?php settings_fields( 'greenmetrics_settings' ); ?>
 
-					<table class="form-table">
-						<tr>
-							<th scope="row"><?php esc_html_e( 'Email Header', 'greenmetrics' ); ?></th>
-							<td>
-								<textarea id="email_reporting_header" name="greenmetrics_settings[email_reporting_header]" rows="4" class="large-text code email-template-textarea"><?php echo esc_textarea( isset( $settings['email_reporting_header'] ) ? $settings['email_reporting_header'] : '' ); ?></textarea>
-								<p class="description">
-									<?php esc_html_e( 'Custom HTML to include at the top of the email. Leave empty to use the default header.', 'greenmetrics' ); ?>
-								</p>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row"><?php esc_html_e( 'Email Footer', 'greenmetrics' ); ?></th>
-							<td>
-								<textarea id="email_reporting_footer" name="greenmetrics_settings[email_reporting_footer]" rows="4" class="large-text code email-template-textarea"><?php echo esc_textarea( isset( $settings['email_reporting_footer'] ) ? $settings['email_reporting_footer'] : '' ); ?></textarea>
-								<p class="description">
-									<?php esc_html_e( 'Custom HTML to include at the bottom of the email. Leave empty to use the default footer.', 'greenmetrics' ); ?>
-								</p>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row"><?php esc_html_e( 'Custom CSS', 'greenmetrics' ); ?></th>
-							<td>
-								<textarea id="email_reporting_css" name="greenmetrics_settings[email_reporting_css]" rows="6" class="large-text code email-template-textarea"><?php echo esc_textarea( isset( $settings['email_reporting_css'] ) ? $settings['email_reporting_css'] : '' ); ?></textarea>
-								<p class="description">
-									<?php esc_html_e( 'Custom CSS to include in the email. This will override the default styles.', 'greenmetrics' ); ?>
-								</p>
-							</td>
-						</tr>
-					</table>
+					<?php
+					// Add hidden fields for all the settings from the first form to preserve them
+					$preserve_fields = array(
+						'email_reporting_enabled',
+						'email_reporting_frequency',
+						'email_reporting_day',
+						'email_reporting_recipients',
+						'email_reporting_subject',
+						'email_reporting_include_stats',
+						'email_reporting_include_chart'
+					);
+
+					foreach ($preserve_fields as $field) {
+						$value = isset($settings[$field]) ? $settings[$field] : '';
+						if (is_array($value)) {
+							foreach ($value as $key => $val) {
+								echo '<input type="hidden" name="greenmetrics_settings[' . esc_attr($field) . '][' . esc_attr($key) . ']" value="' . esc_attr($val) . '">';
+							}
+						} else {
+							echo '<input type="hidden" name="greenmetrics_settings[' . esc_attr($field) . ']" value="' . esc_attr($value) . '">';
+						}
+					}
+					?>
+
+					<div class="template-selector-container">
+						<table class="form-table">
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Template Style', 'greenmetrics' ); ?></th>
+								<td>
+									<?php
+									// Get all settings directly
+									$all_settings = get_option('greenmetrics_settings', array());
+
+									// Set default template
+									$current_template = 'default';
+
+									// First check the $settings array passed to the template
+									if (isset($settings['email_template_style']) && !empty($settings['email_template_style'])) {
+										$current_template = $settings['email_template_style'];
+									}
+									// Then check the direct option value
+									else if (isset($all_settings['email_template_style']) && !empty($all_settings['email_template_style'])) {
+										$current_template = $all_settings['email_template_style'];
+									}
+
+									?>
+									<select id="email_template_selector" name="greenmetrics_settings[email_template_style]" class="regular-text">
+										<option value="default" <?php selected($current_template, 'default'); ?>>Default</option>
+										<option value="minimal" <?php selected($current_template, 'minimal'); ?>>Minimal</option>
+										<option value="modern" <?php selected($current_template, 'modern'); ?>>Modern</option>
+										<option value="eco" <?php selected($current_template, 'eco'); ?>>Eco-Friendly</option>
+									</select>
+									<p class="description" id="template-description">
+										<?php esc_html_e( 'Select a predefined template style.', 'greenmetrics' ); ?>
+									</p>
+								</td>
+							</tr>
+						</table>
+					</div>
+
+					<div class="template-colors-container">
+						<h3><span class="dashicons dashicons-admin-appearance" style="margin-right: 5px; font-size: 18px; vertical-align: middle;"></span><?php esc_html_e( 'Color Scheme', 'greenmetrics' ); ?></h3>
+						<table class="form-table">
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Primary Color', 'greenmetrics' ); ?></th>
+								<td>
+									<input type="text" id="email_color_primary" name="greenmetrics_settings[email_color_primary]" value="<?php echo esc_attr( isset( $settings['email_color_primary'] ) ? $settings['email_color_primary'] : '#4CAF50' ); ?>" class="color-picker" data-default-color="#4CAF50" />
+									<p class="description">
+										<?php esc_html_e( 'Main brand color used for headings and accents.', 'greenmetrics' ); ?>
+									</p>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Secondary Color', 'greenmetrics' ); ?></th>
+								<td>
+									<input type="text" id="email_color_secondary" name="greenmetrics_settings[email_color_secondary]" value="<?php echo esc_attr( isset( $settings['email_color_secondary'] ) ? $settings['email_color_secondary'] : '#f9f9f9' ); ?>" class="color-picker" data-default-color="#f9f9f9" />
+									<p class="description">
+										<?php esc_html_e( 'Used for backgrounds and secondary elements.', 'greenmetrics' ); ?>
+									</p>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Accent Color', 'greenmetrics' ); ?></th>
+								<td>
+									<input type="text" id="email_color_accent" name="greenmetrics_settings[email_color_accent]" value="<?php echo esc_attr( isset( $settings['email_color_accent'] ) ? $settings['email_color_accent'] : '#333333' ); ?>" class="color-picker" data-default-color="#333333" />
+									<p class="description">
+										<?php esc_html_e( 'Used for buttons and highlights.', 'greenmetrics' ); ?>
+									</p>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Text Color', 'greenmetrics' ); ?></th>
+								<td>
+									<input type="text" id="email_color_text" name="greenmetrics_settings[email_color_text]" value="<?php echo esc_attr( isset( $settings['email_color_text'] ) ? $settings['email_color_text'] : '#333333' ); ?>" class="color-picker" data-default-color="#333333" />
+									<p class="description">
+										<?php esc_html_e( 'Main text color.', 'greenmetrics' ); ?>
+									</p>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Background Color', 'greenmetrics' ); ?></th>
+								<td>
+									<input type="text" id="email_color_background" name="greenmetrics_settings[email_color_background]" value="<?php echo esc_attr( isset( $settings['email_color_background'] ) ? $settings['email_color_background'] : '#ffffff' ); ?>" class="color-picker" data-default-color="#ffffff" />
+									<p class="description">
+										<?php esc_html_e( 'Main background color.', 'greenmetrics' ); ?>
+									</p>
+								</td>
+							</tr>
+						</table>
+					</div>
+
+					<div class="template-content-container">
+						<h3><span class="dashicons dashicons-editor-code" style="margin-right: 5px; font-size: 18px; vertical-align: middle;"></span><?php esc_html_e( 'Template Content', 'greenmetrics' ); ?></h3>
+
+						<div class="placeholder-toolbar">
+							<label><?php esc_html_e( 'Insert Placeholder:', 'greenmetrics' ); ?></label>
+							<div id="placeholder-buttons" class="placeholder-buttons-container">
+								<!-- Placeholder buttons will be added by JavaScript -->
+							</div>
+						</div>
+
+						<table class="form-table">
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Email Header', 'greenmetrics' ); ?></th>
+								<td data-filename="header.html">
+									<textarea id="email_reporting_header" name="greenmetrics_settings[email_reporting_header]" rows="4" class="large-text code email-template-textarea"><?php echo esc_textarea( isset( $settings['email_reporting_header'] ) ? $settings['email_reporting_header'] : '' ); ?></textarea>
+									<p class="description">
+										<?php esc_html_e( 'Custom HTML to include at the top of the email. Leave empty to use the default header.', 'greenmetrics' ); ?>
+									</p>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Email Footer', 'greenmetrics' ); ?></th>
+								<td data-filename="footer.html">
+									<textarea id="email_reporting_footer" name="greenmetrics_settings[email_reporting_footer]" rows="4" class="large-text code email-template-textarea"><?php echo esc_textarea( isset( $settings['email_reporting_footer'] ) ? $settings['email_reporting_footer'] : '' ); ?></textarea>
+									<p class="description">
+										<?php esc_html_e( 'Custom HTML to include at the bottom of the email. Leave empty to use the default footer.', 'greenmetrics' ); ?>
+									</p>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Custom CSS', 'greenmetrics' ); ?></th>
+								<td data-filename="styles.css">
+									<textarea id="email_reporting_css" name="greenmetrics_settings[email_reporting_css]" rows="6" class="large-text code email-template-textarea"><?php echo esc_textarea( isset( $settings['email_reporting_css'] ) ? $settings['email_reporting_css'] : '' ); ?></textarea>
+									<p class="description">
+										<?php esc_html_e( 'Custom CSS to include in the email. This will override the default styles.', 'greenmetrics' ); ?>
+									</p>
+								</td>
+							</tr>
+						</table>
+					</div>
 
 					<?php submit_button( __( 'Save Template', 'greenmetrics' ) ); ?>
 				</form>
@@ -214,6 +336,12 @@ $stats   = $tracker->get_stats();
 			<div class="greenmetrics-admin-card">
 				<h2><?php esc_html_e( 'Email Preview', 'greenmetrics' ); ?></h2>
 				<p><?php esc_html_e( 'This is a preview of how your email report will look.', 'greenmetrics' ); ?></p>
+
+				<div class="email-preview-controls">
+					<span class="preview-info">
+						<?php esc_html_e( 'Preview updates automatically when settings are changed.', 'greenmetrics' ); ?>
+					</span>
+				</div>
 
 				<div class="email-preview-container">
 					<div class="email-preview-header">
@@ -250,8 +378,11 @@ $stats   = $tracker->get_stats();
 						<iframe id="email-preview-frame" class="email-preview-frame"></iframe>
 					</div>
 
-					<div class="email-preview-note">
-						<?php esc_html_e( 'Preview updates automatically when settings are changed.', 'greenmetrics' ); ?>
+					<div class="email-preview-footer">
+						<button type="button" id="toggle-mobile-preview" class="button">
+							<span class="dashicons dashicons-smartphone" style="margin-right: 5px; font-size: 18px; vertical-align: text-bottom;"></span>
+							<?php esc_html_e( 'Mobile Preview', 'greenmetrics' ); ?>
+						</button>
 					</div>
 				</div>
 			</div>
