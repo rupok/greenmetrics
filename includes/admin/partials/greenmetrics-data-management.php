@@ -142,6 +142,125 @@ $total_size = \GreenMetrics\GreenMetrics_Data_Manager::format_bytes($table_sizes
 			</div>
 
 			<div class="greenmetrics-admin-card">
+				<h2><?php esc_html_e( 'Data Export', 'greenmetrics' ); ?></h2>
+				<p><?php esc_html_e( 'Export your metrics data for external analysis or reporting.', 'greenmetrics' ); ?></p>
+
+				<form id="greenmetrics-export-form" method="get" action="<?php echo esc_url( get_rest_url( null, 'greenmetrics/v1/export' ) ); ?>" target="_blank">
+					<?php wp_nonce_field( 'wp_rest', '_wpnonce' ); ?>
+
+					<table class="form-table">
+						<tr>
+							<th scope="row"><?php esc_html_e( 'Export Format', 'greenmetrics' ); ?></th>
+							<td>
+								<select name="format" id="export-format">
+									<option value="csv"><?php esc_html_e( 'CSV (Spreadsheet)', 'greenmetrics' ); ?></option>
+									<option value="json"><?php esc_html_e( 'JSON (Data)', 'greenmetrics' ); ?></option>
+								</select>
+								<p class="description"><?php esc_html_e( 'Choose the format for your exported data.', 'greenmetrics' ); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><?php esc_html_e( 'Data Type', 'greenmetrics' ); ?></th>
+							<td>
+								<select name="data_type" id="export-data-type">
+									<option value="raw"><?php esc_html_e( 'Raw Data (Individual Page Views)', 'greenmetrics' ); ?></option>
+									<option value="aggregated"><?php esc_html_e( 'Aggregated Data (Summary Statistics)', 'greenmetrics' ); ?></option>
+								</select>
+								<p class="description"><?php esc_html_e( 'Raw data includes individual page views. Aggregated data includes summary statistics by time period.', 'greenmetrics' ); ?></p>
+							</td>
+						</tr>
+						<tr class="aggregation-type-row" style="display: none;">
+							<th scope="row"><?php esc_html_e( 'Aggregation Type', 'greenmetrics' ); ?></th>
+							<td>
+								<select name="aggregation_type" id="export-aggregation-type">
+									<option value="daily"><?php esc_html_e( 'Daily', 'greenmetrics' ); ?></option>
+									<option value="weekly"><?php esc_html_e( 'Weekly', 'greenmetrics' ); ?></option>
+									<option value="monthly"><?php esc_html_e( 'Monthly', 'greenmetrics' ); ?></option>
+								</select>
+								<p class="description"><?php esc_html_e( 'Choose the time period for aggregated data.', 'greenmetrics' ); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><?php esc_html_e( 'Date Range', 'greenmetrics' ); ?></th>
+							<td>
+								<div class="date-range-inputs">
+									<label>
+										<?php esc_html_e( 'From:', 'greenmetrics' ); ?>
+										<input type="date" name="start_date" id="export-start-date" value="<?php echo esc_attr( date( 'Y-m-d', strtotime( '-30 days' ) ) ); ?>">
+									</label>
+									<label>
+										<?php esc_html_e( 'To:', 'greenmetrics' ); ?>
+										<input type="date" name="end_date" id="export-end-date" value="<?php echo esc_attr( date( 'Y-m-d' ) ); ?>">
+									</label>
+								</div>
+								<p class="description"><?php esc_html_e( 'Choose the date range for the exported data.', 'greenmetrics' ); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><?php esc_html_e( 'Page Filter', 'greenmetrics' ); ?></th>
+							<td>
+								<select name="page_id" id="export-page-id">
+									<option value="0"><?php esc_html_e( 'All Pages', 'greenmetrics' ); ?></option>
+									<?php
+									// Get pages with metrics
+									global $wpdb;
+									$table_name = $wpdb->prefix . 'greenmetrics_stats';
+									$page_ids = $wpdb->get_col( "SELECT DISTINCT page_id FROM $table_name ORDER BY page_id" );
+
+									foreach ( $page_ids as $page_id ) {
+										$title = get_the_title( $page_id );
+										if ( empty( $title ) ) {
+											$title = __( 'Unknown Page', 'greenmetrics' ) . ' (ID: ' . $page_id . ')';
+										}
+										echo '<option value="' . esc_attr( $page_id ) . '">' . esc_html( $title ) . '</option>';
+									}
+									?>
+								</select>
+								<p class="description"><?php esc_html_e( 'Choose a specific page or export data for all pages.', 'greenmetrics' ); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><?php esc_html_e( 'Export Data', 'greenmetrics' ); ?></th>
+							<td>
+								<button type="submit" class="button button-primary">
+									<span class="dashicons dashicons-download" style="vertical-align: middle; margin-top: -3px;"></span>
+									<?php esc_html_e( 'Download Export File', 'greenmetrics' ); ?>
+								</button>
+								<p class="description"><?php esc_html_e( 'Download your metrics data in the selected format.', 'greenmetrics' ); ?></p>
+							</td>
+						</tr>
+					</table>
+				</form>
+
+				<script>
+					jQuery(document).ready(function($) {
+						// Show/hide aggregation type based on data type
+						$('#export-data-type').on('change', function() {
+							if ($(this).val() === 'aggregated') {
+								$('.aggregation-type-row').show();
+							} else {
+								$('.aggregation-type-row').hide();
+							}
+						});
+
+						// Validate date range before submission
+						$('#greenmetrics-export-form').on('submit', function(e) {
+							const startDate = new Date($('#export-start-date').val());
+							const endDate = new Date($('#export-end-date').val());
+
+							if (startDate > endDate) {
+								e.preventDefault();
+								alert('<?php echo esc_js( __( 'Start date must be before end date.', 'greenmetrics' ) ); ?>');
+								return false;
+							}
+
+							return true;
+						});
+					});
+				</script>
+			</div>
+
+			<div class="greenmetrics-admin-card">
 				<h2><?php esc_html_e( 'Statistics Cache', 'greenmetrics' ); ?></h2>
 				<p><?php esc_html_e( 'Statistics are automatically cached for better performance. Use this button to refresh the statistics from the database if needed.', 'greenmetrics' ); ?></p>
 

@@ -134,6 +134,9 @@ function greenmetrics_init() {
 	// Explicitly load the Formatter class to ensure it's available everywhere
 	require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-formatter.php';
 
+	// Explicitly load the Export Handler class
+	require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-export-handler.php';
+
 	// Debug and development settings should never run in production
 	if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 		// Log current settings in development environments only
