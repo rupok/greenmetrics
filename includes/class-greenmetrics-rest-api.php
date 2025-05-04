@@ -54,6 +54,61 @@ class GreenMetrics_Rest_API {
 			)
 		);
 
+		// Add export endpoint
+		register_rest_route(
+			'greenmetrics/v1',
+			'/export',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'export_data' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'format' => array(
+						'required'          => false,
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+						'default'           => 'csv',
+						'enum'              => array( 'csv', 'json' ),
+					),
+					'data_type' => array(
+						'required'          => false,
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+						'default'           => 'raw',
+						'enum'              => array( 'raw', 'aggregated' ),
+					),
+					'start_date' => array(
+						'required'          => false,
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'end_date' => array(
+						'required'          => false,
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'page_id' => array(
+						'required'          => false,
+						'type'              => 'integer',
+						'sanitize_callback' => function ( $param ) {
+							return absint( $param ); },
+					),
+					'aggregation_type' => array(
+						'required'          => false,
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+						'default'           => 'daily',
+						'enum'              => array( 'daily', 'weekly', 'monthly' ),
+					),
+					'download' => array(
+						'required'          => false,
+						'type'              => 'boolean',
+						'default'           => true,
+					),
+				),
+			)
+		);
+
 		// Add a new endpoint for metrics by date range
 		register_rest_route(
 			'greenmetrics/v1',
@@ -223,34 +278,38 @@ class GreenMetrics_Rest_API {
 			$avg_data_transfer_kb   = $avg_data_transfer / 1024;
 			$total_data_transfer_kb = $total_data_transfer / 1024;
 
-			// Stats response prepared
+			// Get page-specific metrics
+			$pages = $tracker->get_page_metrics($force_refresh);
 
 			// Format the response to include both total and average metrics
-			return rest_ensure_response(
-				array(
-					// Totals
-					'total_views'              => $total_views,
-					'total_carbon_footprint'   => round( $total_carbon_footprint, 2 ),
-					'total_energy_consumption' => round( $total_energy_consumption, 4 ),
-					'total_data_transfer'      => round( $total_data_transfer_kb, 2 ),
-					'total_requests'           => $total_requests,
+			$response = array(
+				// Totals
+				'total_views'              => $total_views,
+				'total_carbon_footprint'   => round( $total_carbon_footprint, 2 ),
+				'total_energy_consumption' => round( $total_energy_consumption, 4 ),
+				'total_data_transfer'      => round( $total_data_transfer_kb, 2 ),
+				'total_requests'           => $total_requests,
 
-					// Averages (per page view)
-					'avg_carbon_footprint'     => round( $avg_carbon_footprint, 2 ),
-					'avg_energy_consumption'   => round( $avg_energy_consumption, 6 ),
-					'avg_data_transfer'        => round( $avg_data_transfer_kb, 2 ),
-					'avg_requests'             => round( $avg_requests, 1 ),
-					'avg_load_time'            => round( $avg_load_time, 3 ),
-					'median_load_time'         => round( $median_load_time, 3 ),
-					'performance_score'        => round( $avg_performance_score, 2 ),
+				// Averages (per page view)
+				'avg_carbon_footprint'     => round( $avg_carbon_footprint, 2 ),
+				'avg_energy_consumption'   => round( $avg_energy_consumption, 6 ),
+				'avg_data_transfer'        => round( $avg_data_transfer_kb, 2 ),
+				'avg_requests'             => round( $avg_requests, 1 ),
+				'avg_load_time'            => round( $avg_load_time, 3 ),
+				'median_load_time'         => round( $median_load_time, 3 ),
+				'performance_score'        => round( $avg_performance_score, 2 ),
 
-					// Standard metrics for consistency throughout the codebase
-					'carbon_footprint'         => round( $total_carbon_footprint, 2 ),
-					'energy_consumption'       => round( $total_energy_consumption, 4 ),
-					'data_transfer'            => round( $total_data_transfer_kb, 2 ),
-					'requests'                 => $total_requests,
-				)
+				// Standard metrics for consistency throughout the codebase
+				'carbon_footprint'         => round( $total_carbon_footprint, 2 ),
+				'energy_consumption'       => round( $total_energy_consumption, 4 ),
+				'data_transfer'            => round( $total_data_transfer_kb, 2 ),
+				'requests'                 => $total_requests,
+
+				// Page-specific metrics
+				'pages'                    => $pages,
 			);
+
+			return rest_ensure_response($response);
 		} catch ( \Exception $e ) {
 			greenmetrics_log( 'REST: Error retrieving statistics', $e->getMessage(), 'error' );
 			return GreenMetrics_Error_Handler::handle_exception(
@@ -361,6 +420,71 @@ class GreenMetrics_Rest_API {
 				$e,
 				'metrics_error',
 				'Error retrieving metrics by date range: ' . $e->getMessage(),
+				500
+			);
+		}
+	}
+
+	/**
+	 * Export data.
+	 *
+	 * @param \WP_REST_Request $request The request object.
+	 * @return \WP_REST_Response|\WP_Error The response object or error.
+	 */
+	public function export_data( $request ) {
+		try {
+			// Get export parameters
+			$format = $request->get_param( 'format' );
+			$data_type = $request->get_param( 'data_type' );
+			$start_date = $request->get_param( 'start_date' );
+			$end_date = $request->get_param( 'end_date' );
+			$page_id = $request->get_param( 'page_id' );
+			$aggregation_type = $request->get_param( 'aggregation_type' );
+			$download = $request->get_param( 'download' );
+
+			// Prepare export arguments
+			$args = array(
+				'format' => $format,
+				'data_type' => $data_type,
+				'start_date' => $start_date,
+				'end_date' => $end_date,
+				'page_id' => $page_id,
+				'aggregation_type' => $aggregation_type,
+			);
+
+			// Get export handler instance
+			$export_handler = GreenMetrics_Export_Handler::get_instance();
+
+			// Export data
+			$result = $export_handler->export_data( $args );
+
+			// Check for errors
+			if ( is_wp_error( $result ) ) {
+				return GreenMetrics_Error_Handler::create_error(
+					$result->get_error_code(),
+					$result->get_error_message(),
+					array(),
+					500
+				);
+			}
+
+			// If download is requested, stream the file
+			if ( $download ) {
+				$export_handler->stream_download( $result );
+				exit; // This will end the request
+			}
+
+			// Otherwise, return the result as JSON
+			return rest_ensure_response( array(
+				'success' => true,
+				'data' => $result,
+			) );
+		} catch ( \Exception $e ) {
+			greenmetrics_log( 'REST: Export error', $e->getMessage(), 'error' );
+			return GreenMetrics_Error_Handler::handle_exception(
+				$e,
+				'export_error',
+				'Error exporting data: ' . $e->getMessage(),
 				500
 			);
 		}

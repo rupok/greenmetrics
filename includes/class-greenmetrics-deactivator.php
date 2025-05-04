@@ -58,13 +58,20 @@ class GreenMetrics_Deactivator {
 	 * Clear all scheduled events created by this plugin.
 	 */
 	private static function clear_scheduled_events() {
-		// Only clear the events that are actually scheduled by the plugin
-		$event_hook = 'greenmetrics_daily_cache_refresh';
-		$timestamp  = wp_next_scheduled( $event_hook );
+		// Clear all scheduled events
+		$events = array(
+			'greenmetrics_daily_cache_refresh',
+			'greenmetrics_data_management',
+			'greenmetrics_send_email_report'
+		);
 
-		if ( $timestamp ) {
-			wp_unschedule_event( $timestamp, $event_hook );
-			greenmetrics_log( "Unscheduled event: $event_hook", null, 'info' );
+		foreach ( $events as $event_hook ) {
+			$timestamp = wp_next_scheduled( $event_hook );
+
+			if ( $timestamp ) {
+				wp_unschedule_event( $timestamp, $event_hook );
+				greenmetrics_log( "Unscheduled event: $event_hook", null, 'info' );
+			}
 		}
 	}
 

@@ -134,6 +134,15 @@ function greenmetrics_init() {
 	// Explicitly load the Formatter class to ensure it's available everywhere
 	require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-formatter.php';
 
+	// Explicitly load the Export Handler class
+	require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-export-handler.php';
+
+	// Explicitly load the Email Reporter class
+	require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-email-reporter.php';
+
+	// Explicitly load the Chart Generator class
+	require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-chart-generator.php';
+
 	// Debug and development settings should never run in production
 	if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 		// Log current settings in development environments only
@@ -153,6 +162,10 @@ function greenmetrics_init() {
 		// Schedule data management tasks
 		\GreenMetrics\GreenMetrics_Data_Manager::schedule_data_management();
 		\GreenMetrics\GreenMetrics_Data_Manager::register_cron_job();
+
+		// Schedule email reporting tasks
+		\GreenMetrics\GreenMetrics_Email_Reporter::schedule_email_reporting();
+		\GreenMetrics\GreenMetrics_Email_Reporter::register_cron_job();
 	} catch ( Exception $e ) {
 		// Log error and show admin notice
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {

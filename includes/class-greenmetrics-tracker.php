@@ -330,6 +330,92 @@ class GreenMetrics_Tracker {
 	}
 
 	/**
+	 * Get stats for a specific time period.
+	 *
+	 * @param string   $start_date Start date in MySQL format (Y-m-d H:i:s).
+	 * @param string   $end_date End date in MySQL format (Y-m-d H:i:s).
+	 * @param int|null $page_id The page ID or null for all pages.
+	 * @return array The statistics for the specified time period.
+	 */
+	public function get_stats_for_period($start_date, $end_date, $page_id = null) {
+		global $wpdb;
+
+		// Get settings to use in SQL calculations
+		$settings = $this->get_settings();
+		$carbon_intensity = isset($settings['carbon_intensity']) ? floatval($settings['carbon_intensity']) : 0.475;
+		$energy_per_byte = isset($settings['energy_per_byte']) ? floatval($settings['energy_per_byte']) : 0.000000000072;
+
+		$table = esc_sql($this->table_name);
+
+		// Build the query with date range filter
+		if ($page_id) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$stats = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT
+						COUNT(*) as page_views,
+						SUM(data_transfer) as data_transfer,
+						AVG(load_time) as avg_load_time,
+						AVG(performance_score) as avg_performance_score,
+						SUM(requests) as total_requests,
+						SUM(energy_consumption) as energy_consumption,
+						SUM(carbon_footprint) as carbon_footprint
+					FROM {$table}
+					WHERE page_id = %d
+					AND created_at BETWEEN %s AND %s",
+					$page_id,
+					$start_date,
+					$end_date
+				),
+				ARRAY_A
+			);
+		} else {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$stats = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT
+						COUNT(*) as page_views,
+						SUM(data_transfer) as data_transfer,
+						AVG(load_time) as avg_load_time,
+						AVG(performance_score) as avg_performance_score,
+						SUM(requests) as total_requests,
+						SUM(energy_consumption) as energy_consumption,
+						SUM(carbon_footprint) as carbon_footprint
+					FROM {$table}
+					WHERE created_at BETWEEN %s AND %s",
+					$start_date,
+					$end_date
+				),
+				ARRAY_A
+			);
+		}
+
+		if (!$stats) {
+			// Return default values when no stats are found
+			return array(
+				'page_views' => 0,
+				'data_transfer' => 0,
+				'avg_load_time' => 0,
+				'performance_score' => 100, // Default to 100% when no data
+				'total_requests' => 0,
+				'energy_consumption' => 0,
+				'carbon_footprint' => 0,
+			);
+		}
+
+		// Format the results
+		return array(
+			'page_views' => max(0, intval($stats['page_views'])),
+			'data_transfer' => max(0, floatval($stats['data_transfer'])),
+			'avg_load_time' => max(0, floatval($stats['avg_load_time'])),
+			'performance_score' => isset($stats['avg_performance_score']) ? max(0, min(100, floatval($stats['avg_performance_score']))) : 100,
+			'total_requests' => max(0, intval($stats['total_requests'])),
+			'energy_consumption' => max(0, floatval($stats['energy_consumption'])),
+			'carbon_footprint' => max(0, floatval($stats['carbon_footprint'])),
+		);
+	}
+
+	/**
 	 * Calculate median load time efficiently using a single query.
 	 *
 	 * Uses a compatible approach for MySQL versions that don't support PERCENTILE_CONT.
@@ -629,6 +715,96 @@ class GreenMetrics_Tracker {
 	public static function manual_cache_refresh() {
 		// No logging needed for this common operation
 		self::refresh_stats_cache();
+	}
+
+	/**
+	 * Get page-specific metrics for all tracked pages.
+	 *
+	 * @param bool $force_refresh Whether to force refresh the cache.
+	 * @return array Array of page metrics.
+	 */
+	public function get_page_metrics($force_refresh = false) {
+		global $wpdb;
+
+		// Create a cache key
+		$cache_key = 'greenmetrics_page_metrics';
+
+		// Try to get from cache
+		if (!$force_refresh) {
+			$cached_metrics = get_transient($cache_key);
+			if (false !== $cached_metrics) {
+				return $cached_metrics;
+			}
+		}
+
+		// Check if the table exists
+		if (!$this->table_exists()) {
+			return array();
+		}
+
+		$table = esc_sql($this->table_name);
+
+		// Get all page IDs with metrics
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$page_ids = $wpdb->get_col("
+			SELECT DISTINCT page_id
+			FROM {$table}
+			WHERE page_id > 0
+		");
+
+		if (empty($page_ids)) {
+			return array();
+		}
+
+		$pages = array();
+
+		// Get metrics for each page
+		foreach ($page_ids as $page_id) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$metrics = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT
+						COUNT(*) as page_views,
+						AVG(data_transfer) as avg_data_transfer,
+						SUM(data_transfer) as total_data_transfer,
+						AVG(carbon_footprint) as avg_carbon_footprint,
+						SUM(carbon_footprint) as total_carbon_footprint,
+						AVG(energy_consumption) as avg_energy_consumption,
+						SUM(energy_consumption) as total_energy_consumption,
+						AVG(requests) as avg_requests,
+						SUM(requests) as total_requests,
+						AVG(performance_score) as avg_performance_score
+					FROM {$table}
+					WHERE page_id = %d",
+					$page_id
+				),
+				ARRAY_A
+			);
+
+			if ($metrics) {
+				// Get page title and URL
+				$page_title = get_the_title($page_id);
+				$page_url = get_permalink($page_id);
+
+				// Add page data to results
+				$pages[] = array(
+					'page_id' => $page_id,
+					'page_title' => $page_title ? $page_title : 'Unknown Page',
+					'page_url' => $page_url ? $page_url : '#',
+					'page_views' => intval($metrics['page_views']),
+					'data_transfer' => floatval($metrics['total_data_transfer']),
+					'carbon_footprint' => floatval($metrics['total_carbon_footprint']),
+					'energy_consumption' => floatval($metrics['total_energy_consumption']),
+					'requests' => intval($metrics['total_requests']),
+					'performance_score' => floatval($metrics['avg_performance_score']),
+				);
+			}
+		}
+
+		// Cache the results for 1 hour
+		set_transient($cache_key, $pages, HOUR_IN_SECONDS);
+
+		return $pages;
 	}
 
 	/**

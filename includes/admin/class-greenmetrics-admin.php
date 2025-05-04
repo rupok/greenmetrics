@@ -41,17 +41,22 @@ class GreenMetrics_Admin {
 		add_action( 'wp_ajax_greenmetrics_refresh_stats', array( $this, 'handle_refresh_stats' ) );
 		add_action( 'wp_ajax_greenmetrics_get_icon', array( $this, 'handle_get_icon' ) );
 		add_action( 'wp_ajax_nopriv_greenmetrics_get_icon', array( $this, 'handle_get_icon' ) );
+		add_action( 'wp_ajax_greenmetrics_send_test_email', array( $this, 'handle_send_test_email' ) );
+		add_action( 'wp_ajax_greenmetrics_get_email_preview', array( $this, 'handle_get_email_preview' ) );
 	}
 
 	/**
 	 * Display notices for settings updates
 	 */
 	public function show_settings_update_notice() {
-		// Display notice for settings update
+		// We don't need to show a custom notice for settings updates
+		// WordPress core already handles this with the "Settings saved." notice
+
+		// But we still log the update if debugging is enabled
 		if ( isset( $_GET['settings-updated'] ) && sanitize_text_field( wp_unslash( $_GET['settings-updated'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			// Check nonce is present and valid when handling settings update
 			if ( ! isset( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_REQUEST['_wpnonce'] ) ), 'greenmetrics-options' ) ) {
-				// Still show the message but log the issue
+				// Log the issue
 				if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG ) {
 					greenmetrics_log( 'Settings updated but nonce verification failed', null, 'warning' );
 				}
@@ -62,13 +67,23 @@ class GreenMetrics_Admin {
 				$settings = get_option( 'greenmetrics_settings', array() );
 				greenmetrics_log( 'Settings updated via WP Settings API', $settings );
 			}
-
-			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved successfully!', 'greenmetrics' ) . '</p></div>';
 		}
 
 		// Display notice for stats refresh
 		if ( isset( $_GET['stats-refreshed'] ) && sanitize_text_field( wp_unslash( $_GET['stats-refreshed'] ) ) === 'true' ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Statistics refreshed successfully!', 'greenmetrics' ) . '</p></div>';
+		}
+
+		// Display notice for data management tasks
+		if ( isset( $_GET['data-management-updated'] ) && sanitize_text_field( wp_unslash( $_GET['data-management-updated'] ) ) === 'true' ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			// Check if we have aggregation or pruning parameters
+			if ( isset( $_GET['aggregation'] ) && sanitize_text_field( wp_unslash( $_GET['aggregation'] ) ) === 'true' ) {
+				echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Data aggregation completed successfully!', 'greenmetrics' ) . '</p></div>';
+			}
+
+			if ( isset( $_GET['pruning'] ) && sanitize_text_field( wp_unslash( $_GET['pruning'] ) ) === 'true' ) {
+				echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Data pruning completed successfully!', 'greenmetrics' ) . '</p></div>';
+			}
 		}
 	}
 
@@ -96,6 +111,16 @@ class GreenMetrics_Admin {
 			array( $this, 'render_admin_page' )
 		);
 
+		// Add submenu for Advanced Reports
+		add_submenu_page(
+			'greenmetrics',
+			__( 'Advanced Reports', 'greenmetrics' ),
+			__( 'Advanced Reports', 'greenmetrics' ),
+			'manage_options',
+			'greenmetrics_reports',
+			array( $this, 'render_reports_page' )
+		);
+
 		// Add submenu for Display Settings
 		add_submenu_page(
 			'greenmetrics',
@@ -114,6 +139,16 @@ class GreenMetrics_Admin {
 			'manage_options',
 			'greenmetrics_data_management',
 			array( $this, 'render_data_management_page' )
+		);
+
+		// Add submenu for Email Reporting
+		add_submenu_page(
+			'greenmetrics',
+			__( 'Email Reporting', 'greenmetrics' ),
+			__( 'Email Reporting', 'greenmetrics' ),
+			'manage_options',
+			'greenmetrics_email_reporting',
+			array( $this, 'render_email_reporting_page' )
 		);
 	}
 
@@ -149,6 +184,112 @@ class GreenMetrics_Admin {
 		);
 
 		// Add Statistics Cache to Settings section (this doesn't have actual settings fields)
+
+		// Email Reporting Settings Section
+		add_settings_section(
+			'greenmetrics_email_reporting',
+			__( 'Email Reporting', 'greenmetrics' ),
+			array( $this, 'render_email_reporting_section' ),
+			'greenmetrics_email_reporting'
+		);
+
+		add_settings_field(
+			'email_reporting_enabled',
+			__( 'Enable Email Reports', 'greenmetrics' ),
+			array( $this, 'render_email_reporting_enabled_field' ),
+			'greenmetrics_email_reporting',
+			'greenmetrics_email_reporting',
+			array( 'label_for' => 'email_reporting_enabled' )
+		);
+
+		add_settings_field(
+			'email_reporting_frequency',
+			__( 'Report Frequency', 'greenmetrics' ),
+			array( $this, 'render_email_reporting_frequency_field' ),
+			'greenmetrics_email_reporting',
+			'greenmetrics_email_reporting',
+			array( 'label_for' => 'email_reporting_frequency' )
+		);
+
+		add_settings_field(
+			'email_reporting_day',
+			__( 'Report Day', 'greenmetrics' ),
+			array( $this, 'render_email_reporting_day_field' ),
+			'greenmetrics_email_reporting',
+			'greenmetrics_email_reporting',
+			array( 'label_for' => 'email_reporting_day' )
+		);
+
+		add_settings_field(
+			'email_reporting_recipients',
+			__( 'Recipients', 'greenmetrics' ),
+			array( $this, 'render_email_reporting_recipients_field' ),
+			'greenmetrics_email_reporting',
+			'greenmetrics_email_reporting',
+			array( 'label_for' => 'email_reporting_recipients' )
+		);
+
+		add_settings_field(
+			'email_reporting_subject',
+			__( 'Email Subject', 'greenmetrics' ),
+			array( $this, 'render_email_reporting_subject_field' ),
+			'greenmetrics_email_reporting',
+			'greenmetrics_email_reporting',
+			array( 'label_for' => 'email_reporting_subject' )
+		);
+
+		add_settings_field(
+			'email_reporting_include_stats',
+			__( 'Include Statistics', 'greenmetrics' ),
+			array( $this, 'render_email_reporting_include_stats_field' ),
+			'greenmetrics_email_reporting',
+			'greenmetrics_email_reporting',
+			array( 'label_for' => 'email_reporting_include_stats' )
+		);
+
+		add_settings_field(
+			'email_reporting_include_chart',
+			__( 'Include Chart', 'greenmetrics' ),
+			array( $this, 'render_email_reporting_include_chart_field' ),
+			'greenmetrics_email_reporting',
+			'greenmetrics_email_reporting',
+			array( 'label_for' => 'email_reporting_include_chart' )
+		);
+
+		// Email Template Settings
+		add_settings_section(
+			'greenmetrics_email_template',
+			__( 'Email Template', 'greenmetrics' ),
+			array( $this, 'render_email_template_section' ),
+			'greenmetrics_email_reporting'
+		);
+
+		add_settings_field(
+			'email_reporting_header',
+			__( 'Email Header', 'greenmetrics' ),
+			array( $this, 'render_email_reporting_header_field' ),
+			'greenmetrics_email_reporting',
+			'greenmetrics_email_template',
+			array( 'label_for' => 'email_reporting_header' )
+		);
+
+		add_settings_field(
+			'email_reporting_footer',
+			__( 'Email Footer', 'greenmetrics' ),
+			array( $this, 'render_email_reporting_footer_field' ),
+			'greenmetrics_email_reporting',
+			'greenmetrics_email_template',
+			array( 'label_for' => 'email_reporting_footer' )
+		);
+
+		add_settings_field(
+			'email_reporting_css',
+			__( 'Custom CSS', 'greenmetrics' ),
+			array( $this, 'render_email_reporting_css_field' ),
+			'greenmetrics_email_reporting',
+			'greenmetrics_email_template',
+			array( 'label_for' => 'email_reporting_css' )
+		);
 
 		// Display Settings Section - register under a different page
 		add_settings_section(
@@ -722,6 +863,189 @@ class GreenMetrics_Admin {
 	}
 
 	/**
+	 * Render email reporting section.
+	 */
+	public function render_email_reporting_section() {
+		echo '<p>' . esc_html__( 'Configure scheduled email reports to keep track of your website\'s environmental impact.', 'greenmetrics' ) . '</p>';
+	}
+
+	/**
+	 * Render email reporting enabled field.
+	 */
+	public function render_email_reporting_enabled_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['email_reporting_enabled'] ) ? $options['email_reporting_enabled'] : 0;
+		?>
+		<label class="toggle-switch">
+			<input type="checkbox" id="email_reporting_enabled" name="greenmetrics_settings[email_reporting_enabled]" value="1" <?php checked( $value, 1 ); ?>>
+			<span class="slider"></span>
+		</label>
+		<p class="description"><?php esc_html_e( 'Enable scheduled email reports with your website\'s environmental metrics.', 'greenmetrics' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Render email reporting frequency field.
+	 */
+	public function render_email_reporting_frequency_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['email_reporting_frequency'] ) ? $options['email_reporting_frequency'] : 'weekly';
+		?>
+		<select id="email_reporting_frequency" name="greenmetrics_settings[email_reporting_frequency]">
+			<option value="daily" <?php selected( $value, 'daily' ); ?>><?php esc_html_e( 'Daily', 'greenmetrics' ); ?></option>
+			<option value="weekly" <?php selected( $value, 'weekly' ); ?>><?php esc_html_e( 'Weekly', 'greenmetrics' ); ?></option>
+			<option value="monthly" <?php selected( $value, 'monthly' ); ?>><?php esc_html_e( 'Monthly', 'greenmetrics' ); ?></option>
+		</select>
+		<p class="description"><?php esc_html_e( 'How often to send email reports.', 'greenmetrics' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Render email reporting day field.
+	 */
+	public function render_email_reporting_day_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['email_reporting_day'] ) ? $options['email_reporting_day'] : 1;
+		$frequency = isset( $options['email_reporting_frequency'] ) ? $options['email_reporting_frequency'] : 'weekly';
+
+		// Show different options based on frequency
+		if ( $frequency === 'weekly' ) {
+			?>
+			<select id="email_reporting_day" name="greenmetrics_settings[email_reporting_day]">
+				<option value="0" <?php selected( $value, 0 ); ?>><?php esc_html_e( 'Sunday', 'greenmetrics' ); ?></option>
+				<option value="1" <?php selected( $value, 1 ); ?>><?php esc_html_e( 'Monday', 'greenmetrics' ); ?></option>
+				<option value="2" <?php selected( $value, 2 ); ?>><?php esc_html_e( 'Tuesday', 'greenmetrics' ); ?></option>
+				<option value="3" <?php selected( $value, 3 ); ?>><?php esc_html_e( 'Wednesday', 'greenmetrics' ); ?></option>
+				<option value="4" <?php selected( $value, 4 ); ?>><?php esc_html_e( 'Thursday', 'greenmetrics' ); ?></option>
+				<option value="5" <?php selected( $value, 5 ); ?>><?php esc_html_e( 'Friday', 'greenmetrics' ); ?></option>
+				<option value="6" <?php selected( $value, 6 ); ?>><?php esc_html_e( 'Saturday', 'greenmetrics' ); ?></option>
+			</select>
+			<p class="description"><?php esc_html_e( 'Day of the week to send reports.', 'greenmetrics' ); ?></p>
+			<?php
+		} elseif ( $frequency === 'monthly' ) {
+			?>
+			<select id="email_reporting_day" name="greenmetrics_settings[email_reporting_day]">
+				<?php for ( $i = 1; $i <= 28; $i++ ) : ?>
+					<option value="<?php echo esc_attr( $i ); ?>" <?php selected( $value, $i ); ?>><?php echo esc_html( $i ); ?></option>
+				<?php endfor; ?>
+			</select>
+			<p class="description"><?php esc_html_e( 'Day of the month to send reports (1-28).', 'greenmetrics' ); ?></p>
+			<?php
+		} else {
+			// For daily, we don't need a day selection
+			?>
+			<input type="hidden" id="email_reporting_day" name="greenmetrics_settings[email_reporting_day]" value="1">
+			<p class="description"><?php esc_html_e( 'Reports will be sent daily at midnight.', 'greenmetrics' ); ?></p>
+			<?php
+		}
+	}
+
+	/**
+	 * Render email reporting recipients field.
+	 */
+	public function render_email_reporting_recipients_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['email_reporting_recipients'] ) ? $options['email_reporting_recipients'] : '';
+		?>
+		<input type="text" id="email_reporting_recipients" name="greenmetrics_settings[email_reporting_recipients]" value="<?php echo esc_attr( $value ); ?>" class="regular-text">
+		<p class="description">
+			<?php esc_html_e( 'Email addresses to receive reports (comma-separated). Leave empty to use admin email.', 'greenmetrics' ); ?>
+			<br>
+			<?php esc_html_e( 'Current admin email:', 'greenmetrics' ); ?> <code><?php echo esc_html( get_option( 'admin_email' ) ); ?></code>
+		</p>
+		<?php
+	}
+
+	/**
+	 * Render email reporting subject field.
+	 */
+	public function render_email_reporting_subject_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['email_reporting_subject'] ) ? $options['email_reporting_subject'] : 'GreenMetrics Report for [site_name]';
+		?>
+		<input type="text" id="email_reporting_subject" name="greenmetrics_settings[email_reporting_subject]" value="<?php echo esc_attr( $value ); ?>" class="regular-text">
+		<p class="description">
+			<?php esc_html_e( 'Subject line for email reports.', 'greenmetrics' ); ?>
+			<br>
+			<?php esc_html_e( 'Available placeholders:', 'greenmetrics' ); ?> <code>[site_name]</code>, <code>[date]</code>
+		</p>
+		<?php
+	}
+
+	/**
+	 * Render email reporting include stats field.
+	 */
+	public function render_email_reporting_include_stats_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['email_reporting_include_stats'] ) ? $options['email_reporting_include_stats'] : 1;
+		?>
+		<label class="toggle-switch">
+			<input type="checkbox" id="email_reporting_include_stats" name="greenmetrics_settings[email_reporting_include_stats]" value="1" <?php checked( $value, 1 ); ?>>
+			<span class="slider"></span>
+		</label>
+		<p class="description"><?php esc_html_e( 'Include environmental statistics in the email report.', 'greenmetrics' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Render email reporting include chart field.
+	 */
+	public function render_email_reporting_include_chart_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['email_reporting_include_chart'] ) ? $options['email_reporting_include_chart'] : 1;
+		?>
+		<label class="toggle-switch">
+			<input type="checkbox" id="email_reporting_include_chart" name="greenmetrics_settings[email_reporting_include_chart]" value="1" <?php checked( $value, 1 ); ?>>
+			<span class="slider"></span>
+		</label>
+		<p class="description"><?php esc_html_e( 'Include metrics chart in the email report.', 'greenmetrics' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Render email template section.
+	 */
+	public function render_email_template_section() {
+		echo '<p>' . esc_html__( 'Customize the appearance of your email reports.', 'greenmetrics' ) . '</p>';
+	}
+
+	/**
+	 * Render email reporting header field.
+	 */
+	public function render_email_reporting_header_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['email_reporting_header'] ) ? $options['email_reporting_header'] : '';
+		?>
+		<textarea id="email_reporting_header" name="greenmetrics_settings[email_reporting_header]" rows="4" class="large-text code"><?php echo esc_textarea( $value ); ?></textarea>
+		<p class="description"><?php esc_html_e( 'Custom HTML to include at the top of the email. Leave empty to use the default header.', 'greenmetrics' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Render email reporting footer field.
+	 */
+	public function render_email_reporting_footer_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['email_reporting_footer'] ) ? $options['email_reporting_footer'] : '';
+		?>
+		<textarea id="email_reporting_footer" name="greenmetrics_settings[email_reporting_footer]" rows="4" class="large-text code"><?php echo esc_textarea( $value ); ?></textarea>
+		<p class="description"><?php esc_html_e( 'Custom HTML to include at the bottom of the email. Leave empty to use the default footer.', 'greenmetrics' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Render email reporting CSS field.
+	 */
+	public function render_email_reporting_css_field() {
+		$options = get_option( 'greenmetrics_settings' );
+		$value   = isset( $options['email_reporting_css'] ) ? $options['email_reporting_css'] : '';
+		?>
+		<textarea id="email_reporting_css" name="greenmetrics_settings[email_reporting_css]" rows="6" class="large-text code"><?php echo esc_textarea( $value ); ?></textarea>
+		<p class="description"><?php esc_html_e( 'Custom CSS to include in the email. This will override the default styles.', 'greenmetrics' ); ?></p>
+		<?php
+	}
+
+	/**
 	 * Render popover title field.
 	 */
 	public function render_popover_title_field() {
@@ -1165,6 +1489,33 @@ class GreenMetrics_Admin {
 			'all'
 		);
 
+		// Check if we're on the reports page
+		$is_reports_page = false;
+		if ( ! empty( $current_page ) && $current_page === 'greenmetrics_reports' ) {
+			$is_reports_page = true;
+
+			// Enqueue reports-specific styles
+			wp_enqueue_style(
+				'greenmetrics-reports',
+				GREENMETRICS_PLUGIN_URL . 'includes/admin/css/greenmetrics-reports.css',
+				array( 'greenmetrics-admin' ),
+				GREENMETRICS_VERSION,
+				'all'
+			);
+		}
+
+		// Check if we're on the email reporting page
+		if ( ! empty( $current_page ) && $current_page === 'greenmetrics_email_reporting' ) {
+			// Enqueue email reporting-specific styles
+			wp_enqueue_style(
+				'greenmetrics-email-reporting',
+				GREENMETRICS_PLUGIN_URL . 'includes/admin/css/greenmetrics-email-reporting.css',
+				array( 'greenmetrics-admin' ),
+				GREENMETRICS_VERSION,
+				'all'
+			);
+		}
+
 		// Add inline styles for the font size inputs
 		$font_size_styles = '
 		.greenmetrics-font-size-wrapper {
@@ -1265,12 +1616,24 @@ class GreenMetrics_Admin {
 		// We're on a GreenMetrics page - set flags
 		$is_plugin_page    = true;
 		$is_dashboard_page = false;
+		$is_reports_page   = false;
+		$is_email_reporting_page = false;
 
 		// Check specifically if we're on the dashboard/stats page
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Simply checking screen ID for dashboard page detection
 		if ( strpos( $screen->id, 'greenmetrics-dashboard' ) !== false ||
 			( ! empty( $current_page ) && $current_page === 'greenmetrics' ) ) {
 			$is_dashboard_page = true;
+		}
+
+		// Check if we're on the reports page
+		if ( ! empty( $current_page ) && $current_page === 'greenmetrics_reports' ) {
+			$is_reports_page = true;
+		}
+
+		// Check if we're on the email reporting page
+		if ( ! empty( $current_page ) && $current_page === 'greenmetrics_email_reporting' ) {
+			$is_email_reporting_page = true;
 		}
 
 		// Always load WordPress dependencies on our pages
@@ -1326,13 +1689,27 @@ class GreenMetrics_Admin {
 				'selectIconText'    => __( 'Select or Upload Icon', 'greenmetrics' ),
 				'selectIconBtnText' => __( 'Use this Icon', 'greenmetrics' ),
 				'customIconText'    => __( 'Custom Icon', 'greenmetrics' ),
-				'rest_url'          => get_rest_url( null, 'greenmetrics/v1' ),
+				'rest_url'          => get_rest_url( null, 'greenmetrics/v1/' ),
 				'rest_nonce'        => wp_create_nonce( 'wp_rest' ),
 				'loadingText'       => __( 'Loading data...', 'greenmetrics' ),
 				'noDataText'        => __( 'No data available for the selected period.', 'greenmetrics' ),
 				'is_dashboard_page' => $is_dashboard_page,
+				'is_reports_page'   => $is_reports_page,
+				'is_email_reporting_page' => $is_email_reporting_page,
 				'is_plugin_page'    => $is_plugin_page,
 				'debug'             => defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG,
+				'i18n'              => array(
+					'sunday'        => __( 'Sunday', 'greenmetrics' ),
+					'monday'        => __( 'Monday', 'greenmetrics' ),
+					'tuesday'       => __( 'Tuesday', 'greenmetrics' ),
+					'wednesday'     => __( 'Wednesday', 'greenmetrics' ),
+					'thursday'      => __( 'Thursday', 'greenmetrics' ),
+					'friday'        => __( 'Friday', 'greenmetrics' ),
+					'saturday'      => __( 'Saturday', 'greenmetrics' ),
+					'sending'       => __( 'Sending...', 'greenmetrics' ),
+					'sendTestEmail' => __( 'Send Test Email', 'greenmetrics' ),
+					'ajaxError'     => __( 'AJAX request failed. Please try again.', 'greenmetrics' ),
+				),
 			)
 		);
 
@@ -1341,6 +1718,15 @@ class GreenMetrics_Admin {
 			'greenmetrics-admin-core',
 			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/core.js',
 			array( 'jquery', 'wp-color-picker', 'wp-util', 'greenmetrics-admin-utils', 'greenmetrics-admin-config', 'greenmetrics-admin-api' ),
+			GREENMETRICS_VERSION,
+			true
+		);
+
+		// Load settings handler module - needed for all settings pages
+		wp_enqueue_script(
+			'greenmetrics-admin-settings-handler',
+			GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/settings-handler.js',
+			array( 'jquery', 'greenmetrics-admin-core', 'greenmetrics-error-handler' ),
 			GREENMETRICS_VERSION,
 			true
 		);
@@ -1357,8 +1743,8 @@ class GreenMetrics_Admin {
 			);
 		}
 
-		// Load Chart.js and Chart module - only needed on dashboard/stats page
-		if ( $is_dashboard_page ) {
+		// Load Chart.js and Chart module - needed on dashboard/stats page and reports page
+		if ( $is_dashboard_page || $is_reports_page ) {
 			wp_enqueue_script(
 				'chart-js',
 				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/chart.min.js',
@@ -1374,7 +1760,10 @@ class GreenMetrics_Admin {
 				GREENMETRICS_VERSION,
 				true
 			);
+		}
 
+		// Load dashboard module - only needed on dashboard page
+		if ( $is_dashboard_page ) {
 			wp_enqueue_script(
 				'greenmetrics-admin-dashboard',
 				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/dashboard.js',
@@ -1384,17 +1773,63 @@ class GreenMetrics_Admin {
 			);
 		}
 
+		// Load reports module - only needed on reports page
+		if ( $is_reports_page ) {
+			wp_enqueue_script(
+				'greenmetrics-admin-reports-chart',
+				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/reports-chart.js',
+				array( 'greenmetrics-admin-core', 'chart-js', 'greenmetrics-admin-utils', 'greenmetrics-admin-config', 'greenmetrics-admin-api' ),
+				GREENMETRICS_VERSION,
+				true
+			);
+
+			wp_enqueue_script(
+				'greenmetrics-admin-reports',
+				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/reports.js',
+				array( 'greenmetrics-admin-core', 'chart-js', 'greenmetrics-admin-utils', 'greenmetrics-admin-config', 'greenmetrics-admin-api', 'greenmetrics-admin-reports-chart' ),
+				GREENMETRICS_VERSION,
+				true
+			);
+		}
+
 		// Main entry point file - always needed
 		$main_dependencies = array( 'greenmetrics-admin-core' );
 
 		// Add module dependencies based on what's loaded
-		if ( ! $is_dashboard_page ) {
+		if ( ! $is_dashboard_page && ! $is_reports_page ) {
 			$main_dependencies[] = 'greenmetrics-admin-preview';
 		}
 
 		if ( $is_dashboard_page ) {
 			$main_dependencies[] = 'greenmetrics-admin-chart';
 			$main_dependencies[] = 'greenmetrics-admin-dashboard';
+		}
+
+		if ( $is_reports_page ) {
+			$main_dependencies[] = 'greenmetrics-admin-chart';
+			$main_dependencies[] = 'greenmetrics-admin-reports-chart';
+			$main_dependencies[] = 'greenmetrics-admin-reports';
+		}
+
+		if ( $is_email_reporting_page ) {
+			wp_enqueue_script(
+				'greenmetrics-admin-email-template-editor',
+				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/email-template-editor.js',
+				array( 'jquery', 'wp-color-picker', 'greenmetrics-admin-core', 'greenmetrics-admin-utils', 'greenmetrics-admin-config' ),
+				GREENMETRICS_VERSION,
+				true
+			);
+
+			wp_enqueue_script(
+				'greenmetrics-admin-email-reporting',
+				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/email-reporting.js',
+				array( 'greenmetrics-admin-core', 'greenmetrics-admin-utils', 'greenmetrics-admin-config', 'greenmetrics-admin-email-template-editor' ),
+				GREENMETRICS_VERSION,
+				true
+			);
+
+			$main_dependencies[] = 'greenmetrics-admin-email-template-editor';
+			$main_dependencies[] = 'greenmetrics-admin-email-reporting';
 		}
 
 		wp_enqueue_script(
@@ -1437,6 +1872,194 @@ class GreenMetrics_Admin {
 		}
 
 		include GREENMETRICS_PLUGIN_DIR . 'includes/admin/partials/greenmetrics-data-management.php';
+	}
+
+	/**
+	 * Render advanced reports page.
+	 */
+	public function render_reports_page() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		include GREENMETRICS_PLUGIN_DIR . 'includes/admin/partials/greenmetrics-reports.php';
+	}
+
+	/**
+	 * Render email reporting page.
+	 */
+	public function render_email_reporting_page() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		include GREENMETRICS_PLUGIN_DIR . 'includes/admin/partials/greenmetrics-email-reporting.php';
+	}
+
+	/**
+	 * Handle sending a test email.
+	 */
+	public function handle_send_test_email() {
+		// Disable direct output to prevent HTML in JSON response
+		ob_start();
+
+		try {
+			// Process test email request
+
+			// Check nonce
+			if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['nonce'] ), 'greenmetrics_admin_nonce' ) ) {
+				// Clean output buffer
+				ob_end_clean();
+				wp_send_json_error( array( 'message' => __( 'Security check failed.', 'greenmetrics' ) ) );
+				return;
+			}
+
+			// Check permissions
+			if ( ! current_user_can( 'manage_options' ) ) {
+				// Clean output buffer
+				ob_end_clean();
+				wp_send_json_error( array( 'message' => __( 'You do not have sufficient permissions to perform this action.', 'greenmetrics' ) ) );
+				return;
+			}
+
+			// Now that we've confirmed the AJAX response is working, let's actually send the email
+
+			// Clean output buffer before proceeding
+			$output = ob_get_clean();
+
+			// Start a new output buffer for the email sending process
+			ob_start();
+
+			// Get the email reporter instance
+			$email_reporter = \GreenMetrics\GreenMetrics_Email_Reporter::get_instance();
+
+			// Send the test email
+			try {
+				// Send the test email
+				$result = $email_reporter->send_test_email();
+			} catch ( \Exception $e ) {
+				// Log critical errors only
+				error_log('GreenMetrics - Error sending test email: ' . $e->getMessage());
+
+				// Clean output buffer
+				ob_end_clean();
+				wp_send_json_error( array( 'message' => 'Error sending test email: ' . $e->getMessage() ) );
+				return;
+			}
+
+			// Clean output buffer
+			$output = ob_get_clean();
+
+			if ( $result === true ) {
+				wp_send_json_success( array( 'message' => __( 'Test email sent successfully! Please check your inbox.', 'greenmetrics' ) ) );
+			} else {
+				$error_message = is_wp_error($result) ? $result->get_error_message() : __( 'Failed to send test email. Please check your email settings.', 'greenmetrics' );
+				wp_send_json_error( array( 'message' => $error_message ) );
+			}
+		} catch ( \Exception $e ) {
+			// Catch any unexpected exceptions
+			// Clean output buffer
+			ob_end_clean();
+			wp_send_json_error( array( 'message' => 'Unexpected error: ' . $e->getMessage() ) );
+		}
+	}
+
+	/**
+	 * Handle getting an email preview.
+	 */
+	public function handle_get_email_preview() {
+		// Disable direct output to prevent HTML in JSON response
+		ob_start();
+
+		try {
+			// Check nonce
+			if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['nonce'] ), 'greenmetrics_admin_nonce' ) ) {
+				// Clean output buffer
+				ob_end_clean();
+				wp_send_json_error( array( 'message' => __( 'Security check failed.', 'greenmetrics' ) ) );
+				return;
+			}
+
+			// Check permissions
+			if ( ! current_user_can( 'manage_options' ) ) {
+				// Clean output buffer
+				ob_end_clean();
+				wp_send_json_error( array( 'message' => __( 'You do not have sufficient permissions to perform this action.', 'greenmetrics' ) ) );
+				return;
+			}
+
+			// Get settings
+			$settings = get_option( 'greenmetrics_settings', array() );
+
+			// Override settings with the preview values
+			$settings['email_reporting_include_stats'] = isset( $_POST['include_stats'] ) ? (int) $_POST['include_stats'] : 1;
+			$settings['email_reporting_include_chart'] = isset( $_POST['include_chart'] ) ? (int) $_POST['include_chart'] : 1;
+			$settings['email_reporting_header'] = isset( $_POST['header'] ) ? wp_kses_post( wp_unslash( $_POST['header'] ) ) : '';
+			$settings['email_reporting_footer'] = isset( $_POST['footer'] ) ? wp_kses_post( wp_unslash( $_POST['footer'] ) ) : '';
+			$settings['email_reporting_css'] = isset( $_POST['custom_css'] ) ? wp_strip_all_tags( wp_unslash( $_POST['custom_css'] ) ) : '';
+			$settings['email_template_style'] = isset( $_POST['template_style'] ) ? sanitize_text_field( wp_unslash( $_POST['template_style'] ) ) : 'default';
+
+			// Handle color settings
+			if ( isset( $_POST['colors'] ) && is_array( $_POST['colors'] ) ) {
+				$colors = $_POST['colors'];
+				$settings['email_color_primary'] = isset( $colors['primary'] ) ? sanitize_hex_color( $colors['primary'] ) : '#4CAF50';
+				$settings['email_color_secondary'] = isset( $colors['secondary'] ) ? sanitize_hex_color( $colors['secondary'] ) : '#f9f9f9';
+				$settings['email_color_accent'] = isset( $colors['accent'] ) ? sanitize_hex_color( $colors['accent'] ) : '#333333';
+				$settings['email_color_text'] = isset( $colors['text'] ) ? sanitize_hex_color( $colors['text'] ) : '#333333';
+				$settings['email_color_background'] = isset( $colors['background'] ) ? sanitize_hex_color( $colors['background'] ) : '#ffffff';
+			}
+
+			// Create a fallback content in case of error
+			$fallback_content = '<!DOCTYPE html><html><head><title>Email Preview</title><style>body{font-family:sans-serif;padding:20px;color:#444;} .error{color:#cc0000;}</style></head><body><h1>Email Preview</h1><p>Unable to generate preview. Please check your settings and try again.</p></body></html>';
+
+			// Get the email content
+			try {
+				// Get the email reporter instance
+				$email_reporter = \GreenMetrics\GreenMetrics_Email_Reporter::get_instance();
+
+				// Generate the real preview
+				$content = $email_reporter->generate_preview_email( $settings );
+
+				// If content is empty, use fallback
+				if (empty($content)) {
+					$content = $fallback_content;
+				}
+			} catch ( \Exception $e ) {
+				// Log critical errors only
+				error_log('GreenMetrics - Error generating email preview: ' . $e->getMessage());
+				// Clean output buffer
+				ob_end_clean();
+				wp_send_json_error( array( 'message' => 'Error generating preview: ' . $e->getMessage() ) );
+				return;
+			}
+
+			// Get the subject
+			$subject = isset( $settings['email_reporting_subject'] )
+				? $settings['email_reporting_subject']
+				: 'GreenMetrics Report for [site_name]';
+
+			$subject = str_replace( '[site_name]', get_bloginfo( 'name' ), $subject );
+			$subject = str_replace( '[date]', date_i18n( get_option( 'date_format' ) ), $subject );
+
+			// Get the recipients
+			$recipients = isset( $settings['email_reporting_recipients'] ) && ! empty( $settings['email_reporting_recipients'] )
+				? $settings['email_reporting_recipients']
+				: get_option( 'admin_email' );
+
+			// Clean output buffer
+			$output = ob_get_clean();
+
+			wp_send_json_success( array(
+				'content'    => $content,
+				'subject'    => $subject,
+				'recipients' => $recipients,
+			) );
+		} catch ( \Exception $e ) {
+			// Catch any unexpected exceptions
+			// Clean output buffer
+			ob_end_clean();
+			wp_send_json_error( array( 'message' => 'Unexpected error: ' . $e->getMessage() ) );
+		}
 	}
 
 	/**
@@ -1496,8 +2119,22 @@ class GreenMetrics_Admin {
 			}
 		}
 
-		// Redirect back to the data management page
-		wp_safe_redirect( add_query_arg( 'settings-updated', 'true', admin_url( 'admin.php?page=greenmetrics_data_management' ) ) );
+		// Prepare redirect URL with appropriate parameters
+		$redirect_url = admin_url( 'admin.php?page=greenmetrics_data_management' );
+		$redirect_url = add_query_arg( 'data-management-updated', 'true', $redirect_url );
+
+		// Add aggregation parameter if aggregation was run
+		if ( isset( $_POST['run_aggregation'] ) && $_POST['run_aggregation'] ) {
+			$redirect_url = add_query_arg( 'aggregation', 'true', $redirect_url );
+		}
+
+		// Add pruning parameter if pruning was run
+		if ( isset( $_POST['run_pruning'] ) && $_POST['run_pruning'] ) {
+			$redirect_url = add_query_arg( 'pruning', 'true', $redirect_url );
+		}
+
+		// Redirect to the data management page
+		wp_safe_redirect( $redirect_url );
 		exit;
 	}
 
@@ -1545,8 +2182,8 @@ class GreenMetrics_Admin {
 		// Add success message
 		add_settings_error( 'greenmetrics_data_management', 'stats_refreshed', __( 'Statistics cache refreshed successfully!', 'greenmetrics' ), 'success' );
 
-		// Redirect back to the data management page
-		wp_safe_redirect( add_query_arg( 'settings-updated', 'true', admin_url( 'admin.php?page=greenmetrics_data_management' ) ) );
+		// Redirect back to the data management page with stats-refreshed parameter
+		wp_safe_redirect( add_query_arg( 'stats-refreshed', 'true', admin_url( 'admin.php?page=greenmetrics_data_management' ) ) );
 		exit;
 	}
 

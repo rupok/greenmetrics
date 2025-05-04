@@ -115,6 +115,38 @@ GreenMetricsAdmin.Utils = (function ($) {
 		return date.toLocaleDateString(undefined, options);
 	}
 
+	/**
+	 * Get internationalized string
+	 *
+	 * @function i18n
+	 * @memberof GreenMetricsAdmin.Utils
+	 * @param {String} key - The key of the string to get
+	 * @return {String} The internationalized string
+	 */
+	function i18n(key) {
+		// @ts-ignore
+		if (window.greenmetricsAdmin && window.greenmetricsAdmin.i18n && window.greenmetricsAdmin.i18n[key]) {
+			// @ts-ignore
+			return window.greenmetricsAdmin.i18n[key];
+		}
+
+		// Fallback values for common strings
+		const fallbacks = {
+			'sunday': 'Sunday',
+			'monday': 'Monday',
+			'tuesday': 'Tuesday',
+			'wednesday': 'Wednesday',
+			'thursday': 'Thursday',
+			'friday': 'Friday',
+			'saturday': 'Saturday',
+			'sending': 'Sending...',
+			'sendTestEmail': 'Send Test Email',
+			'ajaxError': 'AJAX request failed. Please try again.'
+		};
+
+		return fallbacks[key] || key;
+	}
+
 	// Public API
 	return {
 		debounce: debounce,
@@ -122,6 +154,7 @@ GreenMetricsAdmin.Utils = (function ($) {
 		getDateString: getDateString,
 		markDirty: markDirty,
 		formatNumber: formatNumber,
-		formatDate: formatDate
+		formatDate: formatDate,
+		i18n: i18n
 	};
 })( jQuery );

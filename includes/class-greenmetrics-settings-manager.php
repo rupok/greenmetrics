@@ -64,6 +64,24 @@ class GreenMetrics_Settings_Manager {
 		'aggregation_type'                  => 'daily',       // Aggregate by day by default
 		'retention_period'                  => 90,            // Keep individual records for 90 days
 		'require_aggregation_before_pruning'=> 1,             // Only prune data that has been aggregated
+
+		// Email reporting settings
+		'email_reporting_enabled'           => 0,             // Disable email reporting by default
+		'email_reporting_frequency'         => 'weekly',      // Send reports weekly by default
+		'email_reporting_day'               => 1,             // Monday for weekly reports, 1st day for monthly
+		'email_reporting_recipients'        => '',            // Default to admin email (empty means use admin email)
+		'email_reporting_subject'           => 'GreenMetrics Weekly Report for [site_name]', // Default email subject
+		'email_reporting_include_stats'     => 1,             // Include statistics in email by default
+		'email_reporting_include_chart'     => 1,             // Include chart in email by default
+		'email_reporting_header'            => '',            // Custom email header (empty means use default)
+		'email_reporting_footer'            => '',            // Custom email footer (empty means use default)
+		'email_reporting_css'               => '',            // Custom email CSS (empty means use default)
+		'email_template_style'              => 'default',     // Default email template style
+		'email_color_primary'               => '#4CAF50',     // Default primary color for email template
+		'email_color_secondary'             => '#f9f9f9',     // Default secondary color for email template
+		'email_color_accent'                => '#333333',     // Default accent color for email template
+		'email_color_text'                  => '#333333',     // Default text color for email template
+		'email_color_background'            => '#ffffff',     // Default background color for email template
 	);
 
 	/**
@@ -232,6 +250,9 @@ class GreenMetrics_Settings_Manager {
 			'display_icon',
 			'data_management_enabled',
 			'require_aggregation_before_pruning',
+			'email_reporting_enabled',
+			'email_reporting_include_stats',
+			'email_reporting_include_chart',
 		);
 
 		foreach ( $boolean_fields as $field ) {
@@ -269,17 +290,126 @@ class GreenMetrics_Settings_Manager {
 				: 'daily';
 		}
 
+		if ( isset( $input['email_reporting_frequency'] ) ) {
+			$valid_frequencies = array( 'daily', 'weekly', 'monthly' );
+			$sanitized['email_reporting_frequency'] = in_array( $input['email_reporting_frequency'], $valid_frequencies, true )
+				? $input['email_reporting_frequency']
+				: 'weekly';
+		}
+
+		if ( isset( $input['email_template_style'] ) ) {
+			$valid_templates = array( 'default', 'minimal', 'modern', 'eco' );
+			$sanitized['email_template_style'] = in_array( $input['email_template_style'], $valid_templates, true )
+				? $input['email_template_style']
+				: 'default';
+		}
+
 		// Sanitize text fields
 		$text_fields = array(
 			'badge_text',
 			'popover_title',
 			'popover_content_font',
 			'popover_metrics_font',
+			'email_reporting_subject',
+		);
+
+		// Sanitize HTML fields (allow some HTML tags)
+		$html_fields = array(
+			'email_reporting_header',
+			'email_reporting_footer',
+			'email_reporting_css',
 		);
 
 		foreach ( $text_fields as $field ) {
 			if ( isset( $input[ $field ] ) ) {
 				$sanitized[ $field ] = sanitize_text_field( $input[ $field ] );
+			}
+		}
+
+		// Allow specific HTML tags for template fields
+		$allowed_html = array(
+			'a'      => array(
+				'href'   => array(),
+				'title'  => array(),
+				'target' => array(),
+				'style'  => array(),
+				'class'  => array(),
+			),
+			'br'     => array(),
+			'em'     => array(),
+			'strong' => array(),
+			'span'   => array(
+				'style' => array(),
+				'class' => array(),
+			),
+			'div'    => array(
+				'style' => array(),
+				'class' => array(),
+				'id'    => array(),
+			),
+			'p'      => array(
+				'style' => array(),
+				'class' => array(),
+			),
+			'h1'     => array(
+				'style' => array(),
+				'class' => array(),
+			),
+			'h2'     => array(
+				'style' => array(),
+				'class' => array(),
+			),
+			'h3'     => array(
+				'style' => array(),
+				'class' => array(),
+			),
+			'h4'     => array(
+				'style' => array(),
+				'class' => array(),
+			),
+			'img'    => array(
+				'src'    => array(),
+				'alt'    => array(),
+				'width'  => array(),
+				'height' => array(),
+				'style'  => array(),
+				'class'  => array(),
+			),
+			'table'  => array(
+				'width'       => array(),
+				'cellspacing' => array(),
+				'cellpadding' => array(),
+				'border'      => array(),
+				'style'       => array(),
+				'class'       => array(),
+			),
+			'tr'     => array(
+				'style' => array(),
+				'class' => array(),
+			),
+			'td'     => array(
+				'style'   => array(),
+				'class'   => array(),
+				'colspan' => array(),
+				'rowspan' => array(),
+			),
+			'th'     => array(
+				'style'   => array(),
+				'class'   => array(),
+				'colspan' => array(),
+				'rowspan' => array(),
+			),
+		);
+
+		foreach ( $html_fields as $field ) {
+			if ( isset( $input[ $field ] ) ) {
+				if ( $field === 'email_reporting_css' ) {
+					// For CSS, just strip out potentially harmful content
+					$sanitized[ $field ] = wp_strip_all_tags( $input[ $field ] );
+				} else {
+					// For HTML fields, allow specific tags
+					$sanitized[ $field ] = wp_kses( $input[ $field ], $allowed_html );
+				}
 			}
 		}
 
@@ -323,6 +453,11 @@ class GreenMetrics_Settings_Manager {
 			'popover_metrics_color',
 			'popover_metrics_list_bg_color',
 			'popover_metrics_list_hover_bg_color',
+			'email_color_primary',
+			'email_color_secondary',
+			'email_color_accent',
+			'email_color_text',
+			'email_color_background',
 		);
 
 		foreach ( $color_fields as $field ) {
@@ -395,6 +530,21 @@ class GreenMetrics_Settings_Manager {
 								break;
 							case 'popover_metrics_list_hover_bg_color':
 								$sanitized[ $field ] = '#f0f0f0';
+								break;
+							case 'email_color_primary':
+								$sanitized[ $field ] = '#4CAF50';
+								break;
+							case 'email_color_secondary':
+								$sanitized[ $field ] = '#f9f9f9';
+								break;
+							case 'email_color_accent':
+								$sanitized[ $field ] = '#333333';
+								break;
+							case 'email_color_text':
+								$sanitized[ $field ] = '#333333';
+								break;
+							case 'email_color_background':
+								$sanitized[ $field ] = '#ffffff';
 								break;
 							default:
 								$sanitized[ $field ] = '#000000';
@@ -477,7 +627,37 @@ class GreenMetrics_Settings_Manager {
 				'default' => 90,
 				'precision' => 0,
 			),
+			'email_reporting_day' => array(
+				'min' => 0,
+				'max' => 31, // 0-6 for days of week, 1-31 for days of month
+				'default' => 1,
+				'precision' => 0,
+			),
 		);
+
+		// Special handling for email recipients
+		if ( isset( $input['email_reporting_recipients'] ) ) {
+			$recipients = sanitize_text_field( $input['email_reporting_recipients'] );
+
+			// If empty, it will use the admin email
+			if ( empty( $recipients ) ) {
+				$sanitized['email_reporting_recipients'] = '';
+			} else {
+				// Split by commas and validate each email
+				$emails = explode( ',', $recipients );
+				$valid_emails = array();
+
+				foreach ( $emails as $email ) {
+					$email = trim( $email );
+					if ( is_email( $email ) ) {
+						$valid_emails[] = $email;
+					}
+				}
+
+				// Join valid emails back with commas
+				$sanitized['email_reporting_recipients'] = implode( ', ', $valid_emails );
+			}
+		}
 
 		foreach ( $numeric_fields as $field => $constraints ) {
 			if ( isset( $input[ $field ] ) ) {

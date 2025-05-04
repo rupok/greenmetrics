@@ -1,6 +1,6 @@
 /**
  * GreenMetrics Admin Configuration Module
- * 
+ *
  * This module provides configuration values and constants used across
  * the admin JavaScript modules.
  */
@@ -24,9 +24,9 @@ GreenMetricsAdmin.Config = (function() {
 
     // API endpoints
     const apiEndpoints = {
-        stats: greenmetricsAdmin.rest_url + 'stats',
-        metrics: greenmetricsAdmin.rest_url + 'metrics',
-        settings: greenmetricsAdmin.rest_url + 'settings'
+        stats: greenmetricsAdmin.rest_url.replace(/\/$/, '') + '/stats',
+        metrics: greenmetricsAdmin.rest_url.replace(/\/$/, '') + '/metrics',
+        settings: greenmetricsAdmin.rest_url.replace(/\/$/, '') + '/settings'
     };
 
     // Date ranges for reports
@@ -48,6 +48,8 @@ GreenMetricsAdmin.Config = (function() {
         dateRanges: dateRanges,
         debug: debug,
         isDashboardPage: greenmetricsAdmin.is_dashboard_page || false,
+        isReportsPage: greenmetricsAdmin.is_reports_page || false,
+        isEmailReportingPage: greenmetricsAdmin.is_email_reporting_page || false,
         isPluginPage: greenmetricsAdmin.is_plugin_page || false
     };
 })();
