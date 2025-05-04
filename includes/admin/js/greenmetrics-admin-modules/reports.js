@@ -162,7 +162,9 @@ GreenMetricsAdmin.Reports = (function ($) {
 
         // Chart type selector
         $('#chart-type').on('change', function() {
-            currentFilters.chartType = $(this).val();
+            var chartType = $(this).val();
+            // Only allow 'line' or 'bar' chart types
+            currentFilters.chartType = (chartType === 'line' || chartType === 'bar') ? chartType : 'line';
 
             // If chart exists, update its type
             if (reportChart) {

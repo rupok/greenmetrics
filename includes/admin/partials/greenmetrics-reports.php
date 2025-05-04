@@ -74,15 +74,15 @@ foreach ($page_ids as $page_id) {
                                     <option value="custom"><?php esc_html_e('Custom Range', 'greenmetrics'); ?></option>
                                 </select>
                             </div>
-                            
+
                             <div class="filter-group custom-date-range" style="display: none;">
                                 <label for="start-date"><?php esc_html_e('Start Date', 'greenmetrics'); ?></label>
                                 <input type="date" id="start-date" name="start-date" value="<?php echo esc_attr($start_date); ?>">
-                                
+
                                 <label for="end-date"><?php esc_html_e('End Date', 'greenmetrics'); ?></label>
                                 <input type="date" id="end-date" name="end-date" value="<?php echo esc_attr($end_date); ?>">
                             </div>
-                            
+
                             <div class="filter-group">
                                 <label for="page-filter"><?php esc_html_e('Page', 'greenmetrics'); ?></label>
                                 <select id="page-filter" name="page-filter">
@@ -92,7 +92,7 @@ foreach ($page_ids as $page_id) {
                                     <?php endforeach; ?>
                                 </select>
                             </div>
-                            
+
                             <div class="filter-group">
                                 <label for="comparison"><?php esc_html_e('Comparison', 'greenmetrics'); ?></label>
                                 <select id="comparison" name="comparison">
@@ -101,17 +101,16 @@ foreach ($page_ids as $page_id) {
                                 </select>
                             </div>
                         </div>
-                        
+
                         <div class="filter-row">
                             <div class="filter-group">
                                 <label for="chart-type"><?php esc_html_e('Chart Type', 'greenmetrics'); ?></label>
                                 <select id="chart-type" name="chart-type">
                                     <option value="line"><?php esc_html_e('Line Chart', 'greenmetrics'); ?></option>
                                     <option value="bar"><?php esc_html_e('Bar Chart', 'greenmetrics'); ?></option>
-                                    <option value="pie"><?php esc_html_e('Pie Chart', 'greenmetrics'); ?></option>
                                 </select>
                             </div>
-                            
+
                             <div class="filter-group">
                                 <label for="metric-focus"><?php esc_html_e('Metric Focus', 'greenmetrics'); ?></label>
                                 <select id="metric-focus" name="metric-focus">
@@ -123,13 +122,13 @@ foreach ($page_ids as $page_id) {
                                     <option value="page_views"><?php esc_html_e('Page Views', 'greenmetrics'); ?></option>
                                 </select>
                             </div>
-                            
+
                             <div class="filter-group">
                                 <button type="submit" class="button button-primary" id="apply-filters">
                                     <span class="dashicons dashicons-filter" style="vertical-align: middle; margin-top: -3px;"></span>
                                     <?php esc_html_e('Apply Filters', 'greenmetrics'); ?>
                                 </button>
-                                
+
                                 <button type="button" class="button" id="save-report">
                                     <span class="dashicons dashicons-saved" style="vertical-align: middle; margin-top: -3px;"></span>
                                     <?php esc_html_e('Save Report', 'greenmetrics'); ?>
@@ -139,7 +138,7 @@ foreach ($page_ids as $page_id) {
                     </form>
                 </div>
             </div>
-            
+
             <!-- Main Report Chart -->
             <div class="greenmetrics-admin-card">
                 <div class="greenmetrics-report-header">
@@ -155,7 +154,7 @@ foreach ($page_ids as $page_id) {
                         </button>
                     </div>
                 </div>
-                
+
                 <div class="greenmetrics-report-chart-container">
                     <canvas id="greenmetrics-report-chart"></canvas>
                     <div class="chart-loading" style="display: none;">
@@ -163,12 +162,12 @@ foreach ($page_ids as $page_id) {
                         <p><?php esc_html_e('Loading chart data...', 'greenmetrics'); ?></p>
                     </div>
                 </div>
-                
+
                 <div class="greenmetrics-chart-legend" id="report-chart-legend">
                     <!-- Legend will be populated by JavaScript -->
                 </div>
             </div>
-            
+
             <!-- Performance Summary -->
             <div class="greenmetrics-admin-card">
                 <h2><?php esc_html_e('Performance Summary', 'greenmetrics'); ?></h2>
@@ -180,7 +179,7 @@ foreach ($page_ids as $page_id) {
                     </div>
                 </div>
             </div>
-            
+
             <!-- Page Performance Report -->
             <div class="greenmetrics-admin-card">
                 <h2><?php esc_html_e('Page Performance Report', 'greenmetrics'); ?></h2>
@@ -190,7 +189,7 @@ foreach ($page_ids as $page_id) {
                         <button class="tab-button" data-tab="worst-pages"><?php esc_html_e('Pages Needing Improvement', 'greenmetrics'); ?></button>
                         <button class="tab-button" data-tab="most-viewed"><?php esc_html_e('Most Viewed Pages', 'greenmetrics'); ?></button>
                     </div>
-                    
+
                     <div class="tab-content">
                         <div class="tab-pane active" id="top-pages">
                             <div class="page-performance-table-container">
@@ -217,7 +216,7 @@ foreach ($page_ids as $page_id) {
                                 </table>
                             </div>
                         </div>
-                        
+
                         <div class="tab-pane" id="worst-pages">
                             <div class="page-performance-table-container">
                                 <table class="greenmetrics-table" id="worst-pages-table">
@@ -243,7 +242,7 @@ foreach ($page_ids as $page_id) {
                                 </table>
                             </div>
                         </div>
-                        
+
                         <div class="tab-pane" id="most-viewed">
                             <div class="page-performance-table-container">
                                 <table class="greenmetrics-table" id="most-viewed-table">
@@ -272,7 +271,7 @@ foreach ($page_ids as $page_id) {
                     </div>
                 </div>
             </div>
-            
+
             <!-- Trend Analysis -->
             <div class="greenmetrics-admin-card">
                 <h2><?php esc_html_e('Trend Analysis', 'greenmetrics'); ?></h2>
@@ -284,7 +283,7 @@ foreach ($page_ids as $page_id) {
                     </div>
                 </div>
             </div>
-            
+
             <!-- Save Report Modal -->
             <div id="save-report-modal" class="greenmetrics-modal" style="display: none;">
                 <div class="greenmetrics-modal-content">

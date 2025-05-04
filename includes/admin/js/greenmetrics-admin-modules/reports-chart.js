@@ -52,14 +52,15 @@ GreenMetricsAdmin.ReportsChart = (function ($) {
      * @public
      * @param {string} canvasId - The ID of the canvas element
      * @param {Object} data - The chart data
-     * @param {string} chartType - The chart type (line, bar, pie)
+     * @param {string} chartType - The chart type (line or bar)
      * @param {string} metricFocus - The metric to focus on
      * @param {string} comparison - The comparison mode
      */
     function init(canvasId, data, chartType, metricFocus, comparison) {
         // Store parameters
         chartData = data;
-        currentChartType = chartType || 'line';
+        // Only allow 'line' or 'bar' chart types
+        currentChartType = (chartType === 'line' || chartType === 'bar') ? chartType : 'line';
         currentMetricFocus = metricFocus || 'all';
         comparisonMode = comparison || 'none';
 
@@ -319,11 +320,7 @@ GreenMetricsAdmin.ReportsChart = (function ($) {
             }
         };
 
-        // Adjust options based on chart type
-        if (currentChartType === 'pie' || currentChartType === 'doughnut') {
-            // Remove scales for pie/doughnut charts
-            delete options.scales;
-        }
+        // All supported chart types (line and bar) use scales
 
         return options;
     }
@@ -341,10 +338,11 @@ GreenMetricsAdmin.ReportsChart = (function ($) {
             return;
         }
 
-        currentChartType = chartType;
+        // Only allow 'line' or 'bar' chart types
+        currentChartType = (chartType === 'line' || chartType === 'bar') ? chartType : 'line';
 
-        // Update chart type
-        reportChart.config.type = chartType;
+        // Update chart type with the validated value
+        reportChart.config.type = currentChartType;
 
         // Update options
         reportChart.options = getChartOptions();
