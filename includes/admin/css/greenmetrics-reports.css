@@ -13,12 +13,14 @@
     gap: 15px;
     margin-bottom: 15px;
     align-items: flex-end;
+    width: 100%;
 }
 
 .filter-group {
     display: flex;
     flex-direction: column;
-    min-width: 150px;
+    min-width: 32.46%;
+    margin: 0;
 }
 
 .filter-group label {
@@ -29,15 +31,21 @@
 .custom-date-range {
     display: flex;
     flex-direction: row;
-    gap: 10px;
-    align-items: flex-end;
+    gap: 15px;
+    align-items: flex-start;
+    width: 100%;
 }
 
-.custom-date-range label {
-    display: flex;
-    flex-direction: column;
+.custom-date-range .date-range-field {
+    flex: 1;
 }
 
+.custom-date-range input[type="date"] {
+    width: 100%;
+}
+.greenmetrics-report-filters .button#apply-filters {
+    margin-bottom: 10px;
+}
 /* Report Chart */
 .greenmetrics-report-header {
     display: flex;
@@ -460,6 +468,11 @@
 
     .custom-date-range {
         flex-direction: column;
+        width: 100%;
+    }
+
+    .custom-date-range .date-range-field {
+        width: 100%;
     }
 
     .greenmetrics-modal-content {

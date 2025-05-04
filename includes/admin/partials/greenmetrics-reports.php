@@ -75,14 +75,6 @@ foreach ($page_ids as $page_id) {
                                 </select>
                             </div>
 
-                            <div class="filter-group custom-date-range" style="display: none;">
-                                <label for="start-date"><?php esc_html_e('Start Date', 'greenmetrics'); ?></label>
-                                <input type="date" id="start-date" name="start-date" value="<?php echo esc_attr($start_date); ?>">
-
-                                <label for="end-date"><?php esc_html_e('End Date', 'greenmetrics'); ?></label>
-                                <input type="date" id="end-date" name="end-date" value="<?php echo esc_attr($end_date); ?>">
-                            </div>
-
                             <div class="filter-group">
                                 <label for="page-filter"><?php esc_html_e('Page', 'greenmetrics'); ?></label>
                                 <select id="page-filter" name="page-filter">
@@ -99,6 +91,19 @@ foreach ($page_ids as $page_id) {
                                     <option value="none"><?php esc_html_e('None', 'greenmetrics'); ?></option>
                                     <option value="previous"><?php esc_html_e('Previous Period', 'greenmetrics'); ?></option>
                                 </select>
+                            </div>
+                        </div>
+
+                        <!-- Custom Date Range Row (hidden by default) -->
+                        <div class="filter-row custom-date-range" style="display: none;">
+                            <div class="filter-group date-range-field">
+                                <label for="start-date"><?php esc_html_e('Start Date', 'greenmetrics'); ?></label>
+                                <input type="date" id="start-date" name="start-date" value="<?php echo esc_attr($start_date); ?>">
+                            </div>
+
+                            <div class="filter-group date-range-field">
+                                <label for="end-date"><?php esc_html_e('End Date', 'greenmetrics'); ?></label>
+                                <input type="date" id="end-date" name="end-date" value="<?php echo esc_attr($end_date); ?>">
                             </div>
                         </div>
 
