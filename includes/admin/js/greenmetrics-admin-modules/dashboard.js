@@ -77,7 +77,7 @@ GreenMetricsAdmin.Dashboard = (function ($) {
 		} else {
 			// Fallback to direct AJAX if API module is not available
 			$.ajax({
-				url: greenmetricsAdmin.rest_url + 'greenmetrics/v1/metrics',
+				url: greenmetricsAdmin.rest_url.replace(/\/$/, '') + '/metrics',
 				type: 'GET',
 				data: {
 					force_refresh: forceRefresh ? 'true' : 'false'

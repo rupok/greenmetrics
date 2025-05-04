@@ -96,6 +96,16 @@ class GreenMetrics_Admin {
 			array( $this, 'render_admin_page' )
 		);
 
+		// Add submenu for Advanced Reports
+		add_submenu_page(
+			'greenmetrics',
+			__( 'Advanced Reports', 'greenmetrics' ),
+			__( 'Advanced Reports', 'greenmetrics' ),
+			'manage_options',
+			'greenmetrics_reports',
+			array( $this, 'render_reports_page' )
+		);
+
 		// Add submenu for Display Settings
 		add_submenu_page(
 			'greenmetrics',
@@ -1165,6 +1175,21 @@ class GreenMetrics_Admin {
 			'all'
 		);
 
+		// Check if we're on the reports page
+		$is_reports_page = false;
+		if ( ! empty( $current_page ) && $current_page === 'greenmetrics_reports' ) {
+			$is_reports_page = true;
+
+			// Enqueue reports-specific styles
+			wp_enqueue_style(
+				'greenmetrics-reports',
+				GREENMETRICS_PLUGIN_URL . 'includes/admin/css/greenmetrics-reports.css',
+				array( 'greenmetrics-admin' ),
+				GREENMETRICS_VERSION,
+				'all'
+			);
+		}
+
 		// Add inline styles for the font size inputs
 		$font_size_styles = '
 		.greenmetrics-font-size-wrapper {
@@ -1265,12 +1290,18 @@ class GreenMetrics_Admin {
 		// We're on a GreenMetrics page - set flags
 		$is_plugin_page    = true;
 		$is_dashboard_page = false;
+		$is_reports_page   = false;
 
 		// Check specifically if we're on the dashboard/stats page
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Simply checking screen ID for dashboard page detection
 		if ( strpos( $screen->id, 'greenmetrics-dashboard' ) !== false ||
 			( ! empty( $current_page ) && $current_page === 'greenmetrics' ) ) {
 			$is_dashboard_page = true;
+		}
+
+		// Check if we're on the reports page
+		if ( ! empty( $current_page ) && $current_page === 'greenmetrics_reports' ) {
+			$is_reports_page = true;
 		}
 
 		// Always load WordPress dependencies on our pages
@@ -1326,11 +1357,12 @@ class GreenMetrics_Admin {
 				'selectIconText'    => __( 'Select or Upload Icon', 'greenmetrics' ),
 				'selectIconBtnText' => __( 'Use this Icon', 'greenmetrics' ),
 				'customIconText'    => __( 'Custom Icon', 'greenmetrics' ),
-				'rest_url'          => get_rest_url( null, 'greenmetrics/v1' ),
+				'rest_url'          => get_rest_url( null, 'greenmetrics/v1/' ),
 				'rest_nonce'        => wp_create_nonce( 'wp_rest' ),
 				'loadingText'       => __( 'Loading data...', 'greenmetrics' ),
 				'noDataText'        => __( 'No data available for the selected period.', 'greenmetrics' ),
 				'is_dashboard_page' => $is_dashboard_page,
+				'is_reports_page'   => $is_reports_page,
 				'is_plugin_page'    => $is_plugin_page,
 				'debug'             => defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG,
 			)
@@ -1357,8 +1389,8 @@ class GreenMetrics_Admin {
 			);
 		}
 
-		// Load Chart.js and Chart module - only needed on dashboard/stats page
-		if ( $is_dashboard_page ) {
+		// Load Chart.js and Chart module - needed on dashboard/stats page and reports page
+		if ( $is_dashboard_page || $is_reports_page ) {
 			wp_enqueue_script(
 				'chart-js',
 				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/chart.min.js',
@@ -1374,7 +1406,10 @@ class GreenMetrics_Admin {
 				GREENMETRICS_VERSION,
 				true
 			);
+		}
 
+		// Load dashboard module - only needed on dashboard page
+		if ( $is_dashboard_page ) {
 			wp_enqueue_script(
 				'greenmetrics-admin-dashboard',
 				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/dashboard.js',
@@ -1384,17 +1419,42 @@ class GreenMetrics_Admin {
 			);
 		}
 
+		// Load reports module - only needed on reports page
+		if ( $is_reports_page ) {
+			wp_enqueue_script(
+				'greenmetrics-admin-reports-chart',
+				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/reports-chart.js',
+				array( 'greenmetrics-admin-core', 'chart-js', 'greenmetrics-admin-utils', 'greenmetrics-admin-config', 'greenmetrics-admin-api' ),
+				GREENMETRICS_VERSION,
+				true
+			);
+
+			wp_enqueue_script(
+				'greenmetrics-admin-reports',
+				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/reports.js',
+				array( 'greenmetrics-admin-core', 'chart-js', 'greenmetrics-admin-utils', 'greenmetrics-admin-config', 'greenmetrics-admin-api', 'greenmetrics-admin-reports-chart' ),
+				GREENMETRICS_VERSION,
+				true
+			);
+		}
+
 		// Main entry point file - always needed
 		$main_dependencies = array( 'greenmetrics-admin-core' );
 
 		// Add module dependencies based on what's loaded
-		if ( ! $is_dashboard_page ) {
+		if ( ! $is_dashboard_page && ! $is_reports_page ) {
 			$main_dependencies[] = 'greenmetrics-admin-preview';
 		}
 
 		if ( $is_dashboard_page ) {
 			$main_dependencies[] = 'greenmetrics-admin-chart';
 			$main_dependencies[] = 'greenmetrics-admin-dashboard';
+		}
+
+		if ( $is_reports_page ) {
+			$main_dependencies[] = 'greenmetrics-admin-chart';
+			$main_dependencies[] = 'greenmetrics-admin-reports-chart';
+			$main_dependencies[] = 'greenmetrics-admin-reports';
 		}
 
 		wp_enqueue_script(
@@ -1437,6 +1497,17 @@ class GreenMetrics_Admin {
 		}
 
 		include GREENMETRICS_PLUGIN_DIR . 'includes/admin/partials/greenmetrics-data-management.php';
+	}
+
+	/**
+	 * Render advanced reports page.
+	 */
+	public function render_reports_page() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		include GREENMETRICS_PLUGIN_DIR . 'includes/admin/partials/greenmetrics-reports.php';
 	}
 
 	/**

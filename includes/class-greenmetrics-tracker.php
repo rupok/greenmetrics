@@ -632,6 +632,96 @@ class GreenMetrics_Tracker {
 	}
 
 	/**
+	 * Get page-specific metrics for all tracked pages.
+	 *
+	 * @param bool $force_refresh Whether to force refresh the cache.
+	 * @return array Array of page metrics.
+	 */
+	public function get_page_metrics($force_refresh = false) {
+		global $wpdb;
+
+		// Create a cache key
+		$cache_key = 'greenmetrics_page_metrics';
+
+		// Try to get from cache
+		if (!$force_refresh) {
+			$cached_metrics = get_transient($cache_key);
+			if (false !== $cached_metrics) {
+				return $cached_metrics;
+			}
+		}
+
+		// Check if the table exists
+		if (!$this->table_exists()) {
+			return array();
+		}
+
+		$table = esc_sql($this->table_name);
+
+		// Get all page IDs with metrics
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$page_ids = $wpdb->get_col("
+			SELECT DISTINCT page_id
+			FROM {$table}
+			WHERE page_id > 0
+		");
+
+		if (empty($page_ids)) {
+			return array();
+		}
+
+		$pages = array();
+
+		// Get metrics for each page
+		foreach ($page_ids as $page_id) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$metrics = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT
+						COUNT(*) as page_views,
+						AVG(data_transfer) as avg_data_transfer,
+						SUM(data_transfer) as total_data_transfer,
+						AVG(carbon_footprint) as avg_carbon_footprint,
+						SUM(carbon_footprint) as total_carbon_footprint,
+						AVG(energy_consumption) as avg_energy_consumption,
+						SUM(energy_consumption) as total_energy_consumption,
+						AVG(requests) as avg_requests,
+						SUM(requests) as total_requests,
+						AVG(performance_score) as avg_performance_score
+					FROM {$table}
+					WHERE page_id = %d",
+					$page_id
+				),
+				ARRAY_A
+			);
+
+			if ($metrics) {
+				// Get page title and URL
+				$page_title = get_the_title($page_id);
+				$page_url = get_permalink($page_id);
+
+				// Add page data to results
+				$pages[] = array(
+					'page_id' => $page_id,
+					'page_title' => $page_title ? $page_title : 'Unknown Page',
+					'page_url' => $page_url ? $page_url : '#',
+					'page_views' => intval($metrics['page_views']),
+					'data_transfer' => floatval($metrics['total_data_transfer']),
+					'carbon_footprint' => floatval($metrics['total_carbon_footprint']),
+					'energy_consumption' => floatval($metrics['total_energy_consumption']),
+					'requests' => intval($metrics['total_requests']),
+					'performance_score' => floatval($metrics['avg_performance_score']),
+				);
+			}
+		}
+
+		// Cache the results for 1 hour
+		set_transient($cache_key, $pages, HOUR_IN_SECONDS);
+
+		return $pages;
+	}
+
+	/**
 	 * Get metrics by date range for chart display.
 	 *
 	 * @param string $start_date Start date (Y-m-d format).

@@ -9,8 +9,9 @@
  * - error-handler.js: Standardized error handling
  * - core.js: Core functionality and namespace initialization
  * - preview.js: Badge and popover preview functionality (loaded only on plugin settings pages)
- * - chart.js: Chart visualization functionality (loaded only on dashboard pages)
+ * - chart.js: Chart visualization functionality (loaded only on dashboard and reports pages)
  * - dashboard.js: Dashboard statistics functionality (loaded only on dashboard pages)
+ * - reports.js: Advanced reporting functionality (loaded only on reports pages)
  *
  * The GreenMetricsAdmin namespace is used to organize all functionality
  *
@@ -23,6 +24,8 @@
  * @requires GreenMetricsAdmin.Preview
  * @requires GreenMetricsAdmin.Chart
  * @requires GreenMetricsAdmin.Dashboard
+ * @requires GreenMetricsAdmin.ReportsChart
+ * @requires GreenMetricsAdmin.Reports
  */
 
 /**
@@ -51,6 +54,12 @@ function initGreenMetricsAdmin() {
     if (typeof GreenMetricsAdmin.Dashboard !== 'undefined' &&
         GreenMetricsAdmin.Config && GreenMetricsAdmin.Config.isDashboardPage) {
         GreenMetricsAdmin.Dashboard.init();
+    }
+
+    // Initialize Reports module only on reports pages
+    if (typeof GreenMetricsAdmin.Reports !== 'undefined' &&
+        GreenMetricsAdmin.Config && GreenMetricsAdmin.Config.isReportsPage) {
+        GreenMetricsAdmin.Reports.init();
     }
 }
 

@@ -278,34 +278,38 @@ class GreenMetrics_Rest_API {
 			$avg_data_transfer_kb   = $avg_data_transfer / 1024;
 			$total_data_transfer_kb = $total_data_transfer / 1024;
 
-			// Stats response prepared
+			// Get page-specific metrics
+			$pages = $tracker->get_page_metrics($force_refresh);
 
 			// Format the response to include both total and average metrics
-			return rest_ensure_response(
-				array(
-					// Totals
-					'total_views'              => $total_views,
-					'total_carbon_footprint'   => round( $total_carbon_footprint, 2 ),
-					'total_energy_consumption' => round( $total_energy_consumption, 4 ),
-					'total_data_transfer'      => round( $total_data_transfer_kb, 2 ),
-					'total_requests'           => $total_requests,
+			$response = array(
+				// Totals
+				'total_views'              => $total_views,
+				'total_carbon_footprint'   => round( $total_carbon_footprint, 2 ),
+				'total_energy_consumption' => round( $total_energy_consumption, 4 ),
+				'total_data_transfer'      => round( $total_data_transfer_kb, 2 ),
+				'total_requests'           => $total_requests,
 
-					// Averages (per page view)
-					'avg_carbon_footprint'     => round( $avg_carbon_footprint, 2 ),
-					'avg_energy_consumption'   => round( $avg_energy_consumption, 6 ),
-					'avg_data_transfer'        => round( $avg_data_transfer_kb, 2 ),
-					'avg_requests'             => round( $avg_requests, 1 ),
-					'avg_load_time'            => round( $avg_load_time, 3 ),
-					'median_load_time'         => round( $median_load_time, 3 ),
-					'performance_score'        => round( $avg_performance_score, 2 ),
+				// Averages (per page view)
+				'avg_carbon_footprint'     => round( $avg_carbon_footprint, 2 ),
+				'avg_energy_consumption'   => round( $avg_energy_consumption, 6 ),
+				'avg_data_transfer'        => round( $avg_data_transfer_kb, 2 ),
+				'avg_requests'             => round( $avg_requests, 1 ),
+				'avg_load_time'            => round( $avg_load_time, 3 ),
+				'median_load_time'         => round( $median_load_time, 3 ),
+				'performance_score'        => round( $avg_performance_score, 2 ),
 
-					// Standard metrics for consistency throughout the codebase
-					'carbon_footprint'         => round( $total_carbon_footprint, 2 ),
-					'energy_consumption'       => round( $total_energy_consumption, 4 ),
-					'data_transfer'            => round( $total_data_transfer_kb, 2 ),
-					'requests'                 => $total_requests,
-				)
+				// Standard metrics for consistency throughout the codebase
+				'carbon_footprint'         => round( $total_carbon_footprint, 2 ),
+				'energy_consumption'       => round( $total_energy_consumption, 4 ),
+				'data_transfer'            => round( $total_data_transfer_kb, 2 ),
+				'requests'                 => $total_requests,
+
+				// Page-specific metrics
+				'pages'                    => $pages,
 			);
+
+			return rest_ensure_response($response);
 		} catch ( \Exception $e ) {
 			greenmetrics_log( 'REST: Error retrieving statistics', $e->getMessage(), 'error' );
 			return GreenMetrics_Error_Handler::handle_exception(

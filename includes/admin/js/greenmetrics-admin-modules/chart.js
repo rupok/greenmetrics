@@ -181,7 +181,7 @@ GreenMetricsAdmin.Chart = (function ($) {
 		// Make API request
 		$.ajax(
 			{
-				url: greenmetricsAdmin.rest_url + '/metrics-by-date',
+				url: greenmetricsAdmin.rest_url.replace(/\/$/, '') + '/metrics-by-date',
 				method: 'GET',
 				data: {
 					start_date: startDate,
@@ -331,7 +331,7 @@ GreenMetricsAdmin.Chart = (function ($) {
 
 					// Force refresh the data
 					$.ajax({
-						url: greenmetricsAdmin.rest_url + '/metrics-by-date',
+						url: greenmetricsAdmin.rest_url.replace(/\/$/, '') + '/metrics-by-date',
 						method: 'GET',
 						data: {
 							start_date: startDate,
