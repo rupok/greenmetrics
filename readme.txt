@@ -12,7 +12,7 @@ Measure and reduce your website's environmental impact. Track CO2, energy, and p
 
 == Description ==
 
-**GreenMetrics helps you build a more sustainable internet.**  
+**GreenMetrics helps you build a more sustainable internet.**
 This plugin tracks your website's **carbon footprint**, **energy consumption**, and **resource usage**, offering insights and recommendations for eco-friendly performance improvements.
 
 GreenMetrics is perfect for eco-conscious website owners who want to reduce their digital carbon footprint and showcase their commitment to sustainability.
@@ -32,6 +32,12 @@ For more information, visit [getgreenmetrics.com](https://getgreenmetrics.com).
 * **Carbon Intensity Settings**: Configure your energy consumption calculations based on your hosting location.
 * **Global Badge Display**: Option to automatically display badge site-wide without manual placement.
 * **Popover Customization**: Complete control over popover appearance including colors, fonts, metrics display and hover effects.
+* **Data Management**: Automated data aggregation and pruning to maintain optimal database performance.
+* **Advanced Reporting**: Detailed metrics with customizable time periods and visualization options.
+* **Email Reporting**: Scheduled email reports with customizable frequency (daily, weekly, monthly) and content.
+* **Email Templates**: Fully customizable email templates with color schemes and content options.
+* **Visual Chart Generation**: Beautiful charts showing metrics trends over time in email reports.
+* **Export Capabilities**: Export your environmental metrics data for external analysis.
 
 ### 🌍 Who Is This For?
 
@@ -84,6 +90,32 @@ The Display Settings page provides comprehensive customization for your badge an
 * **Color Options**: Customize badge background, text, and icon colors
 * **Popover Settings**: Configure title, metrics to display, and custom content
 * **Styling Options**: Customize fonts, font sizes, background colors, and hover effects
+
+= Data Management =
+The Data Management page helps you maintain optimal database performance:
+
+* **Data Aggregation**: Automatically aggregate detailed metrics into daily summaries
+* **Data Pruning**: Remove old data to keep your database lean and efficient
+* **Manual Controls**: Run aggregation and pruning operations on demand
+* **Schedule Settings**: Configure automatic maintenance schedules
+
+= Advanced Reporting =
+The Advanced Reporting page provides detailed insights into your website's environmental impact:
+
+* **Time Period Selection**: View metrics for custom date ranges
+* **Visualization Options**: Toggle between different chart types
+* **Metric Filtering**: Focus on specific metrics of interest
+* **Data Export**: Download your metrics data for external analysis
+
+= Email Reporting =
+The Email Reporting page allows you to set up automated email reports:
+
+* **Schedule Configuration**: Set daily, weekly, or monthly reporting frequency
+* **Recipient Management**: Add multiple email recipients
+* **Content Customization**: Choose which metrics to include in reports
+* **Template Selection**: Pick from different email templates
+* **Custom Styling**: Personalize colors, fonts, and layout
+* **Visual Charts**: Include trend charts showing metrics over time
 
 = Display Badge =
 You can display the eco-friendly badge in three ways:
@@ -146,6 +178,26 @@ Currently, data export features are not available, but they're on our roadmap fo
 
 Statistics are updated in real-time as users visit your site. The dashboard displays are refreshed daily or can be manually refreshed at any time.
 
+= How do the email reports work? =
+
+Email reports can be scheduled to send daily, weekly, or monthly summaries of your website's environmental metrics. You can customize the recipients, content, and appearance of these reports through the Email Reporting settings page.
+
+= What information is included in email reports? =
+
+Email reports include key metrics such as carbon footprint, energy consumption, and data transfer, along with visual charts showing trends over the selected time period. You can customize which metrics to include and how they're displayed.
+
+= Can I customize the appearance of email reports? =
+
+Yes, you can fully customize the email templates, including colors, fonts, header/footer content, and which metrics to display. You can also choose between different template styles to match your brand.
+
+= How does the data management system work? =
+
+The data management system automatically aggregates detailed metrics into daily summaries and prunes old data to maintain optimal database performance. You can configure the aggregation and pruning schedules, or run these operations manually when needed.
+
+= Will data aggregation affect the accuracy of my metrics? =
+
+No, data aggregation preserves the accuracy of your metrics while reducing database size. The system maintains daily summaries that provide the same insights as detailed data for historical analysis.
+
 == Changelog ==
 
 = 1.0.0 =
@@ -157,6 +209,12 @@ Statistics are updated in real-time as users visit your site. The dashboard disp
 * Global badge display option
 * Enhanced display settings with complete customization of colors, fonts, and hover effects
 * Popover customization with metrics selection
+* Data Management system for database optimization
+* Advanced Reporting with customizable time periods and visualization options
+* Email Reporting with scheduled reports (daily, weekly, monthly)
+* Customizable email templates with color schemes and styling options
+* Visual chart generation for email reports
+* Data export capabilities
 
 == Upgrade Notice ==
 
@@ -170,4 +228,4 @@ This plugin is licensed under the GPLv2 or later.
 == Credits ==
 
 * Icons provided by various open-source icon libraries
-* Built with love for a greener, more sustainable web 
+* Built with love for a greener, more sustainable web

@@ -6,17 +6,29 @@ Website: [getgreenmetrics.com](https://getgreenmetrics.com)
 
 ## Features
 
+### Core Features
 - **Comprehensive Dashboard**: Real-time metrics showing Carbon Footprint (g CO2), Energy Consumption (kWh), Data Transfer, HTTP Requests, Page Views, and Performance Score
 - **Environmental Impact Context**: Understanding the real-world impact of your website through relatable metrics
 - **Optimization Suggestions**: Actionable advice with status indicators for Page Size, HTTP Requests, Performance Score, and Green Hosting
-- **Gutenberg Block & Shortcode**: Easily display your environmental stats on any page
-- **Customizable Badge**: Control the position, theme, size, colors, icon and text of your eco-metrics badge
-- **Enhanced Metrics Display**: Fully customizable metrics list with hover effects, fonts, and styling options
 - **Real-time Tracking**: Continuous monitoring of your site's performance and environmental impact metrics
 - **Per-Page and Total Website Metrics**: View both aggregated stats and per-page averages
 - **Carbon Intensity Settings**: Configure your energy consumption calculations based on your hosting location
+
+### Display & Customization
+- **Gutenberg Block & Shortcode**: Easily display your environmental stats on any page
+- **Customizable Badge**: Control the position, theme, size, colors, icon and text of your eco-metrics badge
+- **Enhanced Metrics Display**: Fully customizable metrics list with hover effects, fonts, and styling options
 - **Global Badge Display**: Option to automatically display badge site-wide without manual placement
 - **Popover Customization**: Complete control over popover appearance including colors, fonts, metrics display and hover effects
+
+### Data Management & Reporting
+- **Data Aggregation**: Automatically aggregate detailed metrics into daily summaries for optimal database performance
+- **Data Pruning**: Scheduled cleanup of old data to maintain database efficiency
+- **Advanced Reporting**: Detailed metrics with customizable time periods and visualization options
+- **Email Reporting**: Scheduled email reports with customizable frequency (daily, weekly, monthly)
+- **Email Templates**: Fully customizable email templates with color schemes and content options
+- **Visual Charts**: Beautiful trend charts showing metrics over time in email reports
+- **Data Export**: Export your environmental metrics data for external analysis
 
 ## Installation
 
@@ -42,6 +54,35 @@ The Display Settings page provides comprehensive customization for your badge an
 - **Color Options**: Customize badge background, text, and icon colors
 - **Popover Settings**: Configure title, metrics to display, and custom content
 - **Styling Options**: Customize fonts, font sizes, background colors, and hover effects
+
+### Data Management
+
+The Data Management page helps you maintain optimal database performance:
+
+- **Data Aggregation**: Automatically aggregate detailed metrics into daily summaries
+- **Data Pruning**: Remove old data to keep your database lean and efficient
+- **Manual Controls**: Run aggregation and pruning operations on demand
+- **Schedule Settings**: Configure automatic maintenance schedules
+
+### Advanced Reporting
+
+The Advanced Reporting page provides detailed insights into your website's environmental impact:
+
+- **Time Period Selection**: View metrics for custom date ranges
+- **Visualization Options**: Toggle between different chart types
+- **Metric Filtering**: Focus on specific metrics of interest
+- **Data Export**: Download your metrics data for external analysis
+
+### Email Reporting
+
+The Email Reporting page allows you to set up automated email reports:
+
+- **Schedule Configuration**: Set daily, weekly, or monthly reporting frequency
+- **Recipient Management**: Add multiple email recipients
+- **Content Customization**: Choose which metrics to include in reports
+- **Template Selection**: Pick from different email templates
+- **Custom Styling**: Personalize colors, fonts, and layout
+- **Visual Charts**: Include trend charts showing metrics over time
 
 ### Display Badge
 
@@ -90,6 +131,18 @@ Yes, GreenMetrics tracks metrics on a per-page basis, allowing you to identify w
 ### Can I customize how the metrics are displayed?
 Yes, the Display Settings page offers extensive customization options for the badge and popover, including colors, fonts, metrics selection, and hover effects.
 
+### How do the email reports work?
+Email reports can be scheduled to send daily, weekly, or monthly summaries of your website's environmental metrics. You can customize the recipients, content, and appearance of these reports through the Email Reporting settings page.
+
+### What information is included in email reports?
+Email reports include key metrics such as carbon footprint, energy consumption, and data transfer, along with visual charts showing trends over the selected time period. You can customize which metrics to include and how they're displayed.
+
+### How does the data management system work?
+The data management system automatically aggregates detailed metrics into daily summaries and prunes old data to maintain optimal database performance. You can configure the aggregation and pruning schedules, or run these operations manually when needed.
+
+### Will data aggregation affect the accuracy of my metrics?
+No, data aggregation preserves the accuracy of your metrics while reducing database size. The system maintains daily summaries that provide the same insights as detailed data for historical analysis.
+
 ## Development
 
 ### Requirements
@@ -109,13 +162,24 @@ greenmetrics/
 ├── build/                # Compiled assets
 ├── includes/             # Core plugin functionality
 │   ├── admin/            # Admin class files
+│   │   ├── css/          # Admin CSS files
+│   │   ├── js/           # Admin JavaScript files
+│   │   ├── img/          # Admin images
+│   │   └── fonts/        # Admin fonts
 │   ├── class-*.php       # Core classes
+│   ├── class-greenmetrics-data-manager.php    # Data management functionality
+│   ├── class-greenmetrics-advanced-reports.php # Advanced reporting functionality
+│   ├── class-greenmetrics-email-reporter.php  # Email reporting functionality
+│   ├── class-greenmetrics-chart-generator.php # Chart generation for reports
 ├── languages/            # Translation files
 ├── public/               # Public-facing functionality
 │   ├── css/              # Public styles
 │   ├── js/               # Public scripts
 │   │   └── blocks/       # Gutenberg blocks
 │   └── partials/         # Public templates
+├── templates/            # Email and report templates
+│   ├── emails/           # Email templates
+│   └── reports/          # Report templates
 ├── vendor/               # Composer dependencies
 ├── .editorconfig         # Editor configuration
 ├── .gitignore            # Git ignore rules
@@ -205,4 +269,4 @@ Please make sure your code follows our coding standards and includes appropriate
 
 ## License
 
-This project is licensed under the GPL v2 or later - see the [LICENSE](LICENSE) file for details. 
+This project is licensed under the GPL v2 or later - see the [LICENSE](LICENSE) file for details.
