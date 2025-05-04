@@ -39,6 +39,7 @@ $total_size = \GreenMetrics\GreenMetrics_Data_Manager::format_bytes($table_sizes
 	<h1><?php esc_html_e( 'GreenMetrics - Data Management', 'greenmetrics' ); ?></h1>
 
 	<?php settings_errors(); ?>
+	<?php wp_nonce_field( 'greenmetrics_admin_nonce', 'greenmetrics_nonce' ); ?>
 
 	<div class="greenmetrics-admin-content-wrapper">
 		<!-- Left Column: Settings Form -->

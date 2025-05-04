@@ -8,6 +8,7 @@
  * - api.js: API interaction functions
  * - error-handler.js: Standardized error handling
  * - core.js: Core functionality and namespace initialization
+ * - settings-handler.js: Settings form submission handling
  * - preview.js: Badge and popover preview functionality (loaded only on plugin settings pages)
  * - chart.js: Chart visualization functionality (loaded only on dashboard and reports pages)
  * - dashboard.js: Dashboard statistics functionality (loaded only on dashboard pages)
@@ -21,6 +22,7 @@
  * @requires GreenMetricsAdmin.API
  * @requires GreenMetricsErrorHandler
  * @requires GreenMetricsAdmin.core
+ * @requires GreenMetricsAdmin.SettingsHandler
  * @requires GreenMetricsAdmin.Preview
  * @requires GreenMetricsAdmin.Chart
  * @requires GreenMetricsAdmin.Dashboard
@@ -37,6 +39,11 @@ function initGreenMetricsAdmin() {
     // Always initialize core module
     if (typeof GreenMetricsAdmin.core !== 'undefined') {
         GreenMetricsAdmin.core.init();
+    }
+
+    // Initialize Settings Handler module on all admin pages
+    if (typeof GreenMetricsAdmin.SettingsHandler !== 'undefined') {
+        GreenMetricsAdmin.SettingsHandler.init();
     }
 
     // Initialize Preview module only on plugin pages
@@ -60,6 +67,12 @@ function initGreenMetricsAdmin() {
     if (typeof GreenMetricsAdmin.Reports !== 'undefined' &&
         GreenMetricsAdmin.Config && GreenMetricsAdmin.Config.isReportsPage) {
         GreenMetricsAdmin.Reports.init();
+    }
+
+    // Initialize Email Reporting module only on email reporting pages
+    if (typeof GreenMetricsAdmin.EmailReporting !== 'undefined' &&
+        GreenMetricsAdmin.Config && GreenMetricsAdmin.Config.isEmailReportingPage) {
+        GreenMetricsAdmin.EmailReporting.init();
     }
 }
 

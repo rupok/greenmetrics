@@ -102,6 +102,10 @@ class GreenMetrics_Activator {
 		GreenMetrics_Data_Manager::schedule_data_management();
 		greenmetrics_log( 'Activator - Scheduled data management tasks' );
 
+		// Schedule email reporting tasks
+		GreenMetrics_Email_Reporter::schedule_email_reporting();
+		greenmetrics_log( 'Activator - Scheduled email reporting tasks' );
+
 		// Store the current version in the database
 		update_option( 'greenmetrics_version', GREENMETRICS_VERSION );
 		greenmetrics_log( 'Activator - Version recorded', GREENMETRICS_VERSION );
