@@ -330,6 +330,7 @@ $total_size = \GreenMetrics\GreenMetrics_Data_Manager::format_bytes($table_sizes
 											<select name="format" id="export-format">
 												<option value="csv"><?php esc_html_e( 'CSV (Spreadsheet)', 'greenmetrics' ); ?></option>
 												<option value="json"><?php esc_html_e( 'JSON (Data)', 'greenmetrics' ); ?></option>
+												<option value="pdf"><?php esc_html_e( 'PDF (Report)', 'greenmetrics' ); ?></option>
 											</select>
 											<p class="description"><?php esc_html_e( 'Choose the format for your exported data.', 'greenmetrics' ); ?></p>
 										</td>
@@ -443,7 +444,7 @@ $total_size = \GreenMetrics\GreenMetrics_Data_Manager::format_bytes($table_sizes
 
 							<h3><?php esc_html_e( 'Data Export', 'greenmetrics' ); ?></h3>
 							<p><?php esc_html_e( 'The data export feature allows you to download your GreenMetrics data for external analysis, reporting, or backup purposes.', 'greenmetrics' ); ?></p>
-							<p><?php esc_html_e( 'You can export data in CSV format (for spreadsheets) or JSON format (for developers).', 'greenmetrics' ); ?></p>
+							<p><?php esc_html_e( 'You can export data in CSV format (for spreadsheets), JSON format (for developers), or PDF format (for reports).', 'greenmetrics' ); ?></p>
 
 							<h3><?php esc_html_e( 'Export Options', 'greenmetrics' ); ?></h3>
 							<ul style="list-style-type: disc; margin-left: 20px;">
