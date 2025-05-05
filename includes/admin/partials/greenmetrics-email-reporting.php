@@ -70,11 +70,11 @@ $stats   = $tracker->get_stats();
 		</ul>
 	</div>
 
-	<div class="greenmetrics-admin-content-wrapper">
-		<!-- Tab Content -->
-		<div class="greenmetrics-tabs-content">
-			<!-- Settings Tab -->
-			<div class="greenmetrics-tab-content active" id="tab-settings">
+	<!-- Tab Content -->
+	<div class="greenmetrics-tabs-content">
+		<!-- Settings Tab -->
+		<div class="greenmetrics-tab-content active" id="tab-settings">
+			<div class="greenmetrics-admin-content-wrapper">
 				<!-- Left Column: Settings Form -->
 				<div class="greenmetrics-admin-settings-column">
 					<div class="greenmetrics-admin-card">
@@ -199,7 +199,8 @@ $stats   = $tracker->get_stats();
 				</div>
 			</div>
 		</div>
-</div>
+			</div>
+		</div>
 
 <!-- Templates Tab -->
 <div class="greenmetrics-tab-content" id="tab-templates">
@@ -468,8 +469,9 @@ $stats   = $tracker->get_stats();
 
 	<!-- History Tab -->
 	<div class="greenmetrics-tab-content" id="tab-history">
-		<div class="greenmetrics-admin-section email-reports-section">
-			<div class="greenmetrics-admin-card">
+		<div class="greenmetrics-admin-content-wrapper">
+			<div class="greenmetrics-admin-section email-reports-section">
+				<div class="greenmetrics-admin-card">
 				<h2>
 					<span class="dashicons dashicons-email-alt" style="font-size: 24px; margin-right: 10px; color: #2271b1;"></span>
 					<?php esc_html_e( 'Email Report History', 'greenmetrics' ); ?>
@@ -733,5 +735,8 @@ jQuery(document).ready(function($) {
 });
 </script>
 
-</div>
+					</div>
+				</div>
+			</div>
+		</div>
 </div>

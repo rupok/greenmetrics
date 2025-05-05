@@ -1515,6 +1515,51 @@ class GreenMetrics_Admin {
 				GREENMETRICS_VERSION,
 				'all'
 			);
+
+			// Add inline styles to ensure consistent tab navigation
+			$tab_consistency_styles = '
+			/* Ensure consistent tab navigation with other admin pages */
+			.greenmetrics-tabs-nav {
+				margin-bottom: 20px;
+			}
+
+			.greenmetrics-tabs-list {
+				background: #f0f0f1;
+				border-bottom: 1px solid #ccc;
+			}
+
+			.greenmetrics-tab-item {
+				background-color: #f0f0f1;
+				border: none;
+				margin: 0;
+				margin-right: 5px;
+				position: relative;
+			}
+
+			.greenmetrics-tab-item.active {
+				background-color: #fff;
+				color: #2271b1;
+				border-top: 3px solid #2271b1;
+				padding-top: 9px;
+				border-bottom: none;
+				margin-bottom: 0;
+			}
+
+			.greenmetrics-tab-item.active:after {
+				content: "";
+				position: absolute;
+				bottom: -1px;
+				left: 0;
+				right: 0;
+				height: 1px;
+				background: #fff;
+			}
+
+			.greenmetrics-tab-item.active .dashicons {
+				color: #2271b1;
+			}';
+
+			wp_add_inline_style( 'greenmetrics-email-reporting', $tab_consistency_styles );
 		}
 
 		// Add inline styles for the font size inputs
@@ -1620,6 +1665,7 @@ class GreenMetrics_Admin {
 		$is_reports_page   = false;
 		$is_email_reporting_page = false;
 		$is_display_settings_page = false;
+		$is_data_management_page = false;
 
 		// Check specifically if we're on the dashboard/stats page
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Simply checking screen ID for dashboard page detection
@@ -1641,6 +1687,11 @@ class GreenMetrics_Admin {
 		// Check if we're on the display settings page
 		if ( ! empty( $current_page ) && $current_page === 'greenmetrics_display' ) {
 			$is_display_settings_page = true;
+		}
+
+		// Check if we're on the data management page
+		if ( ! empty( $current_page ) && $current_page === 'greenmetrics_data_management' ) {
+			$is_data_management_page = true;
 		}
 
 		// Always load WordPress dependencies on our pages
@@ -1704,6 +1755,7 @@ class GreenMetrics_Admin {
 				'is_reports_page'   => $is_reports_page,
 				'is_email_reporting_page' => $is_email_reporting_page,
 				'is_display_settings_page' => $is_display_settings_page,
+				'is_data_management_page' => $is_data_management_page,
 				'is_plugin_page'    => $is_plugin_page,
 				'debug'             => defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG,
 				'i18n'              => array(
@@ -1851,6 +1903,19 @@ class GreenMetrics_Admin {
 			);
 
 			$main_dependencies[] = 'greenmetrics-admin-display-settings';
+		}
+
+		// Load data management module - only needed on data management page
+		if ( $is_data_management_page ) {
+			wp_enqueue_script(
+				'greenmetrics-admin-data-management',
+				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/data-management.js',
+				array( 'greenmetrics-admin-core', 'greenmetrics-admin-utils', 'greenmetrics-admin-config' ),
+				GREENMETRICS_VERSION,
+				true
+			);
+
+			$main_dependencies[] = 'greenmetrics-admin-data-management';
 		}
 
 		wp_enqueue_script(

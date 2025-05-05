@@ -1077,6 +1077,18 @@
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
+/* Consistent tabbed layout structure for all admin pages */
+
+/* Tab content wrappers should be full width */
+.greenmetrics-tabs-content {
+	width: 100%;
+}
+
+/* Tab content should be full width */
+.greenmetrics-tab-content {
+	width: 100%;
+}
+
 /* Default two-column layout for admin content */
 .greenmetrics-admin-content-wrapper {
 	display: grid;
@@ -1085,17 +1097,13 @@
 	margin-top: 20px;
 }
 
-/* Full-width layout for email reporting page except templates tab */
-.email-reporting-page .greenmetrics-admin-content-wrapper {
-	grid-template-columns: 1fr;
-}
-
-/* Two-column layout for the templates tab */
-.email-reporting-page #tab-templates .greenmetrics-admin-content-wrapper {
+/* Special layouts for specific tabs */
+/* Templates tab in Email Reporting uses 3:2 ratio for template editing */
+#tab-templates .greenmetrics-admin-content-wrapper {
 	grid-template-columns: 3fr 2fr;
 	margin-top: 0;
 }
-.email-reporting-page #tab-templates .greenmetrics-admin-content-wrapper .greenmetrics-admin-card {
+#tab-templates .greenmetrics-admin-content-wrapper .greenmetrics-admin-card {
 	margin-top: 0;
 }
 .badge-preview {
@@ -1830,7 +1838,7 @@
 	transform: translateX(18px);
 }
 
-/* Tab Navigation Styles */
+/* Tab Navigation Styles - Consistent across all pages */
 .greenmetrics-tabs-nav {
 	margin-bottom: 20px;
 }
@@ -1863,6 +1871,9 @@
 	margin-right: 8px;
 	vertical-align: middle;
 	color: #666;
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
 }
 
 .greenmetrics-tab-item:hover {
@@ -1890,8 +1901,10 @@
 	color: #2271b1;
 }
 
+/* Tab Content Styles - Consistent across all pages */
 .greenmetrics-tab-content {
 	display: none;
+	width: 100%;
 }
 
 .greenmetrics-tab-content.active {

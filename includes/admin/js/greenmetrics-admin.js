@@ -81,6 +81,11 @@ function initGreenMetricsAdmin() {
     if (typeof GreenMetricsAdmin.DisplaySettings !== 'undefined') {
         GreenMetricsAdmin.DisplaySettings.init();
     }
+
+    // Initialize Data Management module
+    if (typeof GreenMetricsAdmin.DataManagement !== 'undefined') {
+        GreenMetricsAdmin.DataManagement.init();
+    }
 }
 
 // Initialize modules when document is ready

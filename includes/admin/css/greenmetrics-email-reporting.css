@@ -2,61 +2,12 @@
  * GreenMetrics Email Reporting Styles
  */
 
-/* Tab Navigation */
-.greenmetrics-tabs-nav {
-    margin: 20px 0;
-}
-
-.greenmetrics-tabs-list {
-    display: flex;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    border-bottom: 1px solid #ccc;
-}
-
-.greenmetrics-tab-item {
-    padding: 12px 20px;
-    margin: 0 4px 0 0;
-    cursor: pointer;
-    background-color: #f8f9fa;
-    border: 1px solid #ccc;
-    border-bottom: none;
-    border-radius: 4px 4px 0 0;
-    font-weight: 500;
-    color: #555;
-    display: flex;
-    align-items: center;
-    transition: all 0.2s ease;
-}
-
-.greenmetrics-tab-item:hover {
-    background-color: #fff;
-    color: #2271b1;
-}
-
-.greenmetrics-tab-item.active {
-    background-color: #fff;
-    color: #2271b1;
-    border-bottom: 1px solid #fff;
-    margin-bottom: -1px;
-}
-
-.greenmetrics-tab-item .dashicons {
-    margin-right: 8px;
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
-}
-
-/* Tab Content */
+/* Tab-specific styles for Email Reporting */
 .greenmetrics-tab-content {
-    display: none;
     padding: 20px 0;
 }
 
 .greenmetrics-tab-content.active {
-    display: block;
     animation: fadeIn 0.3s ease;
 }
 
@@ -75,15 +26,27 @@
     align-items: center;
 }
 
+/* Email History Tab - Full Width Layout */
+#tab-history .greenmetrics-admin-content-wrapper {
+    display: block; /* Override the grid layout */
+    width: 100%;
+}
+
+#tab-history .greenmetrics-admin-section {
+    width: 100%;
+}
+
 /* Report History Table */
 .report-history-table-container {
     margin-top: 15px;
     overflow-x: auto;
+    width: 100%;
 }
 
 .report-history-table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
 }
 
 .report-history-table th {
@@ -96,6 +59,38 @@
 .report-history-table td {
     padding: 12px 10px;
     vertical-align: middle;
+    word-wrap: break-word; /* Allow text to wrap in cells */
+}
+
+/* Column widths for better layout */
+.report-history-table th:nth-child(1),
+.report-history-table td:nth-child(1) {
+    width: 15%; /* Date column */
+}
+
+.report-history-table th:nth-child(2),
+.report-history-table td:nth-child(2) {
+    width: 10%; /* Type column */
+}
+
+.report-history-table th:nth-child(3),
+.report-history-table td:nth-child(3) {
+    width: 20%; /* Recipients column */
+}
+
+.report-history-table th:nth-child(4),
+.report-history-table td:nth-child(4) {
+    width: 35%; /* Subject column */
+}
+
+.report-history-table th:nth-child(5),
+.report-history-table td:nth-child(5) {
+    width: 10%; /* Status column */
+}
+
+.report-history-table th:nth-child(6),
+.report-history-table td:nth-child(6) {
+    width: 10%; /* Actions column */
 }
 
 .test-badge {
@@ -162,6 +157,9 @@
     margin: 20px 0;
     border-radius: 0 4px 4px 0;
     color: #555;
+    width: 100%;
+    box-sizing: border-box;
+    max-width: 800px;
 }
 
 .no-reports-message p {
@@ -175,18 +173,25 @@
 }
 
 .no-reports-message .button {
-    margin-top: 10px;
+    margin-top: 15px;
     display: inline-flex;
     align-items: center;
     background-color: #2271b1;
     color: #fff;
     border-color: #135e96;
+    padding: 6px 14px;
+    height: auto;
+    font-size: 14px;
 }
 
 .no-reports-message .button:hover {
     background-color: #135e96;
     color: #fff;
     border-color: #0a4b78;
+}
+
+.no-reports-message .dashicons {
+    vertical-align: middle !important;
 }
 
 /* Report Modal */
@@ -865,5 +870,71 @@
 
     .preview-info {
         margin-top: 10px;
+    }
+
+    /* Responsive table for Email History */
+    .report-history-table {
+        table-layout: auto;
+    }
+
+    /* Hide less important columns on small screens */
+    .report-history-table th:nth-child(3),
+    .report-history-table td:nth-child(3) {
+        display: none; /* Hide Recipients column */
+    }
+
+    /* Adjust column widths for small screens */
+    .report-history-table th:nth-child(1),
+    .report-history-table td:nth-child(1) {
+        width: 25%; /* Date column */
+    }
+
+    .report-history-table th:nth-child(2),
+    .report-history-table td:nth-child(2) {
+        width: 15%; /* Type column */
+    }
+
+    .report-history-table th:nth-child(4),
+    .report-history-table td:nth-child(4) {
+        width: 30%; /* Subject column */
+    }
+
+    .report-history-table th:nth-child(5),
+    .report-history-table td:nth-child(5) {
+        width: 15%; /* Status column */
+    }
+
+    .report-history-table th:nth-child(6),
+    .report-history-table td:nth-child(6) {
+        width: 15%; /* Actions column */
+    }
+}
+
+/* Extra small screens */
+@media screen and (max-width: 600px) {
+    /* Further optimize table for very small screens */
+    .report-history-table th:nth-child(4),
+    .report-history-table td:nth-child(4) {
+        display: none; /* Hide Subject column on very small screens */
+    }
+
+    .report-history-table th:nth-child(1),
+    .report-history-table td:nth-child(1) {
+        width: 35%; /* Date column */
+    }
+
+    .report-history-table th:nth-child(2),
+    .report-history-table td:nth-child(2) {
+        width: 25%; /* Type column */
+    }
+
+    .report-history-table th:nth-child(5),
+    .report-history-table td:nth-child(5) {
+        width: 20%; /* Status column */
+    }
+
+    .report-history-table th:nth-child(6),
+    .report-history-table td:nth-child(6) {
+        width: 20%; /* Actions column */
     }
 }
