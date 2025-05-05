@@ -1619,6 +1619,7 @@ class GreenMetrics_Admin {
 		$is_dashboard_page = false;
 		$is_reports_page   = false;
 		$is_email_reporting_page = false;
+		$is_display_settings_page = false;
 
 		// Check specifically if we're on the dashboard/stats page
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Simply checking screen ID for dashboard page detection
@@ -1635,6 +1636,11 @@ class GreenMetrics_Admin {
 		// Check if we're on the email reporting page
 		if ( ! empty( $current_page ) && $current_page === 'greenmetrics_email_reporting' ) {
 			$is_email_reporting_page = true;
+		}
+
+		// Check if we're on the display settings page
+		if ( ! empty( $current_page ) && $current_page === 'greenmetrics_display' ) {
+			$is_display_settings_page = true;
 		}
 
 		// Always load WordPress dependencies on our pages
@@ -1697,6 +1703,7 @@ class GreenMetrics_Admin {
 				'is_dashboard_page' => $is_dashboard_page,
 				'is_reports_page'   => $is_reports_page,
 				'is_email_reporting_page' => $is_email_reporting_page,
+				'is_display_settings_page' => $is_display_settings_page,
 				'is_plugin_page'    => $is_plugin_page,
 				'debug'             => defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG,
 				'i18n'              => array(
@@ -1831,6 +1838,19 @@ class GreenMetrics_Admin {
 
 			$main_dependencies[] = 'greenmetrics-admin-email-template-editor';
 			$main_dependencies[] = 'greenmetrics-admin-email-reporting';
+		}
+
+		// Load display settings module - only needed on display settings page
+		if ( $is_display_settings_page ) {
+			wp_enqueue_script(
+				'greenmetrics-admin-display-settings',
+				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/display-settings.js',
+				array( 'greenmetrics-admin-core', 'greenmetrics-admin-utils', 'greenmetrics-admin-config' ),
+				GREENMETRICS_VERSION,
+				true
+			);
+
+			$main_dependencies[] = 'greenmetrics-admin-display-settings';
 		}
 
 		wp_enqueue_script(
