@@ -68,6 +68,24 @@ $settings = get_option(
 			</span>
 		</div>
 
+		<!-- Tab Navigation -->
+		<div class="greenmetrics-tabs-nav">
+			<ul class="greenmetrics-tabs-list">
+				<li class="greenmetrics-tab-item active" data-tab="badge">
+					<span class="dashicons dashicons-visibility"></span>
+					<?php esc_html_e( 'Badge Settings', 'greenmetrics' ); ?>
+				</li>
+				<li class="greenmetrics-tab-item" data-tab="popover">
+					<span class="dashicons dashicons-editor-table"></span>
+					<?php esc_html_e( 'Popover Settings', 'greenmetrics' ); ?>
+				</li>
+				<li class="greenmetrics-tab-item" data-tab="instructions">
+					<span class="dashicons dashicons-info"></span>
+					<?php esc_html_e( 'Usage Instructions', 'greenmetrics' ); ?>
+				</li>
+			</ul>
+		</div>
+
 		<div class="greenmetrics-admin-content-wrapper">
 			<!-- Left Column: Settings Form -->
 			<div class="greenmetrics-admin-settings-column">
@@ -84,163 +102,223 @@ $settings = get_option(
 					}
 					?>
 
-					<!-- Badge Display -->
-					<div class="greenmetrics-admin-card settings-card badge-display">
-						<h3 class="settings-card-header">
-							<span class="dashicons dashicons-visibility card-icon"></span>
-							<?php esc_html_e( 'Badge Display', 'greenmetrics' ); ?>
-						</h3>
-						<div class="settings-card-content">
-							<div class="form-field">
-								<label for="enable_badge"><?php esc_html_e( 'Display Badge', 'greenmetrics' ); ?></label>
-								<?php $admin->render_badge_field(); ?>
+					<!-- Tab Content -->
+					<div class="greenmetrics-tabs-content">
+						<!-- Badge Settings Tab -->
+						<div class="greenmetrics-tab-content active" id="tab-badge">
+							<!-- Badge Display -->
+							<div class="greenmetrics-admin-card settings-card badge-display">
+								<h3 class="settings-card-header">
+									<span class="dashicons dashicons-visibility card-icon"></span>
+									<?php esc_html_e( 'Badge Display', 'greenmetrics' ); ?>
+								</h3>
+								<div class="settings-card-content">
+									<div class="form-field">
+										<label for="enable_badge"><?php esc_html_e( 'Display Badge', 'greenmetrics' ); ?></label>
+										<?php $admin->render_badge_field(); ?>
+									</div>
+
+									<div class="form-field">
+										<label for="badge_position"><?php esc_html_e( 'Badge Position', 'greenmetrics' ); ?></label>
+										<?php $admin->render_badge_position_field(); ?>
+									</div>
+
+									<div class="form-field">
+										<label for="badge_size"><?php esc_html_e( 'Badge Size', 'greenmetrics' ); ?></label>
+										<?php $admin->render_badge_size_field(); ?>
+									</div>
+								</div>
 							</div>
 
-							<div class="form-field">
-								<label for="badge_position"><?php esc_html_e( 'Badge Position', 'greenmetrics' ); ?></label>
-								<?php $admin->render_badge_position_field(); ?>
-							</div>
+							<!-- Badge Appearance -->
+							<div class="greenmetrics-admin-card settings-card badge-appearance">
+								<h3 class="settings-card-header">
+									<span class="dashicons dashicons-art card-icon"></span>
+									<?php esc_html_e( 'Badge Appearance', 'greenmetrics' ); ?>
+								</h3>
+								<div class="settings-card-content">
+									<div class="form-field">
+										<label for="badge_text"><?php esc_html_e( 'Badge Text', 'greenmetrics' ); ?></label>
+										<?php $admin->render_badge_text_field(); ?>
+									</div>
 
-							<div class="form-field">
-								<label for="badge_size"><?php esc_html_e( 'Badge Size', 'greenmetrics' ); ?></label>
-								<?php $admin->render_badge_size_field(); ?>
-							</div>
-						</div>
-					</div>
+									<div class="form-field">
+										<label for="badge_background_color"><?php esc_html_e( 'Background Color', 'greenmetrics' ); ?></label>
+										<?php $admin->render_badge_background_color_field(); ?>
+									</div>
 
-					<!-- Badge Appearance -->
-					<div class="greenmetrics-admin-card settings-card badge-appearance">
-						<h3 class="settings-card-header">
-							<span class="dashicons dashicons-art card-icon"></span>
-							<?php esc_html_e( 'Badge Appearance', 'greenmetrics' ); ?>
-						</h3>
-						<div class="settings-card-content">
-							<div class="form-field">
-								<label for="badge_text"><?php esc_html_e( 'Badge Text', 'greenmetrics' ); ?></label>
-								<?php $admin->render_badge_text_field(); ?>
-							</div>
+									<div class="form-field">
+										<label for="badge_text_color"><?php esc_html_e( 'Text Color', 'greenmetrics' ); ?></label>
+										<?php $admin->render_badge_text_color_field(); ?>
+									</div>
 
-							<div class="form-field">
-								<label for="badge_background_color"><?php esc_html_e( 'Background Color', 'greenmetrics' ); ?></label>
-								<?php $admin->render_badge_background_color_field(); ?>
-							</div>
+									<div class="form-field">
+										<label for="display_icon"><?php esc_html_e( 'Display Icon', 'greenmetrics' ); ?></label>
+										<?php $admin->render_display_icon_field(); ?>
+									</div>
 
-							<div class="form-field">
-								<label for="badge_text_color"><?php esc_html_e( 'Text Color', 'greenmetrics' ); ?></label>
-								<?php $admin->render_badge_text_color_field(); ?>
-							</div>
+									<div class="form-field icon-settings">
+										<label for="badge_icon_type"><?php esc_html_e( 'Choose Icon', 'greenmetrics' ); ?></label>
+										<?php $admin->render_badge_icon_type_field(); ?>
+									</div>
 
-							<div class="form-field">
-								<label for="display_icon"><?php esc_html_e( 'Display Icon', 'greenmetrics' ); ?></label>
-								<?php $admin->render_display_icon_field(); ?>
-							</div>
+									<div class="form-field custom-icon-field">
+										<label for="badge_custom_icon"><?php esc_html_e( 'Custom Icon', 'greenmetrics' ); ?></label>
+										<?php $admin->render_badge_custom_icon_field(); ?>
+									</div>
 
-							<div class="form-field icon-settings">
-								<label for="badge_icon_type"><?php esc_html_e( 'Choose Icon', 'greenmetrics' ); ?></label>
-								<?php $admin->render_badge_icon_type_field(); ?>
-							</div>
+									<div class="form-field icon-settings">
+										<label for="badge_icon_color"><?php esc_html_e( 'Icon Color', 'greenmetrics' ); ?></label>
+										<?php $admin->render_badge_icon_color_field(); ?>
+									</div>
 
-							<div class="form-field custom-icon-field">
-								<label for="badge_custom_icon"><?php esc_html_e( 'Custom Icon', 'greenmetrics' ); ?></label>
-								<?php $admin->render_badge_custom_icon_field(); ?>
-							</div>
-
-							<div class="form-field icon-settings">
-								<label for="badge_icon_color"><?php esc_html_e( 'Icon Color', 'greenmetrics' ); ?></label>
-								<?php $admin->render_badge_icon_color_field(); ?>
-							</div>
-
-							<div class="form-field icon-settings">
-								<label for="badge_icon_size"><?php esc_html_e( 'Icon Size', 'greenmetrics' ); ?></label>
-								<?php $admin->render_badge_icon_size_field(); ?>
-							</div>
-						</div>
-					</div>
-
-					<!-- Popover Content -->
-					<div class="greenmetrics-admin-card settings-card popover-content">
-						<h3 class="settings-card-header">
-							<span class="dashicons dashicons-editor-table card-icon"></span>
-							<?php esc_html_e( 'Popover Content', 'greenmetrics' ); ?>
-						</h3>
-						<div class="settings-card-content">
-							<div class="form-field">
-								<label for="popover_title"><?php esc_html_e( 'Content Title', 'greenmetrics' ); ?></label>
-								<?php $admin->render_popover_title_field(); ?>
-							</div>
-
-							<div class="form-field">
-								<label for="popover_metrics"><?php esc_html_e( 'Metrics to Display', 'greenmetrics' ); ?></label>
-								<?php $admin->render_popover_metrics_field(); ?>
-							</div>
-
-							<div class="form-field">
-								<label for="popover_custom_content"><?php esc_html_e( 'Custom Content', 'greenmetrics' ); ?></label>
-								<?php $admin->render_popover_custom_content_field(); ?>
+									<div class="form-field icon-settings">
+										<label for="badge_icon_size"><?php esc_html_e( 'Icon Size', 'greenmetrics' ); ?></label>
+										<?php $admin->render_badge_icon_size_field(); ?>
+									</div>
+								</div>
 							</div>
 						</div>
-					</div>
 
-					<!-- Popover Appearance -->
-					<div class="greenmetrics-admin-card settings-card popover-appearance">
-						<h3 class="settings-card-header">
-							<span class="dashicons dashicons-admin-appearance card-icon"></span>
-							<?php esc_html_e( 'Popover Appearance', 'greenmetrics' ); ?>
-						</h3>
-						<div class="settings-card-content">
-							<div class="form-field">
-								<label for="popover_bg_color"><?php esc_html_e( 'Content Background Color', 'greenmetrics' ); ?></label>
-								<?php $admin->render_popover_bg_color_field(); ?>
+						<!-- Popover Settings Tab -->
+						<div class="greenmetrics-tab-content" id="tab-popover">
+							<!-- Popover Content -->
+							<div class="greenmetrics-admin-card settings-card popover-content">
+								<h3 class="settings-card-header">
+									<span class="dashicons dashicons-editor-table card-icon"></span>
+									<?php esc_html_e( 'Popover Content', 'greenmetrics' ); ?>
+								</h3>
+								<div class="settings-card-content">
+									<div class="form-field">
+										<label for="popover_title"><?php esc_html_e( 'Content Title', 'greenmetrics' ); ?></label>
+										<?php $admin->render_popover_title_field(); ?>
+									</div>
+
+									<div class="form-field">
+										<label for="popover_metrics"><?php esc_html_e( 'Metrics to Display', 'greenmetrics' ); ?></label>
+										<?php $admin->render_popover_metrics_field(); ?>
+									</div>
+
+									<div class="form-field">
+										<label for="popover_custom_content"><?php esc_html_e( 'Custom Content', 'greenmetrics' ); ?></label>
+										<?php $admin->render_popover_custom_content_field(); ?>
+									</div>
+								</div>
 							</div>
 
-							<div class="form-field">
-								<label for="popover_text_color"><?php esc_html_e( 'Content Text Color', 'greenmetrics' ); ?></label>
-								<?php $admin->render_popover_text_color_field(); ?>
-							</div>
+							<!-- Popover Appearance -->
+							<div class="greenmetrics-admin-card settings-card popover-appearance">
+								<h3 class="settings-card-header">
+									<span class="dashicons dashicons-admin-appearance card-icon"></span>
+									<?php esc_html_e( 'Popover Appearance', 'greenmetrics' ); ?>
+								</h3>
+								<div class="settings-card-content">
+									<div class="form-field">
+										<label for="popover_bg_color"><?php esc_html_e( 'Content Background Color', 'greenmetrics' ); ?></label>
+										<?php $admin->render_popover_bg_color_field(); ?>
+									</div>
 
-							<div class="form-field">
-								<label for="popover_metrics_color"><?php esc_html_e( 'Metrics Text Color', 'greenmetrics' ); ?></label>
-								<?php $admin->render_popover_metrics_color_field(); ?>
-							</div>
+									<div class="form-field">
+										<label for="popover_text_color"><?php esc_html_e( 'Content Text Color', 'greenmetrics' ); ?></label>
+										<?php $admin->render_popover_text_color_field(); ?>
+									</div>
 
-							<div class="form-field">
-								<label for="popover_metrics_bg_color"><?php esc_html_e( 'Metrics Background Color', 'greenmetrics' ); ?></label>
-								<?php $admin->render_popover_metrics_bg_color_field(); ?>
-							</div>
+									<div class="form-field">
+										<label for="popover_metrics_color"><?php esc_html_e( 'Metrics Text Color', 'greenmetrics' ); ?></label>
+										<?php $admin->render_popover_metrics_color_field(); ?>
+									</div>
 
-							<div class="form-field">
-								<label for="popover_metrics_list_bg_color"><?php esc_html_e( 'Metrics List Background', 'greenmetrics' ); ?></label>
-								<?php $admin->render_popover_metrics_list_bg_color_field(); ?>
-							</div>
+									<div class="form-field">
+										<label for="popover_metrics_bg_color"><?php esc_html_e( 'Metrics Background Color', 'greenmetrics' ); ?></label>
+										<?php $admin->render_popover_metrics_bg_color_field(); ?>
+									</div>
 
-							<div class="form-field">
-								<label for="popover_metrics_list_hover_bg_color"><?php esc_html_e( 'Metrics List Hover Background', 'greenmetrics' ); ?></label>
-								<?php $admin->render_popover_metrics_list_hover_bg_color_field(); ?>
-							</div>
+									<div class="form-field">
+										<label for="popover_metrics_list_bg_color"><?php esc_html_e( 'Metrics List Background', 'greenmetrics' ); ?></label>
+										<?php $admin->render_popover_metrics_list_bg_color_field(); ?>
+									</div>
 
-							<div class="form-field">
-								<label for="popover_content_font"><?php esc_html_e( 'Content Font Family', 'greenmetrics' ); ?></label>
-								<?php $admin->render_popover_content_font_field(); ?>
-							</div>
+									<div class="form-field">
+										<label for="popover_metrics_list_hover_bg_color"><?php esc_html_e( 'Metrics List Hover Background', 'greenmetrics' ); ?></label>
+										<?php $admin->render_popover_metrics_list_hover_bg_color_field(); ?>
+									</div>
 
-							<div class="form-field">
-								<label for="popover_content_font_size_number"><?php esc_html_e( 'Content Font Size', 'greenmetrics' ); ?></label>
-								<?php $admin->render_popover_content_font_size_field(); ?>
-							</div>
+									<div class="form-field">
+										<label for="popover_content_font"><?php esc_html_e( 'Content Font Family', 'greenmetrics' ); ?></label>
+										<?php $admin->render_popover_content_font_field(); ?>
+									</div>
 
-							<div class="form-field">
-								<label for="popover_metrics_font"><?php esc_html_e( 'Metrics Font Family', 'greenmetrics' ); ?></label>
-								<?php $admin->render_popover_metrics_font_field(); ?>
-							</div>
+									<div class="form-field">
+										<label for="popover_content_font_size_number"><?php esc_html_e( 'Content Font Size', 'greenmetrics' ); ?></label>
+										<?php $admin->render_popover_content_font_size_field(); ?>
+									</div>
 
-							<div class="form-field">
-								<label for="popover_metrics_font_size_number"><?php esc_html_e( 'Metrics Font Size', 'greenmetrics' ); ?></label>
-								<?php $admin->render_popover_metrics_font_size_field(); ?>
-							</div>
+									<div class="form-field">
+										<label for="popover_metrics_font"><?php esc_html_e( 'Metrics Font Family', 'greenmetrics' ); ?></label>
+										<?php $admin->render_popover_metrics_font_field(); ?>
+									</div>
 
-							<div class="form-field">
-								<label for="popover_metrics_label_font_size_number"><?php esc_html_e( 'Metrics Label Font Size', 'greenmetrics' ); ?></label>
-								<?php $admin->render_popover_metrics_label_font_size_field(); ?>
+									<div class="form-field">
+										<label for="popover_metrics_font_size_number"><?php esc_html_e( 'Metrics Font Size', 'greenmetrics' ); ?></label>
+										<?php $admin->render_popover_metrics_font_size_field(); ?>
+									</div>
+
+									<div class="form-field">
+										<label for="popover_metrics_label_font_size_number"><?php esc_html_e( 'Metrics Label Font Size', 'greenmetrics' ); ?></label>
+										<?php $admin->render_popover_metrics_label_font_size_field(); ?>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- Instructions Tab -->
+						<div class="greenmetrics-tab-content" id="tab-instructions">
+							<div class="greenmetrics-admin-card">
+								<h2><?php esc_html_e( 'Usage Instructions', 'greenmetrics' ); ?></h2>
+
+								<div class="guide-card">
+									<h3><?php esc_html_e( 'Automatic Badge Display', 'greenmetrics' ); ?></h3>
+									<p><?php esc_html_e( 'When enabled in the settings, the badge will automatically appear on all pages of your site in the position you select.', 'greenmetrics' ); ?></p>
+								</div>
+
+								<div class="guide-card">
+									<h3><?php esc_html_e( 'Using Shortcode', 'greenmetrics' ); ?></h3>
+									<p><?php esc_html_e( 'You can also add the badge to specific locations using the shortcode:', 'greenmetrics' ); ?></p>
+									<div class="code-block">
+										<code>[greenmetrics_badge]</code>
+									</div>
+
+									<p><?php esc_html_e( 'The shortcode can include custom attributes to override the default settings:', 'greenmetrics' ); ?></p>
+									<ul class="attributes-list">
+										<li><code>position="top-left|top-right|bottom-left|bottom-right"</code></li>
+										<li><code>size="small|medium|large"</code></li>
+										<li><code>text="Your custom badge text"</code></li>
+										<li><code>background_color="#hexcolor"</code></li>
+										<li><code>text_color="#hexcolor"</code></li>
+										<li><code>icon_color="#hexcolor"</code></li>
+									</ul>
+
+									<p><?php esc_html_e( 'Example with custom attributes:', 'greenmetrics' ); ?></p>
+									<div class="code-block">
+										<code>[greenmetrics_badge position="top-right" size="large" text="Green Website"]</code>
+									</div>
+								</div>
+
+								<div class="guide-card">
+									<h3><?php esc_html_e( 'Using Block Editor', 'greenmetrics' ); ?></h3>
+									<p><?php esc_html_e( 'Add the GreenMetrics badge using the Block Editor in your page or post:', 'greenmetrics' ); ?></p>
+									<ol>
+										<li><?php esc_html_e( 'Edit a page or post using the Block Editor', 'greenmetrics' ); ?></li>
+										<li><?php esc_html_e( 'Click the "+" button to add a new block', 'greenmetrics' ); ?></li>
+										<li><?php esc_html_e( 'Search for "GreenMetrics"', 'greenmetrics' ); ?></li>
+										<li><?php esc_html_e( 'Select the "GreenMetrics Badge" block', 'greenmetrics' ); ?></li>
+										<li><?php esc_html_e( 'Customize the badge appearance using the block settings sidebar', 'greenmetrics' ); ?></li>
+									</ol>
+
+									<div class="tip-box">
+										<p><strong><?php esc_html_e( 'Tip:', 'greenmetrics' ); ?></strong> <?php esc_html_e( 'The Block Editor provides a visual way to customize the badge with the same options available in the shortcode.', 'greenmetrics' ); ?></p>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -379,54 +457,7 @@ $settings = get_option(
 			</div>
 		</div>
 
-		<!-- Usage Instructions - Moved to bottom -->
-		<div class="greenmetrics-admin-card" style="margin-top: 30px;">
-			<h2><?php esc_html_e( 'Usage Instructions', 'greenmetrics' ); ?></h2>
 
-			<div class="guide-card">
-				<h3><?php esc_html_e( 'Automatic Badge Display', 'greenmetrics' ); ?></h3>
-				<p><?php esc_html_e( 'When enabled in the settings, the badge will automatically appear on all pages of your site in the position you select.', 'greenmetrics' ); ?></p>
-			</div>
-
-			<div class="guide-card">
-				<h3><?php esc_html_e( 'Using Shortcode', 'greenmetrics' ); ?></h3>
-				<p><?php esc_html_e( 'You can also add the badge to specific locations using the shortcode:', 'greenmetrics' ); ?></p>
-				<div class="code-block">
-					<code>[greenmetrics_badge]</code>
-				</div>
-
-				<p><?php esc_html_e( 'The shortcode can include custom attributes to override the default settings:', 'greenmetrics' ); ?></p>
-				<ul class="attributes-list">
-					<li><code>position="top-left|top-right|bottom-left|bottom-right"</code></li>
-					<li><code>size="small|medium|large"</code></li>
-					<li><code>text="Your custom badge text"</code></li>
-					<li><code>background_color="#hexcolor"</code></li>
-					<li><code>text_color="#hexcolor"</code></li>
-					<li><code>icon_color="#hexcolor"</code></li>
-				</ul>
-
-				<p><?php esc_html_e( 'Example with custom attributes:', 'greenmetrics' ); ?></p>
-				<div class="code-block">
-					<code>[greenmetrics_badge position="top-right" size="large" text="Green Website"]</code>
-				</div>
-			</div>
-
-			<div class="guide-card">
-				<h3><?php esc_html_e( 'Using Block Editor', 'greenmetrics' ); ?></h3>
-				<p><?php esc_html_e( 'Add the GreenMetrics badge using the Block Editor in your page or post:', 'greenmetrics' ); ?></p>
-				<ol>
-					<li><?php esc_html_e( 'Edit a page or post using the Block Editor', 'greenmetrics' ); ?></li>
-					<li><?php esc_html_e( 'Click the "+" button to add a new block', 'greenmetrics' ); ?></li>
-					<li><?php esc_html_e( 'Search for "GreenMetrics"', 'greenmetrics' ); ?></li>
-					<li><?php esc_html_e( 'Select the "GreenMetrics Badge" block', 'greenmetrics' ); ?></li>
-					<li><?php esc_html_e( 'Customize the badge appearance using the block settings sidebar', 'greenmetrics' ); ?></li>
-				</ol>
-
-				<div class="tip-box">
-					<p><strong><?php esc_html_e( 'Tip:', 'greenmetrics' ); ?></strong> <?php esc_html_e( 'The Block Editor provides a visual way to customize the badge with the same options available in the shortcode.', 'greenmetrics' ); ?></p>
-				</div>
-			</div>
-		</div>
 	</div>
 </div>
 
@@ -439,6 +470,28 @@ jQuery(document).ready(function($) {
 
 	// Add localized strings for JavaScript
 	const customIconText = "<?php echo esc_js( __( 'Custom Icon', 'greenmetrics' ) ); ?>";
+
+	// Tab functionality
+	$('.greenmetrics-tab-item').on('click', function() {
+		const tabId = $(this).data('tab');
+
+		// Update active tab
+		$('.greenmetrics-tab-item').removeClass('active');
+		$(this).addClass('active');
+
+		// Show selected tab content
+		$('.greenmetrics-tab-content').removeClass('active');
+		$('#tab-' + tabId).addClass('active');
+
+		// Store the active tab in localStorage
+		localStorage.setItem('greenmetrics_display_settings_active_tab', tabId);
+	});
+
+	// Restore active tab from localStorage if available
+	const activeTab = localStorage.getItem('greenmetrics_display_settings_active_tab');
+	if (activeTab) {
+		$('.greenmetrics-tab-item[data-tab="' + activeTab + '"]').trigger('click');
+	}
 
 	// Handle form submission
 	$('#greenmetrics-display-settings-form').on('submit', function() {
@@ -699,6 +752,59 @@ jQuery(document).ready(function($) {
 </script>
 
 <style>
+/* Tab Styles */
+.greenmetrics-tabs-nav {
+	margin-bottom: 20px;
+}
+
+.greenmetrics-tabs-list {
+	display: flex;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	border-bottom: 1px solid #ccc;
+}
+
+.greenmetrics-tab-item {
+	padding: 12px 20px;
+	margin: 0;
+	cursor: pointer;
+	font-weight: 500;
+	color: #555;
+	background-color: #f8f8f8;
+	border: 1px solid #ccc;
+	border-bottom: none;
+	margin-right: 5px;
+	border-radius: 4px 4px 0 0;
+	display: flex;
+	align-items: center;
+}
+
+.greenmetrics-tab-item .dashicons {
+	margin-right: 8px;
+	vertical-align: middle;
+}
+
+.greenmetrics-tab-item:hover {
+	background-color: #f0f0f0;
+}
+
+.greenmetrics-tab-item.active {
+	background-color: #fff;
+	color: #333;
+	border-bottom: 1px solid #fff;
+	margin-bottom: -1px;
+}
+
+.greenmetrics-tab-content {
+	display: none;
+}
+
+.greenmetrics-tab-content.active {
+	display: block;
+}
+
+/* Preview Styles */
 .preview-container {
 	border-radius: 4px;
 }
