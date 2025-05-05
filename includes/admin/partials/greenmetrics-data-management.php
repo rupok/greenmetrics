@@ -147,7 +147,7 @@ $total_size = \GreenMetrics\GreenMetrics_Data_Manager::format_bytes($table_sizes
 						</div>
 					</div>
 
-					<!-- Right Column: Database Usage -->
+					<!-- Right Column: Database Usage and How Data Management Works -->
 					<div class="greenmetrics-admin-info-column">
 						<div class="greenmetrics-admin-card">
 							<h2><?php esc_html_e( 'Database Usage', 'greenmetrics' ); ?></h2>
@@ -178,6 +178,22 @@ $total_size = \GreenMetrics\GreenMetrics_Data_Manager::format_bytes($table_sizes
 									</tr>
 								</tbody>
 							</table>
+						</div>
+
+						<div class="greenmetrics-admin-card">
+							<h2><?php esc_html_e( 'How Data Management Works', 'greenmetrics' ); ?></h2>
+
+							<h3><?php esc_html_e( 'Data Aggregation', 'greenmetrics' ); ?></h3>
+							<p><?php esc_html_e( 'Data aggregation combines individual page view records into summary statistics, grouped by time period (daily, weekly, or monthly) and page.', 'greenmetrics' ); ?></p>
+							<p><?php esc_html_e( 'This preserves your historical metrics while significantly reducing database size.', 'greenmetrics' ); ?></p>
+
+							<h3><?php esc_html_e( 'Data Pruning', 'greenmetrics' ); ?></h3>
+							<p><?php esc_html_e( 'Data pruning permanently removes old individual page view records from the database after they\'ve been aggregated.', 'greenmetrics' ); ?></p>
+							<p><?php esc_html_e( 'This prevents your database from growing too large over time.', 'greenmetrics' ); ?></p>
+
+							<h3><?php esc_html_e( 'Automatic Scheduling', 'greenmetrics' ); ?></h3>
+							<p><?php esc_html_e( 'When data management is enabled, these processes run automatically once per day via WordPress cron.', 'greenmetrics' ); ?></p>
+							<p><?php esc_html_e( 'You can also run them manually using the buttons on the Data Management tab.', 'greenmetrics' ); ?></p>
 						</div>
 					</div>
 				</div>
@@ -289,7 +305,7 @@ $total_size = \GreenMetrics\GreenMetrics_Data_Manager::format_bytes($table_sizes
 
 							<h3><?php esc_html_e( 'Automatic Scheduling', 'greenmetrics' ); ?></h3>
 							<p><?php esc_html_e( 'When data management is enabled, these processes run automatically once per day via WordPress cron.', 'greenmetrics' ); ?></p>
-							<p><?php esc_html_e( 'You can also run them manually using the buttons on this page.', 'greenmetrics' ); ?></p>
+							<p><?php esc_html_e( 'You can also run them manually using the buttons on the Data Management tab.', 'greenmetrics' ); ?></p>
 						</div>
 					</div>
 				</div>
