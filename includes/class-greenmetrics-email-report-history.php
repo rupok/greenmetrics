@@ -63,8 +63,15 @@ class GreenMetrics_Email_Report_History {
 		global $wpdb;
 		$charset_collate = $wpdb->get_charset_collate();
 
-		// Check if table already exists
-		if ( GreenMetrics_DB_Helper::table_exists( $this->table_name ) ) {
+		// Check if table already exists using direct query to avoid DESCRIBE IF error
+		$table_exists = (bool) $wpdb->get_var(
+			$wpdb->prepare(
+				'SHOW TABLES LIKE %s',
+				$wpdb->esc_like( $this->table_name )
+			)
+		);
+
+		if ( $table_exists ) {
 			return true;
 		}
 
@@ -122,8 +129,15 @@ class GreenMetrics_Email_Report_History {
 	public function record_email( $report_type, $subject, $recipients, $content, $status = 'sent', $is_test = false ) {
 		global $wpdb;
 
-		// Ensure the table exists
-		if ( ! GreenMetrics_DB_Helper::table_exists( $this->table_name ) ) {
+		// Ensure the table exists using direct query to avoid DESCRIBE IF error
+		$table_exists = (bool) $wpdb->get_var(
+			$wpdb->prepare(
+				'SHOW TABLES LIKE %s',
+				$wpdb->esc_like( $this->table_name )
+			)
+		);
+
+		if ( ! $table_exists ) {
 			$this->create_table();
 		}
 
@@ -288,10 +302,10 @@ class GreenMetrics_Email_Report_History {
 
 		$date = date( 'Y-m-d H:i:s', strtotime( "-{$days_to_keep} days" ) );
 		$sql = $wpdb->prepare( "DELETE FROM {$this->table_name} WHERE sent_at < %s", $date );
-		
+
 		$deleted = $wpdb->query( $sql );
 		greenmetrics_log( "Pruned {$deleted} old email reports" );
-		
+
 		return $deleted;
 	}
 }

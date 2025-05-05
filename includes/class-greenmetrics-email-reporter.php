@@ -375,11 +375,13 @@ class GreenMetrics_Email_Reporter {
 			$tracker = GreenMetrics_Tracker::get_instance();
 			$stats = $tracker->get_stats();
 
-			// Replace metrics placeholders
-			$content = str_replace( '[carbon_total]', $this->safe_format('carbon', $stats['carbon_footprint']), $content );
-			$content = str_replace( '[energy_total]', $this->safe_format('energy', $stats['energy_consumption']), $content );
-			$content = str_replace( '[data_total]', $this->safe_format('bytes', $stats['data_transfer']), $content );
-			$content = str_replace( '[views_total]', number_format($stats['page_views']), $content );
+			// Replace metrics placeholders with proper checks for array keys
+			$content = str_replace( '[carbon_total]', $this->safe_format('carbon', isset($stats['carbon_footprint']) ? $stats['carbon_footprint'] : 0), $content );
+			$content = str_replace( '[energy_total]', $this->safe_format('energy', isset($stats['energy_consumption']) ? $stats['energy_consumption'] : 0), $content );
+			$content = str_replace( '[data_total]', $this->safe_format('bytes', isset($stats['data_transfer']) ? $stats['data_transfer'] : 0), $content );
+			// Make sure we have a valid number for page_views before formatting
+			$page_views = isset($stats['page_views']) && is_numeric($stats['page_views']) ? $stats['page_views'] : 0;
+			$content = str_replace( '[views_total]', number_format($page_views), $content );
 		} catch (\Exception $e) {
 			// If there's an error, replace with zeros
 			$content = str_replace( '[carbon_total]', '0 kg CO2', $content );
@@ -708,22 +710,22 @@ class GreenMetrics_Email_Reporter {
 				<div class="metrics-grid">
 					<div class="metric-card">
 						<div class="metric-label">Carbon Footprint</div>
-						<div class="metric-value">' . esc_html( $this->safe_format('carbon', $stats['carbon_footprint']) ) . '</div>
+						<div class="metric-value">' . esc_html( $this->safe_format('carbon', isset($stats['carbon_footprint']) ? $stats['carbon_footprint'] : 0) ) . '</div>
 					</div>
 
 					<div class="metric-card">
 						<div class="metric-label">Energy Consumption</div>
-						<div class="metric-value">' . esc_html( $this->safe_format('energy', $stats['energy_consumption']) ) . '</div>
+						<div class="metric-value">' . esc_html( $this->safe_format('energy', isset($stats['energy_consumption']) ? $stats['energy_consumption'] : 0) ) . '</div>
 					</div>
 
 					<div class="metric-card">
 						<div class="metric-label">Data Transfer</div>
-						<div class="metric-value">' . esc_html( $this->safe_format('bytes', $stats['data_transfer']) ) . '</div>
+						<div class="metric-value">' . esc_html( $this->safe_format('bytes', isset($stats['data_transfer']) ? $stats['data_transfer'] : 0) ) . '</div>
 					</div>
 
 					<div class="metric-card">
 						<div class="metric-label">Performance Score</div>
-						<div class="metric-value">' . esc_html( $this->safe_format('score', $stats['performance_score']) ) . '</div>
+						<div class="metric-value">' . esc_html( $this->safe_format('score', isset($stats['performance_score']) ? $stats['performance_score'] : 0) ) . '</div>
 					</div>
 				</div>
 			</div>';
@@ -870,7 +872,7 @@ class GreenMetrics_Email_Reporter {
 	 */
 	private function safe_format($type, $value) {
 		// Handle null, empty, or false values
-		if ( null === $value || '' === $value || false === $value ) {
+		if ( null === $value || '' === $value || false === $value || !isset($value) ) {
 			switch ($type) {
 				case 'carbon':
 					return '0 kg CO2';
@@ -883,6 +885,13 @@ class GreenMetrics_Email_Reporter {
 				default:
 					return '0';
 			}
+		}
+
+		// Convert to appropriate type to avoid type errors
+		if ($type === 'carbon' || $type === 'energy' || $type === 'score') {
+			$value = floatval($value);
+		} else if ($type === 'bytes') {
+			$value = intval($value);
 		}
 
 		try {
