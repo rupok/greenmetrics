@@ -35,8 +35,21 @@ $aggregated_table_size = \GreenMetrics\GreenMetrics_Data_Manager::format_bytes($
 $total_size = \GreenMetrics\GreenMetrics_Data_Manager::format_bytes($table_sizes['total_size']);
 
 ?>
-<div class="wrap greenmetrics-admin-wrap">
-	<h1><?php esc_html_e( 'GreenMetrics - Data Management', 'greenmetrics' ); ?></h1>
+<div class="wrap">
+	<div class="greenmetrics-admin-container">
+		<div class="greenmetrics-admin-header">
+			<div class="header-content">
+				<img src="<?php echo esc_url( GREENMETRICS_PLUGIN_URL . 'includes/admin/img/greenmetrics-icon.png' ); ?>" alt="<?php esc_attr_e( 'GreenMetrics Icon', 'greenmetrics' ); ?>" />
+				<h1><?php esc_html_e( 'GreenMetrics - Data Management', 'greenmetrics' ); ?></h1>
+			</div>
+
+			<span class="version">
+			<?php
+			/* translators: %s: Plugin version number */
+			echo esc_html( sprintf( __( 'GreenMetrics v%s', 'greenmetrics' ), GREENMETRICS_VERSION ) );
+			?>
+			</span>
+		</div>
 
 	<?php settings_errors(); ?>
 	<?php wp_nonce_field( 'greenmetrics_admin_nonce', 'greenmetrics_nonce' ); ?>
@@ -335,4 +348,5 @@ $total_size = \GreenMetrics\GreenMetrics_Data_Manager::format_bytes($table_sizes
 			</div>
 		</div>
 	</div>
+</div>
 </div>
