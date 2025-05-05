@@ -2,6 +2,69 @@
  * GreenMetrics Email Reporting Styles
  */
 
+/* Tab Navigation */
+.greenmetrics-tabs-nav {
+    margin: 20px 0;
+}
+
+.greenmetrics-tabs-list {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid #ccc;
+}
+
+.greenmetrics-tab-item {
+    padding: 12px 20px;
+    margin: 0 4px 0 0;
+    cursor: pointer;
+    background-color: #f8f9fa;
+    border: 1px solid #ccc;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    font-weight: 500;
+    color: #555;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.greenmetrics-tab-item:hover {
+    background-color: #fff;
+    color: #2271b1;
+}
+
+.greenmetrics-tab-item.active {
+    background-color: #fff;
+    color: #2271b1;
+    border-bottom: 1px solid #fff;
+    margin-bottom: -1px;
+}
+
+.greenmetrics-tab-item .dashicons {
+    margin-right: 8px;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+/* Tab Content */
+.greenmetrics-tab-content {
+    display: none;
+    padding: 20px 0;
+}
+
+.greenmetrics-tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
 /* Email Reports Section */
 .email-reports-section {
     margin-top: 30px;
@@ -427,25 +490,62 @@
     margin-top: 20px;
 }
 
+.test-email-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 15px;
+}
+
+.test-email-container .button-large {
+    padding: 8px 20px;
+    height: auto;
+    font-size: 14px;
+    min-width: 200px;
+}
+
 .test-email-result {
-    margin-left: 10px;
-    padding: 5px 10px;
-    border-radius: 3px;
+    margin-top: 15px;
+    padding: 10px 15px;
+    border-radius: 4px;
     display: none;
     font-weight: 500;
     transition: all 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left;
 }
 
 .test-email-result.success {
     background-color: #f0f9eb;
     color: #46b450;
     border: 1px solid #c6e6b1;
+    display: flex;
+    align-items: center;
+}
+
+.test-email-result.success::before {
+    content: "\f147";
+    font-family: dashicons;
+    font-size: 20px;
+    margin-right: 10px;
+    color: #46b450;
 }
 
 .test-email-result.error {
     background-color: #fef0f0;
     color: #dc3232;
     border: 1px solid #fac4c4;
+    display: flex;
+    align-items: center;
+}
+
+.test-email-result.error::before {
+    content: "\f534";
+    font-family: dashicons;
+    font-size: 20px;
+    margin-right: 10px;
+    color: #dc3232;
 }
 
 /* Form Styling */
@@ -575,18 +675,24 @@
 
 .placeholder-toolbar {
     background-color: #f9f9f9;
-    padding: 10px 15px;
+    padding: 15px;
     border-radius: 4px;
     margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
+    border: 1px solid #e5e5e5;
 }
 
 .placeholder-toolbar label {
     font-weight: 600;
     margin-right: 15px;
-    min-width: 120px;
+    display: block;
+    margin-bottom: 5px;
+    color: #23282d;
+}
+
+.placeholder-toolbar .description {
+    margin-bottom: 10px;
+    color: #666;
+    font-style: italic;
 }
 
 .placeholder-buttons-container {
@@ -603,22 +709,54 @@
 .placeholder-button {
     font-family: Consolas, Monaco, monospace;
     font-size: 12px;
-    padding: 4px 8px;
+    padding: 6px 12px;
     height: auto;
     min-height: 0;
     line-height: 1.4;
     position: relative;
     transition: all 0.2s ease;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    color: #333;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
 }
 
 .placeholder-button:hover {
-    background-color: #f0f0f0;
+    background-color: #f0f0f1;
+    border-color: #c3c4c7;
+    color: #2271b1;
 }
 
 .placeholder-button.copied {
     background-color: #4CAF50;
     color: white;
     border-color: #43A047;
+    position: relative;
+}
+
+.placeholder-button.copied::after {
+    content: "Copied!";
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    white-space: nowrap;
+    animation: fadeInOut 1.5s ease forwards;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
 }
 
 /* Add tooltip */

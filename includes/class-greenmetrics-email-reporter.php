@@ -310,9 +310,24 @@ class GreenMetrics_Email_Reporter {
 			? $settings['email_reporting_subject']
 			: 'GreenMetrics Report for [site_name]';
 
-		// Replace placeholders
+		// Replace basic placeholders
 		$subject = str_replace( '[site_name]', get_bloginfo( 'name' ), $subject );
+		$subject = str_replace( '[site_url]', get_bloginfo( 'url' ), $subject );
 		$subject = str_replace( '[date]', date_i18n( get_option( 'date_format' ) ), $subject );
+
+		// Replace admin and user placeholders
+		$subject = str_replace( '[admin_email]', get_option( 'admin_email' ), $subject );
+
+		// Get current user info if available
+		$current_user = wp_get_current_user();
+		if ( $current_user && $current_user->exists() ) {
+			$subject = str_replace( '[user_name]', $current_user->display_name, $subject );
+			$subject = str_replace( '[user_email]', $current_user->user_email, $subject );
+		} else {
+			// Fallback to admin info if no current user
+			$subject = str_replace( '[user_name]', 'WordPress User', $subject );
+			$subject = str_replace( '[user_email]', get_option( 'admin_email' ), $subject );
+		}
 
 		// Add test indicator if this is a test
 		if ( $is_test ) {
@@ -333,6 +348,20 @@ class GreenMetrics_Email_Reporter {
 		$content = str_replace( '[site_name]', get_bloginfo( 'name' ), $content );
 		$content = str_replace( '[site_url]', get_bloginfo( 'url' ), $content );
 		$content = str_replace( '[admin_url]', admin_url(), $content );
+
+		// Admin and user info
+		$content = str_replace( '[admin_email]', get_option( 'admin_email' ), $content );
+
+		// Get current user info if available
+		$current_user = wp_get_current_user();
+		if ( $current_user && $current_user->exists() ) {
+			$content = str_replace( '[user_name]', $current_user->display_name, $content );
+			$content = str_replace( '[user_email]', $current_user->user_email, $content );
+		} else {
+			// Fallback to admin info if no current user
+			$content = str_replace( '[user_name]', 'WordPress User', $content );
+			$content = str_replace( '[user_email]', get_option( 'admin_email' ), $content );
+		}
 
 		// Date and time
 		$content = str_replace( '[date]', date_i18n( get_option( 'date_format' ) ), $content );

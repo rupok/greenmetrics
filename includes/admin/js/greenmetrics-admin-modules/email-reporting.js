@@ -56,9 +56,9 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 			updateEmailPreview();
 		});
 
-		// Handle test email button
-		$('#send_test_email').on('click', function() {
-			sendTestEmail();
+		// Handle test email buttons (both in Settings and Templates tabs)
+		$('#send_test_email, #send_test_email_template').on('click', function() {
+			sendTestEmail($(this).attr('id'));
 		});
 
 		// Handle view report button
@@ -86,6 +86,9 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 				closeReportModal();
 			}
 		});
+
+		// Initialize placeholder buttons
+		initPlaceholders();
 
 		// Initialize day options immediately
 		updateDayOptions();
@@ -331,14 +334,28 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 	 * @function sendTestEmail
 	 * @memberof GreenMetricsAdmin.EmailReporting
 	 * @private
+	 * @param {string} buttonId - The ID of the button that was clicked (optional)
 	 */
-	function sendTestEmail() {
-		var $button = $('#send_test_email');
-		var $result = $('#test_email_result');
+	function sendTestEmail(buttonId) {
+		// Determine which button was clicked
+		var isTemplateTab = buttonId === 'send_test_email_template';
+		var $button = isTemplateTab ? $('#send_test_email_template') : $('#send_test_email');
+		var $result = isTemplateTab ? $('#test_email_template_result') : $('#test_email_result');
+
+		// Store original button text
+		var originalText = $button.html();
 
 		// Disable button and show loading
-		$button.prop('disabled', true).text('Sending...');
+		$button.prop('disabled', true).html('<span class="dashicons dashicons-update" style="font-size: 16px; vertical-align: middle; margin-right: 5px; animation: spin 1.5s linear infinite;"></span> Sending...');
 		$result.text('').hide();
+
+		// Define keyframe animation for the spinner
+		if (!document.getElementById('spin-keyframes')) {
+			var style = document.createElement('style');
+			style.id = 'spin-keyframes';
+			style.innerHTML = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
+			document.head.appendChild(style);
+		}
 
 		// Send AJAX request
 		$.ajax({
@@ -350,11 +367,11 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 			},
 			success: function(response) {
 				if (response && response.success) {
-					$result.removeClass('error').addClass('success').text(response.data.message).show();
+					$result.removeClass('error').addClass('success').text(response.data.message).fadeIn();
 				} else {
 					var errorMsg = (response && response.data && response.data.message) ?
 						response.data.message : 'Failed to send test email. Please check your settings.';
-					$result.removeClass('success').addClass('error').text(errorMsg).show();
+					$result.removeClass('success').addClass('error').text(errorMsg).fadeIn();
 				}
 			},
 			error: function(xhr) {
@@ -388,16 +405,16 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 					// Silent catch - just use default error message
 				}
 
-				$result.removeClass('success').addClass('error').text(errorMessage).show();
+				$result.removeClass('success').addClass('error').text(errorMessage).fadeIn();
 			},
 			complete: function() {
-				// Re-enable button
-				$button.prop('disabled', false).text('Send Test Email');
+				// Re-enable button and restore original text
+				$button.prop('disabled', false).html(originalText);
 
-				// Hide result after 5 seconds
+				// Hide result after 8 seconds
 				setTimeout(function() {
 					$result.fadeOut();
-				}, 5000);
+				}, 8000);
 			}
 		});
 	}
@@ -559,6 +576,113 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 	}
 
 	/**
+	 * Initialize placeholder buttons
+	 *
+	 * @function initPlaceholders
+	 * @memberof GreenMetricsAdmin.EmailReporting
+	 * @private
+	 */
+	function initPlaceholders() {
+		// Define placeholders - only include ones that are actually functional
+		var placeholders = [
+			{ name: '[site_name]', description: 'Your website name' },
+			{ name: '[site_url]', description: 'Your website URL' },
+			{ name: '[date]', description: 'Current date' },
+			{ name: '[admin_email]', description: 'Admin email address' },
+			{ name: '[user_name]', description: 'Current user\'s name' },
+			{ name: '[user_email]', description: 'Current user\'s email' }
+		];
+
+		// Get the placeholder container
+		var $container = $('#placeholder-buttons');
+		if (!$container.length) {
+			return;
+		}
+
+		// Clear existing buttons
+		$container.empty();
+
+		// Add buttons for each placeholder
+		placeholders.forEach(function(placeholder) {
+			var $button = $(
+				'<div class="placeholder-button-wrapper">' +
+				'<button type="button" class="placeholder-button" ' +
+				'data-placeholder="' + placeholder.name + '" ' +
+				'title="Click to copy: ' + placeholder.description + '">' +
+				'<span class="dashicons dashicons-clipboard" style="font-size: 14px; width: 14px; height: 14px; margin-right: 3px;"></span>' +
+				placeholder.name +
+				'</button>' +
+				'</div>'
+			);
+			$container.append($button);
+		});
+
+		// Add click handler for placeholder buttons
+		$container.on('click', '.placeholder-button', function() {
+			var placeholder = $(this).data('placeholder');
+			insertPlaceholder(placeholder);
+
+			// Show copied feedback
+			$(this).addClass('copied');
+
+			// Reset all buttons after a delay
+			setTimeout(function() {
+				$('.placeholder-button').removeClass('copied');
+			}, 1500);
+		});
+	}
+
+	/**
+	 * Insert a placeholder into the active textarea
+	 *
+	 * @function insertPlaceholder
+	 * @memberof GreenMetricsAdmin.EmailReporting
+	 * @private
+	 * @param {string} placeholder - The placeholder to insert
+	 */
+	function insertPlaceholder(placeholder) {
+		// Don't actually insert the placeholder, just show the copied feedback
+		// This simulates copying to clipboard without modifying any textarea
+
+		// Copy the placeholder to clipboard using modern Clipboard API if available
+		if (navigator.clipboard && navigator.clipboard.writeText) {
+			navigator.clipboard.writeText(placeholder).catch(function(err) {
+				console.error('Could not copy text: ', err);
+				// Fallback to older method if Clipboard API fails
+				copyToClipboardFallback(placeholder);
+			});
+		} else {
+			// Fallback for browsers that don't support Clipboard API
+			copyToClipboardFallback(placeholder);
+		}
+	}
+
+	/**
+	 * Fallback method to copy text to clipboard
+	 *
+	 * @function copyToClipboardFallback
+	 * @memberof GreenMetricsAdmin.EmailReporting
+	 * @private
+	 * @param {string} text - The text to copy
+	 */
+	function copyToClipboardFallback(text) {
+		var tempInput = document.createElement('input');
+		tempInput.style.position = 'absolute';
+		tempInput.style.left = '-1000px';
+		tempInput.value = text;
+		document.body.appendChild(tempInput);
+		tempInput.select();
+
+		try {
+			document.execCommand('copy');
+		} catch (err) {
+			console.error('Fallback clipboard copy failed: ', err);
+		}
+
+		document.body.removeChild(tempInput);
+	}
+
+	/**
 	 * Close the report modal
 	 *
 	 * @function closeReportModal
@@ -573,6 +697,14 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 	return {
 		init: init,
 		updateEmailPreview: updateEmailPreview,
-		viewReport: viewReport
+		viewReport: viewReport,
+		adjustIframeHeight: function(iframe) {
+			if (iframe && iframe.contentWindow && iframe.contentWindow.document.body) {
+				var contentHeight = iframe.contentWindow.document.body.scrollHeight + 20;
+				var maxHeight = 600;
+				iframe.style.height = Math.min(contentHeight, maxHeight) + 'px';
+				iframe.style.overflowY = contentHeight > maxHeight ? 'scroll' : 'hidden';
+			}
+		}
 	};
 })(jQuery);

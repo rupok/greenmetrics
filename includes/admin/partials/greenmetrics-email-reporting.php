@@ -39,12 +39,34 @@ $stats   = $tracker->get_stats();
 	<?php settings_errors(); ?>
 	<?php wp_nonce_field( 'greenmetrics_admin_nonce', 'greenmetrics_nonce' ); ?>
 
-	<div class="greenmetrics-admin-content-wrapper">
-		<!-- Left Column: Settings Form -->
-		<div class="greenmetrics-admin-settings-column">
-			<div class="greenmetrics-admin-card">
-				<h2><?php esc_html_e( 'Email Report Settings', 'greenmetrics' ); ?></h2>
-				<p><?php esc_html_e( 'Configure scheduled email reports to keep track of your website\'s environmental impact.', 'greenmetrics' ); ?></p>
+	<!-- Tab Navigation -->
+	<div class="greenmetrics-tabs-nav">
+		<ul class="greenmetrics-tabs-list">
+			<li class="greenmetrics-tab-item active" data-tab="settings">
+				<span class="dashicons dashicons-admin-settings"></span>
+				<?php esc_html_e( 'Email Report Settings', 'greenmetrics' ); ?>
+			</li>
+			<li class="greenmetrics-tab-item" data-tab="templates">
+				<span class="dashicons dashicons-admin-appearance"></span>
+				<?php esc_html_e( 'Email Templates', 'greenmetrics' ); ?>
+			</li>
+			<li class="greenmetrics-tab-item" data-tab="history">
+				<span class="dashicons dashicons-email-alt"></span>
+				<?php esc_html_e( 'Email History', 'greenmetrics' ); ?>
+			</li>
+		</ul>
+	</div>
+
+	<!-- Tab Content -->
+	<div class="greenmetrics-tabs-content">
+		<!-- Settings Tab -->
+		<div class="greenmetrics-tab-content active" id="tab-settings">
+			<div class="greenmetrics-admin-content-wrapper">
+				<!-- Left Column: Settings Form -->
+				<div class="greenmetrics-admin-settings-column">
+					<div class="greenmetrics-admin-card">
+						<h2><?php esc_html_e( 'Email Report Settings', 'greenmetrics' ); ?></h2>
+						<p><?php esc_html_e( 'Configure scheduled email reports to keep track of your website\'s environmental impact.', 'greenmetrics' ); ?></p>
 
 				<form method="post" action="options.php" class="email-settings-form">
 					<?php settings_fields( 'greenmetrics_settings' ); ?>
@@ -149,6 +171,28 @@ $stats   = $tracker->get_stats();
 				</form>
 			</div>
 
+
+
+			<div class="greenmetrics-admin-card test-email-section">
+				<h2><?php esc_html_e( 'Test Email', 'greenmetrics' ); ?></h2>
+				<p><?php esc_html_e( 'Send a test email to verify your settings.', 'greenmetrics' ); ?></p>
+
+				<div class="test-email-container">
+					<button type="button" id="send_test_email" class="button button-primary button-large">
+						<span class="dashicons dashicons-email-alt" style="font-size: 18px; vertical-align: middle; margin-right: 8px;"></span>
+						<?php esc_html_e( 'Send Test Email', 'greenmetrics' ); ?>
+					</button>
+					<div id="test_email_result" class="test-email-result"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Templates Tab -->
+<div class="greenmetrics-tab-content" id="tab-templates">
+	<div class="greenmetrics-admin-content-wrapper">
+		<div class="greenmetrics-admin-settings-column">
 			<div class="greenmetrics-admin-card" id="email-template-editor">
 				<h2><?php esc_html_e( 'Email Template', 'greenmetrics' ); ?></h2>
 				<p><?php esc_html_e( 'Customize the appearance of your email reports.', 'greenmetrics' ); ?></p>
@@ -271,7 +315,8 @@ $stats   = $tracker->get_stats();
 						<h3><span class="dashicons dashicons-editor-code" style="margin-right: 5px; font-size: 18px; vertical-align: middle;"></span><?php esc_html_e( 'Template Content', 'greenmetrics' ); ?></h3>
 
 						<div class="placeholder-toolbar">
-							<label><?php esc_html_e( 'Insert Placeholder:', 'greenmetrics' ); ?></label>
+							<label><?php esc_html_e( 'Available Placeholders:', 'greenmetrics' ); ?></label>
+							<p class="description"><?php esc_html_e( 'Click a placeholder to copy it to your clipboard, then paste it into your template.', 'greenmetrics' ); ?></p>
 							<div id="placeholder-buttons" class="placeholder-buttons-container">
 								<!-- Placeholder buttons will be added by JavaScript -->
 							</div>
@@ -310,24 +355,6 @@ $stats   = $tracker->get_stats();
 
 					<?php submit_button( __( 'Save Template', 'greenmetrics' ) ); ?>
 				</form>
-			</div>
-
-			<div class="greenmetrics-admin-card test-email-section">
-				<h2><?php esc_html_e( 'Test Email', 'greenmetrics' ); ?></h2>
-				<p><?php esc_html_e( 'Send a test email to verify your settings.', 'greenmetrics' ); ?></p>
-
-				<table class="form-table">
-					<tr>
-						<th scope="row"><?php esc_html_e( 'Send Test Email', 'greenmetrics' ); ?></th>
-						<td>
-							<button type="button" id="send_test_email" class="button button-primary">
-								<?php esc_html_e( 'Send Test Email', 'greenmetrics' ); ?>
-							</button>
-							<span id="test_email_result" class="test-email-result"></span>
-							<p class="description"><?php esc_html_e( 'Send a test email to the recipients specified above.', 'greenmetrics' ); ?></p>
-						</td>
-					</tr>
-				</table>
 			</div>
 		</div>
 
@@ -387,6 +414,19 @@ $stats   = $tracker->get_stats();
 				</div>
 			</div>
 
+			<div class="greenmetrics-admin-card test-email-section">
+				<h2><?php esc_html_e( 'Test Email', 'greenmetrics' ); ?></h2>
+				<p><?php esc_html_e( 'Send a test email to verify your template.', 'greenmetrics' ); ?></p>
+
+				<div class="test-email-container">
+					<button type="button" id="send_test_email_template" class="button button-primary button-large">
+						<span class="dashicons dashicons-email-alt" style="font-size: 18px; vertical-align: middle; margin-right: 8px;"></span>
+						<?php esc_html_e( 'Send Test Email', 'greenmetrics' ); ?>
+					</button>
+					<div id="test_email_template_result" class="test-email-result"></div>
+				</div>
+			</div>
+
 			<div class="greenmetrics-admin-card email-help-section">
 				<h2><?php esc_html_e( 'Email Reporting Help', 'greenmetrics' ); ?></h2>
 
@@ -403,171 +443,176 @@ $stats   = $tracker->get_stats();
 				<p><?php esc_html_e( 'You can use the following placeholders in your email subject and content:', 'greenmetrics' ); ?></p>
 				<ul>
 					<li><code>[site_name]</code> - <?php esc_html_e( 'Your website name', 'greenmetrics' ); ?></li>
+					<li><code>[site_url]</code> - <?php esc_html_e( 'Your website URL', 'greenmetrics' ); ?></li>
 					<li><code>[date]</code> - <?php esc_html_e( 'Current date', 'greenmetrics' ); ?></li>
+					<li><code>[admin_email]</code> - <?php esc_html_e( 'Admin email address', 'greenmetrics' ); ?></li>
+					<li><code>[user_name]</code> - <?php esc_html_e( 'Current user\'s name', 'greenmetrics' ); ?></li>
+					<li><code>[user_email]</code> - <?php esc_html_e( 'Current user\'s email', 'greenmetrics' ); ?></li>
 				</ul>
 			</div>
 		</div>
 	</div>
+</div>
 
-	<!-- Email Reports Section -->
-	<div class="greenmetrics-admin-section email-reports-section">
-		<div class="greenmetrics-admin-card">
-			<h2>
-				<span class="dashicons dashicons-email-alt" style="font-size: 24px; margin-right: 10px; color: #2271b1;"></span>
-				<?php esc_html_e( 'Email Report History', 'greenmetrics' ); ?>
-			</h2>
-			<p><?php esc_html_e( 'View a history of sent email reports and manage your reporting activity.', 'greenmetrics' ); ?></p>
+	<!-- History Tab -->
+	<div class="greenmetrics-tab-content" id="tab-history">
+		<div class="greenmetrics-admin-section email-reports-section">
+			<div class="greenmetrics-admin-card">
+				<h2>
+					<span class="dashicons dashicons-email-alt" style="font-size: 24px; margin-right: 10px; color: #2271b1;"></span>
+					<?php esc_html_e( 'Email Report History', 'greenmetrics' ); ?>
+				</h2>
+				<p><?php esc_html_e( 'View a history of sent email reports and manage your reporting activity.', 'greenmetrics' ); ?></p>
 
-			<?php
-			// Get report history
-			if ( class_exists( '\GreenMetrics\GreenMetrics_Email_Report_History' ) ) {
-				$history = \GreenMetrics\GreenMetrics_Email_Report_History::get_instance();
+				<?php
+				// Get report history
+				if ( class_exists( '\GreenMetrics\GreenMetrics_Email_Report_History' ) ) {
+					$history = \GreenMetrics\GreenMetrics_Email_Report_History::get_instance();
 
-				// Get page number
-				$page = isset( $_GET['report_page'] ) ? absint( $_GET['report_page'] ) : 1;
+					// Get page number
+					$page = isset( $_GET['report_page'] ) ? absint( $_GET['report_page'] ) : 1;
 
-				// Get reports
-				$reports = $history->get_reports( array(
-					'per_page' => 10,
-					'page'     => $page,
-				) );
+					// Get reports
+					$reports = $history->get_reports( array(
+						'per_page' => 10,
+						'page'     => $page,
+					) );
 
-				// Get total reports
-				$total_reports = $history->get_total_reports();
+					// Get total reports
+					$total_reports = $history->get_total_reports();
 
-				// Calculate total pages
-				$total_pages = ceil( $total_reports / 10 );
+					// Calculate total pages
+					$total_pages = ceil( $total_reports / 10 );
 
-				if ( ! empty( $reports ) ) {
-					?>
-					<div class="report-history-table-container">
-						<table class="wp-list-table widefat fixed striped report-history-table">
-							<thead>
-								<tr>
-									<th><?php esc_html_e( 'Date', 'greenmetrics' ); ?></th>
-									<th><?php esc_html_e( 'Type', 'greenmetrics' ); ?></th>
-									<th><?php esc_html_e( 'Recipients', 'greenmetrics' ); ?></th>
-									<th><?php esc_html_e( 'Subject', 'greenmetrics' ); ?></th>
-									<th><?php esc_html_e( 'Status', 'greenmetrics' ); ?></th>
-									<th><?php esc_html_e( 'Actions', 'greenmetrics' ); ?></th>
-								</tr>
-							</thead>
-							<tbody>
-								<?php foreach ( $reports as $report ) : ?>
+					if ( ! empty( $reports ) ) {
+						?>
+						<div class="report-history-table-container">
+							<table class="wp-list-table widefat fixed striped report-history-table">
+								<thead>
 									<tr>
-										<td>
-											<?php echo esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $report['sent_at'] ) ) ); ?>
-										</td>
-										<td>
-											<?php
-											$type_label = '';
-											switch ( $report['report_type'] ) {
-												case 'daily':
-													$type_label = __( 'Daily', 'greenmetrics' );
-													break;
-												case 'weekly':
-													$type_label = __( 'Weekly', 'greenmetrics' );
-													break;
-												case 'monthly':
-													$type_label = __( 'Monthly', 'greenmetrics' );
-													break;
-												default:
-													$type_label = $report['report_type'];
-											}
-											echo esc_html( $type_label );
-
-											if ( $report['is_test'] ) {
-												echo ' <span class="test-badge">' . esc_html__( 'Test', 'greenmetrics' ) . '</span>';
-											}
-											?>
-										</td>
-										<td>
-											<?php echo esc_html( $report['recipients'] ); ?>
-										</td>
-										<td>
-											<?php echo esc_html( $report['subject'] ); ?>
-										</td>
-										<td>
-											<?php
-											$status_class = '';
-											switch ( $report['status'] ) {
-												case 'sent':
-													$status_class = 'status-success';
-													break;
-												case 'failed':
-													$status_class = 'status-error';
-													break;
-												default:
-													$status_class = '';
-											}
-											?>
-											<span class="status-badge <?php echo esc_attr( $status_class ); ?>">
-												<?php echo esc_html( ucfirst( $report['status'] ) ); ?>
-											</span>
-										</td>
-										<td>
-											<button type="button" class="button button-small view-report" data-report-id="<?php echo esc_attr( $report['id'] ); ?>">
-												<span class="dashicons dashicons-visibility" style="font-size: 16px; vertical-align: middle; margin-right: 3px;"></span>
-												<?php esc_html_e( 'View', 'greenmetrics' ); ?>
-											</button>
-										</td>
+										<th><?php esc_html_e( 'Date', 'greenmetrics' ); ?></th>
+										<th><?php esc_html_e( 'Type', 'greenmetrics' ); ?></th>
+										<th><?php esc_html_e( 'Recipients', 'greenmetrics' ); ?></th>
+										<th><?php esc_html_e( 'Subject', 'greenmetrics' ); ?></th>
+										<th><?php esc_html_e( 'Status', 'greenmetrics' ); ?></th>
+										<th><?php esc_html_e( 'Actions', 'greenmetrics' ); ?></th>
 									</tr>
-								<?php endforeach; ?>
-							</tbody>
-						</table>
+								</thead>
+								<tbody>
+									<?php foreach ( $reports as $report ) : ?>
+										<tr>
+											<td>
+												<?php echo esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $report['sent_at'] ) ) ); ?>
+											</td>
+											<td>
+												<?php
+												$type_label = '';
+												switch ( $report['report_type'] ) {
+													case 'daily':
+														$type_label = __( 'Daily', 'greenmetrics' );
+														break;
+													case 'weekly':
+														$type_label = __( 'Weekly', 'greenmetrics' );
+														break;
+													case 'monthly':
+														$type_label = __( 'Monthly', 'greenmetrics' );
+														break;
+													default:
+														$type_label = $report['report_type'];
+												}
+												echo esc_html( $type_label );
 
-						<?php if ( $total_pages > 1 ) : ?>
-							<div class="tablenav">
-								<div class="tablenav-pages">
-									<span class="displaying-num">
-										<?php
-										/* translators: %s: Number of items. */
-										printf( _n( '%s item', '%s items', $total_reports, 'greenmetrics' ), number_format_i18n( $total_reports ) );
-										?>
-									</span>
-									<span class="pagination-links">
-										<?php
-										$page_links = paginate_links( array(
-											'base'      => add_query_arg( 'report_page', '%#%' ),
-											'format'    => '',
-											'prev_text' => __( '&laquo;', 'greenmetrics' ),
-											'next_text' => __( '&raquo;', 'greenmetrics' ),
-											'total'     => $total_pages,
-											'current'   => $page,
-										) );
+												if ( $report['is_test'] ) {
+													echo ' <span class="test-badge">' . esc_html__( 'Test', 'greenmetrics' ) . '</span>';
+												}
+												?>
+											</td>
+											<td>
+												<?php echo esc_html( $report['recipients'] ); ?>
+											</td>
+											<td>
+												<?php echo esc_html( $report['subject'] ); ?>
+											</td>
+											<td>
+												<?php
+												$status_class = '';
+												switch ( $report['status'] ) {
+													case 'sent':
+														$status_class = 'status-success';
+														break;
+													case 'failed':
+														$status_class = 'status-error';
+														break;
+													default:
+														$status_class = '';
+												}
+												?>
+												<span class="status-badge <?php echo esc_attr( $status_class ); ?>">
+													<?php echo esc_html( ucfirst( $report['status'] ) ); ?>
+												</span>
+											</td>
+											<td>
+												<button type="button" class="button button-small view-report" data-report-id="<?php echo esc_attr( $report['id'] ); ?>">
+													<span class="dashicons dashicons-visibility" style="font-size: 16px; vertical-align: middle; margin-right: 3px;"></span>
+													<?php esc_html_e( 'View', 'greenmetrics' ); ?>
+												</button>
+											</td>
+										</tr>
+									<?php endforeach; ?>
+								</tbody>
+							</table>
 
-										echo $page_links;
-										?>
-									</span>
+							<?php if ( $total_pages > 1 ) : ?>
+								<div class="tablenav">
+									<div class="tablenav-pages">
+										<span class="displaying-num">
+											<?php
+											/* translators: %s: Number of items. */
+											printf( _n( '%s item', '%s items', $total_reports, 'greenmetrics' ), number_format_i18n( $total_reports ) );
+											?>
+										</span>
+										<span class="pagination-links">
+											<?php
+											$page_links = paginate_links( array(
+												'base'      => add_query_arg( 'report_page', '%#%' ),
+												'format'    => '',
+												'prev_text' => __( '&laquo;', 'greenmetrics' ),
+												'next_text' => __( '&raquo;', 'greenmetrics' ),
+												'total'     => $total_pages,
+												'current'   => $page,
+											) );
+
+											echo $page_links;
+											?>
+										</span>
+									</div>
 								</div>
-							</div>
-						<?php endif; ?>
-					</div>
-					<?php
+							<?php endif; ?>
+						</div>
+						<?php
+					} else {
+						?>
+						<div class="no-reports-message">
+							<p><?php esc_html_e( 'No email reports have been sent yet.', 'greenmetrics' ); ?></p>
+							<p><?php esc_html_e( 'Configure your email settings and click "Send Test Email" to see how your reports will look.', 'greenmetrics' ); ?></p>
+							<p>
+								<a href="#" class="button send-test-email-link" data-target-tab="templates">
+									<span class="dashicons dashicons-email-alt" style="font-size: 16px; vertical-align: middle; margin-right: 3px;"></span>
+									<?php esc_html_e( 'Send a Test Email', 'greenmetrics' ); ?>
+								</a>
+							</p>
+						</div>
+						<?php
+					}
 				} else {
 					?>
-					<div class="no-reports-message">
-						<p><?php esc_html_e( 'No email reports have been sent yet.', 'greenmetrics' ); ?></p>
-						<p><?php esc_html_e( 'Configure your email settings above and click "Send Test Email" to see how your reports will look.', 'greenmetrics' ); ?></p>
-						<p>
-							<a href="#send_test_email" class="button">
-								<span class="dashicons dashicons-email-alt" style="font-size: 16px; vertical-align: middle; margin-right: 3px;"></span>
-								<?php esc_html_e( 'Send a Test Email', 'greenmetrics' ); ?>
-							</a>
-						</p>
+					<div class="error-message">
+						<p><?php esc_html_e( 'Error: Email Report History class not found.', 'greenmetrics' ); ?></p>
 					</div>
 					<?php
 				}
-			} else {
 				?>
-				<div class="error-message">
-					<p><?php esc_html_e( 'Error: Email Report History class not found.', 'greenmetrics' ); ?></p>
-				</div>
-				<?php
-			}
-			?>
-
-
+			</div>
 		</div>
 	</div>
 </div>
@@ -583,3 +628,95 @@ $stats   = $tracker->get_stats();
 </div>
 
 <!-- JavaScript functionality is now handled by the email-reporting.js module -->
+
+<script>
+jQuery(document).ready(function($) {
+    // Tab functionality
+    $('.greenmetrics-tab-item').on('click', function() {
+        var tabId = $(this).data('tab');
+
+        // Update active tab
+        $('.greenmetrics-tab-item').removeClass('active');
+        $(this).addClass('active');
+
+        // Show selected tab content
+        $('.greenmetrics-tab-content').removeClass('active');
+        $('#tab-' + tabId).addClass('active');
+
+        // If switching to templates tab, update and resize the preview iframe
+        if (tabId === 'templates') {
+            // If GreenMetricsAdmin is available, update the preview
+            if (typeof GreenMetricsAdmin !== 'undefined' &&
+                GreenMetricsAdmin.EmailReporting &&
+                GreenMetricsAdmin.EmailReporting.updateEmailPreview) {
+
+                GreenMetricsAdmin.EmailReporting.updateEmailPreview();
+            }
+
+            // Adjust the height after a short delay to allow content to load
+            setTimeout(function() {
+                adjustPreviewHeight();
+            }, 300);
+        }
+
+        // Save active tab to localStorage
+        localStorage.setItem('greenmetrics_active_email_tab', tabId);
+    });
+
+    // Restore active tab from localStorage
+    var activeTab = localStorage.getItem('greenmetrics_active_email_tab');
+    if (activeTab) {
+        $('.greenmetrics-tab-item[data-tab="' + activeTab + '"]').trigger('click');
+    }
+
+    // Handle "Send Test Email" link in history tab
+    $('.send-test-email-link').on('click', function(e) {
+        e.preventDefault();
+        // Get target tab (default to templates)
+        var targetTab = $(this).data('target-tab') || 'templates';
+
+        // Switch to target tab
+        $('.greenmetrics-tab-item[data-tab="' + targetTab + '"]').trigger('click');
+
+        // Scroll to appropriate test email button
+        var targetButton = targetTab === 'settings' ? '#send_test_email' : '#send_test_email_template';
+        $('html, body').animate({
+            scrollTop: $(targetButton).offset().top - 100
+        }, 500);
+    });
+
+    // Function to adjust the preview iframe height
+    function adjustPreviewHeight() {
+        var iframe = document.getElementById('email-preview-frame');
+
+        // If GreenMetricsAdmin is available, use its function
+        if (typeof GreenMetricsAdmin !== 'undefined' &&
+            GreenMetricsAdmin.EmailReporting &&
+            GreenMetricsAdmin.EmailReporting.adjustIframeHeight) {
+
+            GreenMetricsAdmin.EmailReporting.adjustIframeHeight(iframe);
+        } else {
+            // Fallback to direct adjustment
+            if (iframe && iframe.contentWindow && iframe.contentWindow.document.body) {
+                var contentHeight = iframe.contentWindow.document.body.scrollHeight + 20;
+                var maxHeight = 600;
+                iframe.style.height = Math.min(contentHeight, maxHeight) + 'px';
+                iframe.style.overflowY = contentHeight > maxHeight ? 'scroll' : 'hidden';
+            }
+        }
+
+        // If the iframe is not yet loaded or has no content, try again after a delay
+        if (!iframe || !iframe.contentWindow || !iframe.contentWindow.document.body ||
+            iframe.contentWindow.document.body.scrollHeight < 50) {
+            setTimeout(adjustPreviewHeight, 200);
+        }
+    }
+
+    // If templates tab is active on page load, adjust the preview height
+    if (localStorage.getItem('greenmetrics_active_email_tab') === 'templates') {
+        setTimeout(function() {
+            adjustPreviewHeight();
+        }, 500);
+    }
+});
+</script>
