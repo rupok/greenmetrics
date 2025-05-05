@@ -64,6 +64,7 @@ The Data Management page helps you maintain optimal database performance:
 - **Data Pruning**: Remove old data to keep your database lean and efficient
 - **Manual Controls**: Run aggregation and pruning operations on demand
 - **Schedule Settings**: Configure automatic maintenance schedules
+- **Data Export/Import**: Export data in CSV, JSON, or PDF formats, and import previously exported data with options to skip, replace, or merge duplicates
 
 ### Advanced Reporting
 
@@ -72,7 +73,7 @@ The Advanced Reporting page provides detailed insights into your website's envir
 - **Time Period Selection**: View metrics for custom date ranges
 - **Visualization Options**: Toggle between different chart types
 - **Metric Filtering**: Focus on specific metrics of interest
-- **Data Export**: Download your metrics data for external analysis
+- **Data Export**: Download your metrics data in CSV, JSON, or PDF formats for external analysis
 
 ### Email Reporting
 
@@ -146,6 +147,12 @@ The data management system automatically aggregates detailed metrics into daily 
 
 ### Will data aggregation affect the accuracy of my metrics?
 No, data aggregation preserves the accuracy of your metrics while reducing database size. The system maintains daily summaries that provide the same insights as detailed data for historical analysis.
+
+### Can I export my environmental impact data?
+Yes, you can export your metrics data in CSV, JSON, or PDF formats from the Data Management page. This allows you to analyze your data externally, create custom reports, or back up your metrics.
+
+### Can I import previously exported data?
+Yes, the Data Management page includes an import feature that allows you to import previously exported data in CSV or JSON formats. You can choose how to handle duplicate records (skip, replace, or merge) during the import process.
 
 ## Development
 

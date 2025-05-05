@@ -38,7 +38,7 @@ For more information, visit [getgreenmetrics.com](https://getgreenmetrics.com).
 * **Email Templates**: Fully customizable email templates with color schemes, placeholders, and content options.
 * **Email History**: Track and view all sent email reports with detailed history and status information.
 * **Visual Chart Generation**: Beautiful charts showing metrics trends over time in email reports.
-* **Export Capabilities**: Export your environmental metrics data for external analysis.
+* **Data Export & Import**: Export your environmental metrics data in CSV, JSON, or PDF formats, and import previously exported data with options to skip, replace, or merge duplicates.
 
 ### 🌍 Who Is This For?
 
@@ -99,6 +99,7 @@ The Data Management page helps you maintain optimal database performance:
 * **Data Pruning**: Remove old data to keep your database lean and efficient
 * **Manual Controls**: Run aggregation and pruning operations on demand
 * **Schedule Settings**: Configure automatic maintenance schedules
+* **Data Export/Import**: Export data in CSV, JSON, or PDF formats, and import previously exported data with options to skip, replace, or merge duplicates
 
 = Advanced Reporting =
 The Advanced Reporting page provides detailed insights into your website's environmental impact:
@@ -106,7 +107,7 @@ The Advanced Reporting page provides detailed insights into your website's envir
 * **Time Period Selection**: View metrics for custom date ranges
 * **Visualization Options**: Toggle between different chart types
 * **Metric Filtering**: Focus on specific metrics of interest
-* **Data Export**: Download your metrics data for external analysis
+* **Data Export**: Download your metrics data in CSV, JSON, or PDF formats for external analysis
 
 = Email Reporting =
 The Email Reporting page allows you to set up automated email reports and track their history:
@@ -177,7 +178,11 @@ All data is stored locally in your WordPress database. GreenMetrics does not sen
 
 = Can I export my environmental impact data? =
 
-Currently, data export features are not available, but they're on our roadmap for future versions.
+Yes, you can export your metrics data in CSV, JSON, or PDF formats from the Data Management page. This allows you to analyze your data externally, create custom reports, or back up your metrics.
+
+= Can I import previously exported data? =
+
+Yes, the Data Management page includes an import feature that allows you to import previously exported data in CSV or JSON formats. You can choose how to handle duplicate records (skip, replace, or merge) during the import process.
 
 = How often are the statistics updated? =
 
