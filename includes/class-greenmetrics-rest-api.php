@@ -109,6 +109,33 @@ class GreenMetrics_Rest_API {
 			)
 		);
 
+		// Add import endpoint
+		register_rest_route(
+			'greenmetrics/v1',
+			'/import',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'import_data' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'data_type' => array(
+						'required'          => false,
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+						'default'           => 'raw',
+						'enum'              => array( 'raw', 'aggregated' ),
+					),
+					'duplicate_action' => array(
+						'required'          => false,
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+						'default'           => 'skip',
+						'enum'              => array( 'skip', 'replace', 'merge' ),
+					),
+				),
+			)
+		);
+
 		// Add a new endpoint for metrics by date range
 		register_rest_route(
 			'greenmetrics/v1',
@@ -422,6 +449,116 @@ class GreenMetrics_Rest_API {
 				'Error retrieving metrics by date range: ' . $e->getMessage(),
 				500
 			);
+		}
+	}
+
+	/**
+	 * Import data.
+	 *
+	 * @param \WP_REST_Request $request The request object.
+	 * @return \WP_REST_Response|\WP_Error The response object or error.
+	 */
+	public function import_data( $request ) {
+		try {
+			// Check if file was uploaded
+			if ( empty( $_FILES ) || ! isset( $_FILES['import_file'] ) ) {
+				greenmetrics_log( 'REST: Import error - No file uploaded', $_FILES, 'error' );
+				return GreenMetrics_Error_Handler::create_error(
+					'no_file',
+					__( 'No file was uploaded.', 'greenmetrics' ),
+					array(),
+					400
+				);
+			}
+
+			// Check for file upload errors
+			if ( isset( $_FILES['import_file']['error'] ) && $_FILES['import_file']['error'] !== UPLOAD_ERR_OK ) {
+				$error_message = $this->get_file_upload_error_message( $_FILES['import_file']['error'] );
+				greenmetrics_log( 'REST: Import error - File upload error', array(
+					'error_code' => $_FILES['import_file']['error'],
+					'error_message' => $error_message
+				), 'error' );
+
+				return GreenMetrics_Error_Handler::create_error(
+					'file_upload_error',
+					$error_message,
+					array(),
+					400
+				);
+			}
+
+			// Get import parameters
+			$data_type = $request->get_param( 'data_type' );
+			$duplicate_action = $request->get_param( 'duplicate_action' );
+
+			// Prepare import arguments
+			$args = array(
+				'data_type' => $data_type,
+				'duplicate_action' => $duplicate_action,
+			);
+
+			// Get import handler instance
+			$import_handler = GreenMetrics_Import_Handler::get_instance();
+
+			// Import data
+			$result = $import_handler->import_data( $_FILES['import_file'], $args );
+
+			// Check for errors
+			if ( is_wp_error( $result ) ) {
+				greenmetrics_log( 'REST: Import error - Import handler error', array(
+					'error_code' => $result->get_error_code(),
+					'error_message' => $result->get_error_message()
+				), 'error' );
+
+				return GreenMetrics_Error_Handler::create_error(
+					$result->get_error_code(),
+					$result->get_error_message(),
+					array(),
+					400
+				);
+			}
+
+			// Return success response
+			return rest_ensure_response( array(
+				'success' => true,
+				'message' => $result['message'],
+				'data' => $result,
+			) );
+		} catch ( \Exception $e ) {
+			greenmetrics_log( 'REST: Import error - Exception', $e->getMessage(), 'error' );
+			return GreenMetrics_Error_Handler::handle_exception(
+				$e,
+				'import_error',
+				'Error importing data: ' . $e->getMessage(),
+				500
+			);
+		}
+	}
+
+	/**
+	 * Get file upload error message.
+	 *
+	 * @param int $error_code The error code.
+	 * @return string The error message.
+	 */
+	private function get_file_upload_error_message( $error_code ) {
+		switch ( $error_code ) {
+			case UPLOAD_ERR_INI_SIZE:
+				return __( 'The uploaded file exceeds the upload_max_filesize directive in php.ini.', 'greenmetrics' );
+			case UPLOAD_ERR_FORM_SIZE:
+				return __( 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form.', 'greenmetrics' );
+			case UPLOAD_ERR_PARTIAL:
+				return __( 'The uploaded file was only partially uploaded.', 'greenmetrics' );
+			case UPLOAD_ERR_NO_FILE:
+				return __( 'No file was uploaded.', 'greenmetrics' );
+			case UPLOAD_ERR_NO_TMP_DIR:
+				return __( 'Missing a temporary folder.', 'greenmetrics' );
+			case UPLOAD_ERR_CANT_WRITE:
+				return __( 'Failed to write file to disk.', 'greenmetrics' );
+			case UPLOAD_ERR_EXTENSION:
+				return __( 'A PHP extension stopped the file upload.', 'greenmetrics' );
+			default:
+				return __( 'Unknown upload error.', 'greenmetrics' );
 		}
 	}
 
