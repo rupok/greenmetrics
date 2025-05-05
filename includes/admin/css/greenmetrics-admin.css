@@ -77,17 +77,8 @@
 
 .greenmetrics-admin-container {
 	margin: 20px auto 40px;
-	max-width: 1200px;
+	max-width: 1340px;
 	padding: 0 20px;
-}
-
-/* Add shadow to admin wrap to make it look like a card */
-.greenmetrics_page_greenmetrics_display .wrap,
-.toplevel_page_greenmetrics .wrap {
-	background: #f8f9fa;
-	padding: 20px;
-	border-radius: 16px;
-	box-shadow: 0 2px 30px rgba(0, 0, 0, 0.03);
 }
 
 .greenmetrics-admin-stats,
@@ -481,6 +472,81 @@
 	padding: 20px;
 }
 
+/* Form field styling */
+.form-field {
+	margin-bottom: 20px;
+}
+
+.form-field:last-child {
+	margin-bottom: 0;
+}
+
+.form-field label {
+	display: block;
+	margin-bottom: 8px;
+	font-weight: 500;
+	color: #333;
+}
+
+.form-field input[type="text"],
+.form-field select {
+	width: 100%;
+	max-width: 400px;
+	padding: 8px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.07);
+}
+
+.form-field input[type="text"]:focus,
+.form-field select:focus {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+	outline: 2px solid transparent;
+}
+
+.form-field .description {
+	margin-top: 4px;
+	color: #666;
+	font-style: italic;
+	font-size: 13px;
+}
+
+/* Color picker styling */
+.wp-picker-container {
+	display: inline-block;
+}
+
+.wp-picker-container .wp-color-result {
+	margin: 0 6px 0 0;
+	height: 30px;
+	border-radius: 3px;
+	box-shadow: none;
+}
+
+.wp-picker-container .wp-color-result-text {
+	line-height: 28px;
+	padding: 0 10px;
+	border-radius: 0 2px 2px 0;
+}
+
+.wp-picker-container .button {
+	height: 30px;
+	margin-left: 6px;
+	padding: 0 10px;
+	line-height: 28px;
+	background: #f7f7f7;
+	border-color: #ccc;
+	color: #555;
+	border-radius: 3px;
+}
+
+.wp-picker-container .button:hover {
+	background: #f0f0f0;
+	border-color: #999;
+	color: #23282d;
+}
+
 /* Form styling */
 .form-table th {
 	width: 200px;
@@ -707,7 +773,7 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	margin-bottom: 20px;
+	margin: 30px 0;
 	padding: 15px 20px;
 	background: #fff;
 	border-radius: 12px;
@@ -996,6 +1062,34 @@
 }
 
 /* Two-column layout for display settings */
+
+.greenmetrics_page_greenmetrics_display .greenmetrics-admin-settings-column {
+	background: #fff;
+	border-radius: 4px;
+	padding: 20px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.greenmetrics-admin-preview-column {
+	background: #f9f9f9;
+	border-radius: 4px;
+	padding: 20px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Consistent tabbed layout structure for all admin pages */
+
+/* Tab content wrappers should be full width */
+.greenmetrics-tabs-content {
+	width: 100%;
+}
+
+/* Tab content should be full width */
+.greenmetrics-tab-content {
+	width: 100%;
+}
+
+/* Default two-column layout for admin content */
 .greenmetrics-admin-content-wrapper {
 	display: grid;
 	grid-template-columns: 2fr 1fr;
@@ -1003,14 +1097,26 @@
 	margin-top: 20px;
 }
 
-.greenmetrics-admin-settings-column {
-	flex: 1;
-	min-width: 0; /* Prevents overflow on small screens */
+/* Special layouts for specific tabs */
+/* Templates tab in Email Reporting uses 3:2 ratio for template editing */
+#tab-templates .greenmetrics-admin-content-wrapper {
+	grid-template-columns: 3fr 2fr;
+	margin-top: 0;
+}
+#tab-templates .greenmetrics-admin-content-wrapper .greenmetrics-admin-card {
+	margin-top: 0;
+}
+.badge-preview {
+	background: #fff;
+	border-radius: 4px;
+	padding: 20px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.greenmetrics-admin-preview-column {
-	width: 400px;
-	flex-shrink: 0;
+@media (max-width: 782px) {
+	.greenmetrics-admin-content-wrapper {
+		grid-template-columns: 1fr;
+	}
 }
 
 /* Data Export Styles */
@@ -1560,6 +1666,7 @@
 	width: 60px;
 	text-align: right;
 	-moz-appearance: textfield;
+	appearance: textfield;
 }
 
 .font-size-input-group input[type="number"]::-webkit-outer-spin-button,
@@ -1680,7 +1787,7 @@
 	border-radius: 2px;
 }
 
-/* Toggle switch for display settings */
+/* Toggle switch styling */
 .toggle-switch {
 	position: relative;
 	display: inline-block;
@@ -1731,19 +1838,308 @@
 	transform: translateX(18px);
 }
 
-/* Settings cards styling */
-.settings-card {
-	background: #fff;
-	border-radius: 8px;
-	box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+/* Tab Navigation Styles - Consistent across all pages */
+.greenmetrics-tabs-nav {
 	margin-bottom: 20px;
-	border: 1px solid rgba(0,0,0,0.06);
-	overflow: hidden;
-	transition: all 0.2s ease;
 }
 
-.settings-card:hover {
-	box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+.greenmetrics-tabs-list {
+	display: flex;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	border-bottom: 1px solid #ccc;
+	background: #f0f0f1;
+}
+
+.greenmetrics-tab-item {
+	padding: 12px 20px;
+	margin: 0;
+	cursor: pointer;
+	font-weight: 500;
+	color: #555;
+	background-color: #f0f0f1;
+	border: none;
+	margin-right: 5px;
+	display: flex;
+	align-items: center;
+	transition: all 0.2s ease;
+	position: relative;
+}
+
+.greenmetrics-tab-item .dashicons {
+	margin-right: 8px;
+	vertical-align: middle;
+	color: #666;
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+}
+
+.greenmetrics-tab-item:hover {
+	color: #2271b1;
+}
+
+.greenmetrics-tab-item.active {
+	background-color: #fff;
+	color: #2271b1;
+	border-top: 3px solid #2271b1;
+	padding-top: 9px;
+}
+
+.greenmetrics-tab-item.active:after {
+	content: '';
+	position: absolute;
+	bottom: -1px;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: #fff;
+}
+
+.greenmetrics-tab-item.active .dashicons {
+	color: #2271b1;
+}
+
+/* Tab Content Styles - Consistent across all pages */
+.greenmetrics-tab-content {
+	display: none;
+	width: 100%;
+}
+
+.greenmetrics-tab-content.active {
+	display: block;
+}
+
+/* Accordion Styles */
+.settings-card {
+	margin-bottom: 20px;
+	border-radius: 4px;
+	overflow: hidden;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.accordion-trigger {
+	cursor: pointer;
+	position: relative;
+	padding: 15px;
+	transition: all 0.2s ease;
+	background-color: #fff;
+	border-bottom: 1px solid #e5e5e5;
+	display: flex;
+	align-items: center;
+	margin-bottom: 0;
+}
+
+.accordion-trigger:hover {
+	background-color: #f8f8f8;
+}
+
+.accordion-trigger.active {
+	background-color: #f9f9f9;
+}
+
+.accordion-trigger .card-icon {
+	margin-right: 8px;
+	vertical-align: middle;
+}
+
+.accordion-icon {
+	position: absolute;
+	right: 15px;
+	top: 50%;
+	transform: translateY(-50%);
+	transition: transform 0.3s ease;
+	color: #777;
+}
+
+.accordion-trigger.active .accordion-icon {
+	transform: translateY(-50%) rotate(180deg);
+}
+
+.accordion-content {
+	display: none;
+	overflow: hidden;
+	transition: max-height 0.3s ease;
+	padding: 20px;
+	background-color: #fff;
+}
+
+.accordion-content.active {
+	display: block;
+}
+
+/* Card specific styling */
+.badge-display {
+	border-left: 4px solid #0073aa;
+}
+
+.badge-appearance {
+	border-left: 4px solid #00a0d2;
+}
+
+.popover-content {
+	border-left: 4px solid #46b450;
+}
+
+.popover-appearance {
+	border-left: 4px solid #ffb900;
+}
+
+/* Accordion title icons */
+.badge-display .accordion-trigger .card-icon {
+	color: #0073aa;
+}
+
+.badge-appearance .accordion-trigger .card-icon {
+	color: #00a0d2;
+}
+
+.popover-content .accordion-trigger .card-icon {
+	color: #46b450;
+}
+
+.popover-appearance .accordion-trigger .card-icon {
+	color: #ffb900;
+}
+
+/* Preview Styles */
+.preview-container {
+	border-radius: 4px;
+}
+
+.greenmetrics-admin-preview-sticky {
+	position: sticky;
+	top: 32px;
+}
+
+.badge-preview h2 {
+	margin-top: 0;
+	font-size: 18px;
+	font-weight: 500;
+	color: #333;
+}
+
+.badge-preview .description {
+	color: #666;
+	margin-bottom: 20px;
+}
+
+.preview-section {
+	margin-bottom: 30px;
+}
+
+.preview-section h3 {
+	font-size: 14px;
+	font-weight: 500;
+	color: #333;
+	border-bottom: 1px solid #eee;
+	padding-bottom: 10px;
+	margin-bottom: 15px;
+}
+
+.badge-preview-panel {
+	position: relative;
+	height: 150px;
+	background: #f9f9f9;
+	border: 1px solid #eee;
+	border-radius: 4px;
+	margin-bottom: 20px;
+	box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.03);
+}
+
+.popover-preview-panel {
+	background: #f9f9f9;
+	border: 1px solid #eee;
+	border-radius: 4px;
+	padding: 15px;
+	display: flex;
+	justify-content: center;
+	box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.03);
+}
+
+#popover-preview-container {
+	box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+}
+
+#badge-preview-container {
+	padding: 15px;
+}
+
+/* Badge positioning classes */
+#badge-preview-container.top-left {
+	top: 0;
+	left: 0;
+}
+
+#badge-preview-container.top-right {
+	top: 0;
+	right: 0;
+}
+
+#badge-preview-container.bottom-left {
+	bottom: 0;
+	left: 0;
+}
+
+#badge-preview-container.bottom-right {
+	bottom: 0;
+	right: 0;
+}
+
+/* Badge styling */
+.greenmetrics-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 8px 12px;
+	border-radius: 4px;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.greenmetrics-badge.small {
+	font-size: 12px;
+	padding: 4px 8px;
+}
+
+.greenmetrics-badge.medium {
+	font-size: 14px;
+	padding: 8px 16px;
+}
+
+.greenmetrics-badge.large {
+	font-size: 16px;
+	padding: 12px 24px;
+}
+
+.greenmetrics-badge .icon-container {
+	display: inline-flex;
+	margin-right: 6px;
+}
+
+.icon-option svg {
+	width: 36px;
+	height: 36px;
+}
+
+/* Metrics selection checkboxes */
+.metrics-checkboxes {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 10px;
+	padding: 15px;
+	background: #f9f9f9;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+}
+
+.metrics-checkbox-label {
+	display: flex;
+	align-items: center;
+}
+
+.metrics-checkbox-label input {
+	margin-right: 8px;
 }
 
 .settings-card-header {
@@ -1850,4 +2246,36 @@
 .guide-card ol {
 	margin-left: 20px;
 	line-height: 1.6;
+}
+
+/* Sticky Submit Container */
+.sticky-submit-container {
+	position: sticky;
+	bottom: 0;
+	background: #fff;
+	padding: 15px 0;
+	margin-top: 20px;
+	z-index: 100;
+	text-align: left;
+}
+
+.sticky-submit-container .button-primary {
+	background: #2271b1;
+	border-color: #2271b1;
+	color: #fff;
+	text-decoration: none;
+	text-shadow: none;
+	padding: 0 16px;
+	height: 32px;
+	line-height: 30px;
+	font-size: 13px;
+	border-radius: 3px;
+	font-weight: 500;
+	box-shadow: none;
+}
+
+.sticky-submit-container .button-primary:hover {
+	background: #135e96;
+	border-color: #135e96;
+	color: #fff;
 }

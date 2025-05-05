@@ -98,6 +98,12 @@ class GreenMetrics_Activator {
 		$data_manager = GreenMetrics_Data_Manager::get_instance();
 		greenmetrics_log( 'Activator - Initialized data manager' );
 
+		// Initialize email report history to create report history table
+		if ( class_exists( '\GreenMetrics\GreenMetrics_Email_Report_History' ) ) {
+			$email_report_history = GreenMetrics_Email_Report_History::get_instance();
+			greenmetrics_log( 'Activator - Initialized email report history' );
+		}
+
 		// Schedule data management tasks
 		GreenMetrics_Data_Manager::schedule_data_management();
 		greenmetrics_log( 'Activator - Scheduled data management tasks' );

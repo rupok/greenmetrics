@@ -18,6 +18,11 @@ if ( ! class_exists( '\GreenMetrics\GreenMetrics_Formatter' ) ) {
 	require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-formatter.php';
 }
 
+// Make sure the Email Report History class is loaded
+if ( ! class_exists( '\GreenMetrics\GreenMetrics_Email_Report_History' ) ) {
+	require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-email-report-history.php';
+}
+
 /**
  * Email Reporter Class
  *
@@ -212,6 +217,42 @@ class GreenMetrics_Email_Reporter {
 		// Send the email
 		$result = wp_mail( $recipients, $subject, $content, $headers );
 
+		// Get the report type based on frequency
+		$frequency = isset($settings['email_reporting_frequency']) ? $settings['email_reporting_frequency'] : 'weekly';
+
+		// Record the email in the history
+		if (class_exists('\GreenMetrics\GreenMetrics_Email_Report_History')) {
+			$history = GreenMetrics_Email_Report_History::get_instance();
+			$status = $result ? 'sent' : 'failed';
+
+			// Get mail error if any
+			$mail_error = '';
+			if (!$result) {
+				global $phpmailer;
+				if (isset($phpmailer) && is_object($phpmailer) && isset($phpmailer->ErrorInfo)) {
+					$mail_error = $phpmailer->ErrorInfo;
+				}
+			}
+
+			// Record the email
+			$history->record_email(
+				$frequency,
+				$subject,
+				$recipients,
+				$content,
+				$status,
+				$is_test
+			);
+
+			if (function_exists('greenmetrics_log')) {
+				greenmetrics_log( 'Email report recorded in history', array(
+					'frequency' => $frequency,
+					'status' => $status,
+					'is_test' => $is_test ? 'Yes' : 'No'
+				) );
+			}
+		}
+
 		// Log the result
 		if ( $result ) {
 			if (function_exists('greenmetrics_log')) {
@@ -269,9 +310,24 @@ class GreenMetrics_Email_Reporter {
 			? $settings['email_reporting_subject']
 			: 'GreenMetrics Report for [site_name]';
 
-		// Replace placeholders
+		// Replace basic placeholders
 		$subject = str_replace( '[site_name]', get_bloginfo( 'name' ), $subject );
+		$subject = str_replace( '[site_url]', get_bloginfo( 'url' ), $subject );
 		$subject = str_replace( '[date]', date_i18n( get_option( 'date_format' ) ), $subject );
+
+		// Replace admin and user placeholders
+		$subject = str_replace( '[admin_email]', get_option( 'admin_email' ), $subject );
+
+		// Get current user info if available
+		$current_user = wp_get_current_user();
+		if ( $current_user && $current_user->exists() ) {
+			$subject = str_replace( '[user_name]', $current_user->display_name, $subject );
+			$subject = str_replace( '[user_email]', $current_user->user_email, $subject );
+		} else {
+			// Fallback to admin info if no current user
+			$subject = str_replace( '[user_name]', 'WordPress User', $subject );
+			$subject = str_replace( '[user_email]', get_option( 'admin_email' ), $subject );
+		}
 
 		// Add test indicator if this is a test
 		if ( $is_test ) {
@@ -293,6 +349,20 @@ class GreenMetrics_Email_Reporter {
 		$content = str_replace( '[site_url]', get_bloginfo( 'url' ), $content );
 		$content = str_replace( '[admin_url]', admin_url(), $content );
 
+		// Admin and user info
+		$content = str_replace( '[admin_email]', get_option( 'admin_email' ), $content );
+
+		// Get current user info if available
+		$current_user = wp_get_current_user();
+		if ( $current_user && $current_user->exists() ) {
+			$content = str_replace( '[user_name]', $current_user->display_name, $content );
+			$content = str_replace( '[user_email]', $current_user->user_email, $content );
+		} else {
+			// Fallback to admin info if no current user
+			$content = str_replace( '[user_name]', 'WordPress User', $content );
+			$content = str_replace( '[user_email]', get_option( 'admin_email' ), $content );
+		}
+
 		// Date and time
 		$content = str_replace( '[date]', date_i18n( get_option( 'date_format' ) ), $content );
 		$content = str_replace( '[time]', date_i18n( get_option( 'time_format' ) ), $content );
@@ -305,11 +375,13 @@ class GreenMetrics_Email_Reporter {
 			$tracker = GreenMetrics_Tracker::get_instance();
 			$stats = $tracker->get_stats();
 
-			// Replace metrics placeholders
-			$content = str_replace( '[carbon_total]', $this->safe_format('carbon', $stats['carbon_footprint']), $content );
-			$content = str_replace( '[energy_total]', $this->safe_format('energy', $stats['energy_consumption']), $content );
-			$content = str_replace( '[data_total]', $this->safe_format('bytes', $stats['data_transfer']), $content );
-			$content = str_replace( '[views_total]', number_format($stats['page_views']), $content );
+			// Replace metrics placeholders with proper checks for array keys
+			$content = str_replace( '[carbon_total]', $this->safe_format('carbon', isset($stats['carbon_footprint']) ? $stats['carbon_footprint'] : 0), $content );
+			$content = str_replace( '[energy_total]', $this->safe_format('energy', isset($stats['energy_consumption']) ? $stats['energy_consumption'] : 0), $content );
+			$content = str_replace( '[data_total]', $this->safe_format('bytes', isset($stats['data_transfer']) ? $stats['data_transfer'] : 0), $content );
+			// Make sure we have a valid number for page_views before formatting
+			$page_views = isset($stats['page_views']) && is_numeric($stats['page_views']) ? $stats['page_views'] : 0;
+			$content = str_replace( '[views_total]', number_format($page_views), $content );
 		} catch (\Exception $e) {
 			// If there's an error, replace with zeros
 			$content = str_replace( '[carbon_total]', '0 kg CO2', $content );
@@ -638,22 +710,22 @@ class GreenMetrics_Email_Reporter {
 				<div class="metrics-grid">
 					<div class="metric-card">
 						<div class="metric-label">Carbon Footprint</div>
-						<div class="metric-value">' . esc_html( $this->safe_format('carbon', $stats['carbon_footprint']) ) . '</div>
+						<div class="metric-value">' . esc_html( $this->safe_format('carbon', isset($stats['carbon_footprint']) ? $stats['carbon_footprint'] : 0) ) . '</div>
 					</div>
 
 					<div class="metric-card">
 						<div class="metric-label">Energy Consumption</div>
-						<div class="metric-value">' . esc_html( $this->safe_format('energy', $stats['energy_consumption']) ) . '</div>
+						<div class="metric-value">' . esc_html( $this->safe_format('energy', isset($stats['energy_consumption']) ? $stats['energy_consumption'] : 0) ) . '</div>
 					</div>
 
 					<div class="metric-card">
 						<div class="metric-label">Data Transfer</div>
-						<div class="metric-value">' . esc_html( $this->safe_format('bytes', $stats['data_transfer']) ) . '</div>
+						<div class="metric-value">' . esc_html( $this->safe_format('bytes', isset($stats['data_transfer']) ? $stats['data_transfer'] : 0) ) . '</div>
 					</div>
 
 					<div class="metric-card">
 						<div class="metric-label">Performance Score</div>
-						<div class="metric-value">' . esc_html( $this->safe_format('score', $stats['performance_score']) ) . '</div>
+						<div class="metric-value">' . esc_html( $this->safe_format('score', isset($stats['performance_score']) ? $stats['performance_score'] : 0) ) . '</div>
 					</div>
 				</div>
 			</div>';
@@ -800,7 +872,7 @@ class GreenMetrics_Email_Reporter {
 	 */
 	private function safe_format($type, $value) {
 		// Handle null, empty, or false values
-		if ( null === $value || '' === $value || false === $value ) {
+		if ( null === $value || '' === $value || false === $value || !isset($value) ) {
 			switch ($type) {
 				case 'carbon':
 					return '0 kg CO2';
@@ -813,6 +885,13 @@ class GreenMetrics_Email_Reporter {
 				default:
 					return '0';
 			}
+		}
+
+		// Convert to appropriate type to avoid type errors
+		if ($type === 'carbon' || $type === 'energy' || $type === 'score') {
+			$value = floatval($value);
+		} else if ($type === 'bytes') {
+			$value = intval($value);
 		}
 
 		try {

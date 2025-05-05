@@ -43,6 +43,7 @@ class GreenMetrics_Admin {
 		add_action( 'wp_ajax_nopriv_greenmetrics_get_icon', array( $this, 'handle_get_icon' ) );
 		add_action( 'wp_ajax_greenmetrics_send_test_email', array( $this, 'handle_send_test_email' ) );
 		add_action( 'wp_ajax_greenmetrics_get_email_preview', array( $this, 'handle_get_email_preview' ) );
+		add_action( 'wp_ajax_greenmetrics_get_report', array( $this, 'handle_get_report' ) );
 	}
 
 	/**
@@ -1514,6 +1515,51 @@ class GreenMetrics_Admin {
 				GREENMETRICS_VERSION,
 				'all'
 			);
+
+			// Add inline styles to ensure consistent tab navigation
+			$tab_consistency_styles = '
+			/* Ensure consistent tab navigation with other admin pages */
+			.greenmetrics-tabs-nav {
+				margin-bottom: 20px;
+			}
+
+			.greenmetrics-tabs-list {
+				background: #f0f0f1;
+				border-bottom: 1px solid #ccc;
+			}
+
+			.greenmetrics-tab-item {
+				background-color: #f0f0f1;
+				border: none;
+				margin: 0;
+				margin-right: 5px;
+				position: relative;
+			}
+
+			.greenmetrics-tab-item.active {
+				background-color: #fff;
+				color: #2271b1;
+				border-top: 3px solid #2271b1;
+				padding-top: 9px;
+				border-bottom: none;
+				margin-bottom: 0;
+			}
+
+			.greenmetrics-tab-item.active:after {
+				content: "";
+				position: absolute;
+				bottom: -1px;
+				left: 0;
+				right: 0;
+				height: 1px;
+				background: #fff;
+			}
+
+			.greenmetrics-tab-item.active .dashicons {
+				color: #2271b1;
+			}';
+
+			wp_add_inline_style( 'greenmetrics-email-reporting', $tab_consistency_styles );
 		}
 
 		// Add inline styles for the font size inputs
@@ -1618,6 +1664,8 @@ class GreenMetrics_Admin {
 		$is_dashboard_page = false;
 		$is_reports_page   = false;
 		$is_email_reporting_page = false;
+		$is_display_settings_page = false;
+		$is_data_management_page = false;
 
 		// Check specifically if we're on the dashboard/stats page
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Simply checking screen ID for dashboard page detection
@@ -1634,6 +1682,16 @@ class GreenMetrics_Admin {
 		// Check if we're on the email reporting page
 		if ( ! empty( $current_page ) && $current_page === 'greenmetrics_email_reporting' ) {
 			$is_email_reporting_page = true;
+		}
+
+		// Check if we're on the display settings page
+		if ( ! empty( $current_page ) && $current_page === 'greenmetrics_display' ) {
+			$is_display_settings_page = true;
+		}
+
+		// Check if we're on the data management page
+		if ( ! empty( $current_page ) && $current_page === 'greenmetrics_data_management' ) {
+			$is_data_management_page = true;
 		}
 
 		// Always load WordPress dependencies on our pages
@@ -1696,6 +1754,8 @@ class GreenMetrics_Admin {
 				'is_dashboard_page' => $is_dashboard_page,
 				'is_reports_page'   => $is_reports_page,
 				'is_email_reporting_page' => $is_email_reporting_page,
+				'is_display_settings_page' => $is_display_settings_page,
+				'is_data_management_page' => $is_data_management_page,
 				'is_plugin_page'    => $is_plugin_page,
 				'debug'             => defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG,
 				'i18n'              => array(
@@ -1830,6 +1890,32 @@ class GreenMetrics_Admin {
 
 			$main_dependencies[] = 'greenmetrics-admin-email-template-editor';
 			$main_dependencies[] = 'greenmetrics-admin-email-reporting';
+		}
+
+		// Load display settings module - only needed on display settings page
+		if ( $is_display_settings_page ) {
+			wp_enqueue_script(
+				'greenmetrics-admin-display-settings',
+				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/display-settings.js',
+				array( 'greenmetrics-admin-core', 'greenmetrics-admin-utils', 'greenmetrics-admin-config' ),
+				GREENMETRICS_VERSION,
+				true
+			);
+
+			$main_dependencies[] = 'greenmetrics-admin-display-settings';
+		}
+
+		// Load data management module - only needed on data management page
+		if ( $is_data_management_page ) {
+			wp_enqueue_script(
+				'greenmetrics-admin-data-management',
+				GREENMETRICS_PLUGIN_URL . 'includes/admin/js/greenmetrics-admin-modules/data-management.js',
+				array( 'greenmetrics-admin-core', 'greenmetrics-admin-utils', 'greenmetrics-admin-config' ),
+				GREENMETRICS_VERSION,
+				true
+			);
+
+			$main_dependencies[] = 'greenmetrics-admin-data-management';
 		}
 
 		wp_enqueue_script(
@@ -2185,6 +2271,50 @@ class GreenMetrics_Admin {
 		// Redirect back to the data management page with stats-refreshed parameter
 		wp_safe_redirect( add_query_arg( 'stats-refreshed', 'true', admin_url( 'admin.php?page=greenmetrics_data_management' ) ) );
 		exit;
+	}
+
+	/**
+	 * Handle AJAX request to get a report.
+	 */
+	public function handle_get_report() {
+		// Verify nonce
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['nonce'] ), 'greenmetrics_admin_nonce' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Security check failed.', 'greenmetrics' ) ) );
+			return;
+		}
+
+		// Check permissions
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'You do not have sufficient permissions to perform this action.', 'greenmetrics' ) ) );
+			return;
+		}
+
+		// Get the report ID
+		$report_id = isset( $_POST['report_id'] ) ? intval( $_POST['report_id'] ) : 0;
+
+		if ( $report_id <= 0 ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid report ID.', 'greenmetrics' ) ) );
+			return;
+		}
+
+		// Get the report
+		if ( class_exists( '\GreenMetrics\GreenMetrics_Email_Report_History' ) ) {
+			$history = \GreenMetrics\GreenMetrics_Email_Report_History::get_instance();
+			$report = $history->get_report( $report_id );
+
+			if ( ! $report ) {
+				wp_send_json_error( array( 'message' => __( 'Report not found.', 'greenmetrics' ) ) );
+				return;
+			}
+
+			// Format the date
+			$report['sent_at_formatted'] = date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $report['sent_at'] ) );
+
+			// Return the report
+			wp_send_json_success( $report );
+		} else {
+			wp_send_json_error( array( 'message' => __( 'Email Report History class not found.', 'greenmetrics' ) ) );
+		}
 	}
 
 	/**

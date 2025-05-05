@@ -68,7 +68,7 @@ class GreenMetrics_Rest_API {
 						'type'              => 'string',
 						'sanitize_callback' => 'sanitize_text_field',
 						'default'           => 'csv',
-						'enum'              => array( 'csv', 'json' ),
+						'enum'              => array( 'csv', 'json', 'pdf' ),
 					),
 					'data_type' => array(
 						'required'          => false,

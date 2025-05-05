@@ -104,9 +104,23 @@ class GreenMetrics_DB_Helper {
 
 		// If no cache or forced refresh, query the database
 		global $wpdb;
+
+		// First check if the table exists to avoid "DESCRIBE IF" error
+		$table_exists = (bool) $wpdb->get_var(
+			$wpdb->prepare(
+				'SHOW TABLES LIKE %s',
+				$wpdb->esc_like( $table_name )
+			)
+		);
+
+		if (!$table_exists) {
+			return array();
+		}
+
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Necessary direct query for schema check
-		// Don't use prepare() for DESCRIBE as it quotes the table name incorrectly
-		$results = $wpdb->get_results( 'DESCRIBE ' . $wpdb->_real_escape( $table_name ) );
+		// Use backticks to properly escape table name
+		$table_name_escaped = '`' . str_replace('`', '``', $table_name) . '`';
+		$results = $wpdb->get_results( 'DESCRIBE ' . $table_name_escaped );
 
 		if ( ! $results ) {
 			// Return empty array if no results (e.g., table doesn't exist)

@@ -2,19 +2,365 @@
  * GreenMetrics Email Reporting Styles
  */
 
+/* Tab-specific styles for Email Reporting */
+.greenmetrics-tab-content {
+    padding: 20px 0;
+}
+
+.greenmetrics-tab-content.active {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Email Reports Section */
+.email-reports-section .greenmetrics-admin-card {
+    margin-top: 0;
+}
+
+.email-reports-section h2 {
+    display: flex;
+    align-items: center;
+}
+
+/* Email History Tab - Full Width Layout */
+#tab-history .greenmetrics-admin-content-wrapper {
+    display: block; /* Override the grid layout */
+    width: 100%;
+}
+
+#tab-history .greenmetrics-admin-section {
+    width: 100%;
+}
+
+/* Report History Table */
+.report-history-table-container {
+    margin-top: 15px;
+    overflow-x: auto;
+    width: 100%;
+}
+
+.report-history-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.report-history-table th {
+    text-align: left;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-bottom: 1px solid #ddd;
+}
+
+.report-history-table td {
+    padding: 12px 10px;
+    vertical-align: middle;
+    word-wrap: break-word; /* Allow text to wrap in cells */
+}
+
+/* Column widths for better layout */
+.report-history-table th:nth-child(1),
+.report-history-table td:nth-child(1) {
+    width: 15%; /* Date column */
+}
+
+.report-history-table th:nth-child(2),
+.report-history-table td:nth-child(2) {
+    width: 10%; /* Type column */
+}
+
+.report-history-table th:nth-child(3),
+.report-history-table td:nth-child(3) {
+    width: 20%; /* Recipients column */
+}
+
+.report-history-table th:nth-child(4),
+.report-history-table td:nth-child(4) {
+    width: 35%; /* Subject column */
+}
+
+.report-history-table th:nth-child(5),
+.report-history-table td:nth-child(5) {
+    width: 10%; /* Status column */
+}
+
+.report-history-table th:nth-child(6),
+.report-history-table td:nth-child(6) {
+    width: 10%; /* Actions column */
+}
+
+.test-badge {
+    display: inline-block;
+    background-color: #f0f0f0;
+    color: #666;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 5px;
+    font-weight: normal;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-success {
+    background-color: #f0f9eb;
+    color: #46b450;
+    border: 1px solid #c6e6b1;
+}
+
+.status-error {
+    background-color: #fef0f0;
+    color: #dc3232;
+    border: 1px solid #fac4c4;
+}
+
+.view-report {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    color: #2271b1;
+    border-color: #ddd;
+    transition: all 0.2s ease;
+}
+
+.view-report:hover {
+    background-color: #f0f0f1;
+    color: #135e96;
+    border-color: #c3c4c7;
+}
+
+.view-report .dashicons {
+    font-size: 16px;
+    height: 16px;
+    width: 16px;
+    vertical-align: middle;
+    margin-right: 3px;
+}
+
+
+
+.no-reports-message {
+    background: #f8f9fa;
+    border-left: 4px solid #2271b1;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 0 4px 4px 0;
+    color: #555;
+    width: 100%;
+    box-sizing: border-box;
+    max-width: 800px;
+}
+
+.no-reports-message p {
+    margin: 0 0 10px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.no-reports-message p:last-child {
+    margin-bottom: 0;
+}
+
+.no-reports-message .button {
+    margin-top: 15px;
+    display: inline-flex;
+    align-items: center;
+    background-color: #2271b1;
+    color: #fff;
+    border-color: #135e96;
+    padding: 6px 14px;
+    height: auto;
+    font-size: 14px;
+}
+
+.no-reports-message .button:hover {
+    background-color: #135e96;
+    color: #fff;
+    border-color: #0a4b78;
+}
+
+.no-reports-message .dashicons {
+    vertical-align: middle !important;
+}
+
+/* Report Modal */
+.report-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.report-modal-content {
+    position: relative;
+    background-color: #fff;
+    margin: 5% auto;
+    padding: 0;
+    width: 80%;
+    max-width: 900px;
+    border-radius: 6px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    animation: modalFadeIn 0.3s;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.report-modal-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.report-modal-close:hover,
+.report-modal-close:focus {
+    color: #333;
+    text-decoration: none;
+}
+
+#report-modal-body {
+    padding: 25px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* Report Info Styling */
+.report-info {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.report-info h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 20px;
+    color: #23282d;
+}
+
+.report-info p {
+    margin: 8px 0;
+    line-height: 1.5;
+}
+
+/* Report Content Styling */
+.report-content {
+    margin-bottom: 25px;
+}
+
+.report-content h3 {
+    margin-top: 0;
+    font-size: 18px;
+    color: #23282d;
+    display: flex;
+    align-items: center;
+}
+
+.report-content h3::before {
+    content: "\f119";
+    font-family: dashicons;
+    font-size: 20px;
+    margin-right: 8px;
+    color: #2271b1;
+}
+
+#report-content-frame {
+    width: 100%;
+    min-height: 400px;
+    max-height: 600px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    transition: height 0.3s ease;
+    overflow-y: auto;
+}
+
+.report-actions {
+    text-align: right;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+/* Pagination */
+.tablenav {
+    margin: 15px 0;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.tablenav-pages {
+    display: flex;
+    align-items: center;
+}
+
+.displaying-num {
+    margin-right: 15px;
+    color: #666;
+}
+
+.pagination-links {
+    display: flex;
+    align-items: center;
+}
+
+.pagination-links a,
+.pagination-links span {
+    display: inline-block;
+    min-width: 28px;
+    height: 28px;
+    margin: 0 3px;
+    padding: 0 5px;
+    text-align: center;
+    line-height: 28px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    text-decoration: none;
+    color: #0073aa;
+}
+
+.pagination-links span.current {
+    background-color: #0073aa;
+    border-color: #006799;
+    color: #fff;
+    font-weight: 600;
+}
+
 /* Email Preview Container */
 .email-preview-controls {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin: 15px 0;
-}
-
-.preview-info {
-    color: #666;
-    font-size: 13px;
-    font-style: italic;
-    text-align: right;
 }
 
 .email-preview-footer {
@@ -88,22 +434,26 @@
 
 .email-preview-frame {
     width: 100%;
-    height: 600px;
+    height: 500px;
+    max-height: 600px;
     border: none;
     border-radius: 0 0 4px 4px;
     transition: all 0.3s ease;
+    overflow-y: auto;
 }
 
 /* Mobile preview mode */
 .email-preview-frame.mobile-preview {
     width: 375px;
-    height: 667px;
+    height: 500px;
+    max-height: 600px;
     margin: 0 auto;
     display: block;
     border: 12px solid #333;
     border-radius: 36px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
     position: relative;
+    overflow-y: auto;
 }
 
 /* Mobile device styling */
@@ -138,25 +488,62 @@
     margin-top: 20px;
 }
 
+.test-email-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 15px;
+}
+
+.test-email-container .button-large {
+    padding: 8px 20px;
+    height: auto;
+    font-size: 14px;
+    min-width: 200px;
+}
+
 .test-email-result {
-    margin-left: 10px;
-    padding: 5px 10px;
-    border-radius: 3px;
+    margin-top: 15px;
+    padding: 10px 15px;
+    border-radius: 4px;
     display: none;
     font-weight: 500;
     transition: all 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left;
 }
 
 .test-email-result.success {
     background-color: #f0f9eb;
     color: #46b450;
     border: 1px solid #c6e6b1;
+    display: flex;
+    align-items: center;
+}
+
+.test-email-result.success::before {
+    content: "\f147";
+    font-family: dashicons;
+    font-size: 20px;
+    margin-right: 10px;
+    color: #46b450;
 }
 
 .test-email-result.error {
     background-color: #fef0f0;
     color: #dc3232;
     border: 1px solid #fac4c4;
+    display: flex;
+    align-items: center;
+}
+
+.test-email-result.error::before {
+    content: "\f534";
+    font-family: dashicons;
+    font-size: 20px;
+    margin-right: 10px;
+    color: #dc3232;
 }
 
 /* Form Styling */
@@ -286,18 +673,24 @@
 
 .placeholder-toolbar {
     background-color: #f9f9f9;
-    padding: 10px 15px;
+    padding: 15px;
     border-radius: 4px;
     margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
+    border: 1px solid #e5e5e5;
 }
 
 .placeholder-toolbar label {
     font-weight: 600;
     margin-right: 15px;
-    min-width: 120px;
+    display: block;
+    margin-bottom: 5px;
+    color: #23282d;
+}
+
+.placeholder-toolbar .description {
+    margin-bottom: 10px;
+    color: #666;
+    font-style: italic;
 }
 
 .placeholder-buttons-container {
@@ -314,22 +707,54 @@
 .placeholder-button {
     font-family: Consolas, Monaco, monospace;
     font-size: 12px;
-    padding: 4px 8px;
+    padding: 6px 12px;
     height: auto;
     min-height: 0;
     line-height: 1.4;
     position: relative;
     transition: all 0.2s ease;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    color: #333;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
 }
 
 .placeholder-button:hover {
-    background-color: #f0f0f0;
+    background-color: #f0f0f1;
+    border-color: #c3c4c7;
+    color: #2271b1;
 }
 
 .placeholder-button.copied {
     background-color: #4CAF50;
     color: white;
     border-color: #43A047;
+    position: relative;
+}
+
+.placeholder-button.copied::after {
+    content: "Copied!";
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    white-space: nowrap;
+    animation: fadeInOut 1.5s ease forwards;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
 }
 
 /* Add tooltip */
@@ -398,7 +823,9 @@
     border-radius: 3px;
     font-size: 13px;
 }
-
+div#wpfooter{
+    position: relative!important;
+}
 /* Responsive Adjustments */
 @media screen and (max-width: 782px) {
     .greenmetrics-admin-content-wrapper {
@@ -445,5 +872,71 @@
 
     .preview-info {
         margin-top: 10px;
+    }
+
+    /* Responsive table for Email History */
+    .report-history-table {
+        table-layout: auto;
+    }
+
+    /* Hide less important columns on small screens */
+    .report-history-table th:nth-child(3),
+    .report-history-table td:nth-child(3) {
+        display: none; /* Hide Recipients column */
+    }
+
+    /* Adjust column widths for small screens */
+    .report-history-table th:nth-child(1),
+    .report-history-table td:nth-child(1) {
+        width: 25%; /* Date column */
+    }
+
+    .report-history-table th:nth-child(2),
+    .report-history-table td:nth-child(2) {
+        width: 15%; /* Type column */
+    }
+
+    .report-history-table th:nth-child(4),
+    .report-history-table td:nth-child(4) {
+        width: 30%; /* Subject column */
+    }
+
+    .report-history-table th:nth-child(5),
+    .report-history-table td:nth-child(5) {
+        width: 15%; /* Status column */
+    }
+
+    .report-history-table th:nth-child(6),
+    .report-history-table td:nth-child(6) {
+        width: 15%; /* Actions column */
+    }
+}
+
+/* Extra small screens */
+@media screen and (max-width: 600px) {
+    /* Further optimize table for very small screens */
+    .report-history-table th:nth-child(4),
+    .report-history-table td:nth-child(4) {
+        display: none; /* Hide Subject column on very small screens */
+    }
+
+    .report-history-table th:nth-child(1),
+    .report-history-table td:nth-child(1) {
+        width: 35%; /* Date column */
+    }
+
+    .report-history-table th:nth-child(2),
+    .report-history-table td:nth-child(2) {
+        width: 25%; /* Type column */
+    }
+
+    .report-history-table th:nth-child(5),
+    .report-history-table td:nth-child(5) {
+        width: 20%; /* Status column */
+    }
+
+    .report-history-table th:nth-child(6),
+    .report-history-table td:nth-child(6) {
+        width: 20%; /* Actions column */
     }
 }

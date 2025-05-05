@@ -143,6 +143,9 @@ function greenmetrics_init() {
 	// Explicitly load the Chart Generator class
 	require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-chart-generator.php';
 
+	// Explicitly load the Email Report History class
+	require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-email-report-history.php';
+
 	// Debug and development settings should never run in production
 	if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 		// Log current settings in development environments only

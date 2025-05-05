@@ -67,7 +67,7 @@ class GreenMetrics_Export_Handler {
 	public function export_data( $args = array() ) {
 		// Default arguments
 		$defaults = array(
-			'format'           => 'csv',       // Export format: 'csv' or 'json'
+			'format'           => 'csv',       // Export format: 'csv', 'json', or 'pdf'
 			'data_type'        => 'raw',       // Data type: 'raw' or 'aggregated'
 			'start_date'       => '',          // Start date for filtering (YYYY-MM-DD)
 			'end_date'         => '',          // End date for filtering (YYYY-MM-DD)
@@ -80,7 +80,7 @@ class GreenMetrics_Export_Handler {
 		$args = wp_parse_args( $args, $defaults );
 
 		// Validate arguments
-		if ( ! in_array( $args['format'], array( 'csv', 'json' ), true ) ) {
+		if ( ! in_array( $args['format'], array( 'csv', 'json', 'pdf' ), true ) ) {
 			return new \WP_Error( 'invalid_format', __( 'Invalid export format.', 'greenmetrics' ) );
 		}
 
@@ -112,6 +112,8 @@ class GreenMetrics_Export_Handler {
 		// Format data based on requested format
 		if ( 'csv' === $args['format'] ) {
 			return $this->format_as_csv( $data, $args );
+		} elseif ( 'pdf' === $args['format'] ) {
+			return $this->format_as_pdf( $data, $args );
 		} else {
 			return $this->format_as_json( $data, $args );
 		}
@@ -136,7 +138,7 @@ class GreenMetrics_Export_Handler {
 		}
 
 		// Build query
-		$query = "SELECT 
+		$query = "SELECT
 			id,
 			page_id,
 			data_transfer,
@@ -206,7 +208,7 @@ class GreenMetrics_Export_Handler {
 		}
 
 		// Build query
-		$query = "SELECT 
+		$query = "SELECT
 			id,
 			page_id,
 			date_start,
@@ -291,7 +293,7 @@ class GreenMetrics_Export_Handler {
 		$page_titles = array();
 		foreach ( $page_ids as $page_id ) {
 			$page_titles[ $page_id ] = get_the_title( $page_id );
-			
+
 			// If no title, use the permalink or "Unknown"
 			if ( empty( $page_titles[ $page_id ] ) ) {
 				$permalink = get_permalink( $page_id );
@@ -376,6 +378,267 @@ class GreenMetrics_Export_Handler {
 			'content' => $content,
 			'filename' => $filename,
 			'type' => 'application/json',
+		);
+	}
+
+	/**
+	 * Format data as PDF.
+	 *
+	 * @since    1.0.0
+	 * @param    array    $data    Data to format.
+	 * @param    array    $args    Export arguments.
+	 * @return   array    Formatted data.
+	 */
+	private function format_as_pdf( $data, $args ) {
+		if ( empty( $data ) ) {
+			return array(
+				'content' => '',
+				'filename' => 'greenmetrics-export-empty.pdf',
+				'type' => 'application/pdf',
+			);
+		}
+
+		// Generate filename
+		$date_suffix = date( 'Y-m-d' );
+		$type_suffix = $args['data_type'];
+		$filename = "greenmetrics-{$type_suffix}-{$date_suffix}.pdf";
+
+		// Get site info
+		$site_name = get_bloginfo( 'name' );
+		$site_url = get_bloginfo( 'url' );
+		$export_date = date( 'F j, Y' );
+		$date_range = date( 'M j, Y', strtotime( $args['start_date'] ) ) . ' - ' . date( 'M j, Y', strtotime( $args['end_date'] ) );
+
+		// Start building HTML content for PDF
+		$html = '<!DOCTYPE html>
+		<html>
+		<head>
+			<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+			<title>GreenMetrics Report</title>
+			<style>
+				body { font-family: Arial, sans-serif; color: #333; line-height: 1.5; }
+				h1 { color: #4CAF50; margin-bottom: 5px; }
+				h2 { color: #4CAF50; margin-top: 20px; margin-bottom: 10px; }
+				.header { margin-bottom: 20px; }
+				.site-info { color: #666; margin-bottom: 5px; }
+				.date-info { color: #666; margin-bottom: 20px; }
+				table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+				th { background-color: #f2f2f2; text-align: left; padding: 8px; border: 1px solid #ddd; }
+				td { padding: 8px; border: 1px solid #ddd; }
+				tr:nth-child(even) { background-color: #f9f9f9; }
+				.footer { margin-top: 30px; text-align: center; font-size: 12px; color: #666; }
+			</style>
+		</head>
+		<body>
+			<div class="header">
+				<h1>GreenMetrics Report</h1>
+				<div class="site-info">Site: ' . esc_html( $site_name ) . ' (' . esc_html( $site_url ) . ')</div>
+				<div class="date-info">Report generated on ' . esc_html( $export_date ) . '</div>
+				<div class="date-info">Data range: ' . esc_html( $date_range ) . '</div>
+			</div>';
+
+		// Add page title if filtering by page
+		if ( ! empty( $args['page_id'] ) && $args['page_id'] > 0 ) {
+			$page_title = get_the_title( $args['page_id'] );
+			if ( ! empty( $page_title ) ) {
+				$html .= '<div class="page-info">Page: ' . esc_html( $page_title ) . '</div>';
+			}
+		}
+
+		// Add data type info
+		$html .= '<h2>' . ( $args['data_type'] === 'raw' ? 'Raw Metrics Data' : 'Aggregated Metrics Data' ) . '</h2>';
+
+		// Create table
+		$html .= '<table>';
+
+		// Add headers
+		if ( ! empty( $data ) ) {
+			$html .= '<tr>';
+			foreach ( array_keys( $data[0] ) as $header ) {
+				// Make headers more readable
+				$display_header = ucwords( str_replace( '_', ' ', $header ) );
+				$html .= '<th>' . esc_html( $display_header ) . '</th>';
+			}
+			$html .= '</tr>';
+
+			// Add data rows (limit to 100 rows for PDF readability)
+			$row_count = 0;
+			$max_rows = 100;
+
+			foreach ( $data as $row ) {
+				if ( $row_count >= $max_rows ) {
+					break;
+				}
+
+				$html .= '<tr>';
+				foreach ( $row as $cell ) {
+					$html .= '<td>' . esc_html( $cell ) . '</td>';
+				}
+				$html .= '</tr>';
+
+				$row_count++;
+			}
+
+			// Add note if data was truncated
+			if ( count( $data ) > $max_rows ) {
+				$html .= '<tr><td colspan="' . count( array_keys( $data[0] ) ) . '" style="text-align: center; font-style: italic;">Note: This report shows the first ' . $max_rows . ' rows of data. Export as CSV or JSON to get the complete dataset.</td></tr>';
+			}
+		}
+
+		$html .= '</table>';
+
+		// Add footer
+		$html .= '<div class="footer">Generated by GreenMetrics WordPress Plugin</div>';
+		$html .= '</body></html>';
+
+		// Try to find any available PDF generation library
+		$pdf_generated = false;
+		$content = '';
+
+		// Check for TCPDF (used by many WordPress plugins)
+		if ( !$pdf_generated && class_exists( 'TCPDF' ) ) {
+			try {
+				// Create new PDF document
+				$pdf = new \TCPDF( 'P', 'mm', 'A4', true, 'UTF-8', false );
+
+				// Set document information
+				$pdf->SetCreator( 'GreenMetrics' );
+				$pdf->SetAuthor( 'GreenMetrics Plugin' );
+				$pdf->SetTitle( 'GreenMetrics Report' );
+				$pdf->SetSubject( 'GreenMetrics Metrics Report' );
+
+				// Remove header/footer
+				$pdf->setPrintHeader( false );
+				$pdf->setPrintFooter( false );
+
+				// Set margins
+				$pdf->SetMargins( 15, 15, 15 );
+
+				// Add a page
+				$pdf->AddPage();
+
+				// Write HTML content
+				$pdf->writeHTML( $html, true, false, true, false, '' );
+
+				// Get PDF content
+				$content = $pdf->Output( '', 'S' );
+				$pdf_generated = true;
+			} catch ( \Exception $e ) {
+				// If TCPDF fails, continue to next method
+				greenmetrics_log( 'PDF Export: TCPDF error', $e->getMessage(), 'error' );
+			}
+		}
+
+		// Check for DOMPDF
+		if ( !$pdf_generated && ( class_exists( 'DOMPDF' ) || class_exists( '\Dompdf\Dompdf' ) ) ) {
+			try {
+				// Use dompdf to convert HTML to PDF
+				if ( class_exists( '\Dompdf\Dompdf' ) ) {
+					$dompdf = new \Dompdf\Dompdf();
+					$dompdf->loadHtml( $html );
+					$dompdf->setPaper( 'A4', 'portrait' );
+					$dompdf->render();
+					$content = $dompdf->output();
+				} else {
+					$dompdf = new \DOMPDF();
+					$dompdf->load_html( $html );
+					$dompdf->set_paper( 'A4', 'portrait' );
+					$dompdf->render();
+					$content = $dompdf->output();
+				}
+				$pdf_generated = true;
+			} catch ( \Exception $e ) {
+				// If DOMPDF fails, continue to next method
+				greenmetrics_log( 'PDF Export: DOMPDF error', $e->getMessage(), 'error' );
+			}
+		}
+
+		// Check for mPDF
+		if ( !$pdf_generated && class_exists( '\Mpdf\Mpdf' ) ) {
+			try {
+				$mpdf = new \Mpdf\Mpdf();
+				$mpdf->WriteHTML( $html );
+				$content = $mpdf->Output( '', 'S' );
+				$pdf_generated = true;
+			} catch ( \Exception $e ) {
+				// If mPDF fails, continue to next method
+				greenmetrics_log( 'PDF Export: mPDF error', $e->getMessage(), 'error' );
+			}
+		}
+
+		// Check for WooCommerce PDF Invoices & Packing Slips plugin's library
+		if ( !$pdf_generated && function_exists( 'WPO_WCPDF' ) && class_exists( '\WPO\WC\PDF_Invoices\Vendor\Dompdf\Dompdf' ) ) {
+			try {
+				$dompdf = new \WPO\WC\PDF_Invoices\Vendor\Dompdf\Dompdf();
+				$dompdf->loadHtml( $html );
+				$dompdf->setPaper( 'A4', 'portrait' );
+				$dompdf->render();
+				$content = $dompdf->output();
+				$pdf_generated = true;
+			} catch ( \Exception $e ) {
+				// If WooCommerce PDF library fails, continue to next method
+				greenmetrics_log( 'PDF Export: WooCommerce PDF library error', $e->getMessage(), 'error' );
+			}
+		}
+
+		// If no PDF library is available, use HTML with print-friendly styling
+		if ( !$pdf_generated ) {
+			// Add print-friendly CSS to the HTML
+			$print_css = '
+				<style>
+					@media print {
+						body { font-family: Arial, sans-serif; color: #000; }
+						a { text-decoration: none; color: #000; }
+						.header { margin-bottom: 20px; }
+						.footer { margin-top: 20px; text-align: center; font-size: 12px; }
+						table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+						th { background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; color-adjust: exact; text-align: left; padding: 8px; border: 1px solid #ddd; }
+						td { padding: 8px; border: 1px solid #ddd; }
+						tr:nth-child(even) { background-color: #f9f9f9 !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
+					}
+
+					/* Auto-print when loaded */
+					@media screen {
+						body { font-family: Arial, sans-serif; color: #333; line-height: 1.5; padding: 20px; }
+						.print-button { background: #4CAF50; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-bottom: 20px; }
+						.print-instructions { margin-bottom: 20px; padding: 15px; background-color: #f9f9f9; border-left: 4px solid #4CAF50; }
+					}
+				</style>
+				<script>
+					window.onload = function() {
+						// Add print button and instructions
+						var printButton = document.createElement("button");
+						printButton.className = "print-button";
+						printButton.innerHTML = "Print Report";
+						printButton.onclick = function() { window.print(); };
+
+						var instructions = document.createElement("div");
+						instructions.className = "print-instructions";
+						instructions.innerHTML = "<strong>Instructions:</strong> Click the Print Report button above or use your browser\'s print function (Ctrl+P / Cmd+P) to save this report as a PDF.";
+
+						document.body.insertBefore(instructions, document.body.firstChild);
+						document.body.insertBefore(printButton, document.body.firstChild);
+					}
+				</script>
+			';
+
+			// Insert the print CSS into the HTML head
+			$html = str_replace( '</head>', $print_css . '</head>', $html );
+
+			// Return as HTML
+			$content = $html;
+			$filename = str_replace( '.pdf', '.html', $filename );
+			return array(
+				'content' => $content,
+				'filename' => $filename,
+				'type' => 'text/html',
+			);
+		}
+
+		return array(
+			'content' => $content,
+			'filename' => $filename,
+			'type' => 'application/pdf',
 		);
 	}
 

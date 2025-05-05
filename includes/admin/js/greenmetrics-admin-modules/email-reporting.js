@@ -56,10 +56,39 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 			updateEmailPreview();
 		});
 
-		// Handle test email button
-		$('#send_test_email').on('click', function() {
-			sendTestEmail();
+		// Handle test email buttons (both in Settings and Templates tabs)
+		$('#send_test_email, #send_test_email_template').on('click', function() {
+			sendTestEmail($(this).attr('id'));
 		});
+
+		// Handle view report button
+		$(document).on('click', '.view-report', function(e) {
+			e.preventDefault();
+			var reportId = $(this).data('report-id');
+			viewReport(reportId);
+		});
+
+		// Handle modal close button
+		$(document).on('click', '.report-modal-close, .report-modal-close-btn', function() {
+			closeReportModal();
+		});
+
+		// Handle clicking outside the modal
+		$(document).on('click', '#report-view-modal', function(e) {
+			if (e.target === this) {
+				closeReportModal();
+			}
+		});
+
+		// Handle escape key to close modal
+		$(document).keyup(function(e) {
+			if (e.key === "Escape" && $('#report-view-modal').is(':visible')) {
+				closeReportModal();
+			}
+		});
+
+		// Initialize placeholder buttons
+		initPlaceholders();
 
 		// Initialize day options immediately
 		updateDayOptions();
@@ -208,6 +237,28 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 						iframeDoc.write(response.data.content);
 						iframeDoc.close();
 
+						// Add event listener for iframe load to adjust height (with max height)
+						iframe.onload = function() {
+							// Calculate the content height
+							var contentHeight = iframe.contentWindow.document.body.scrollHeight + 20;
+							// Set a maximum height of 600px
+							var maxHeight = 600;
+							// Set iframe height to match content, but not more than max height
+							iframe.style.height = Math.min(contentHeight, maxHeight) + 'px';
+							// Add scrolling if needed
+							iframe.style.overflowY = contentHeight > maxHeight ? 'scroll' : 'hidden';
+						};
+
+						// Also try to adjust height after a short delay
+						setTimeout(function() {
+							if (iframe.contentWindow && iframe.contentWindow.document.body) {
+								var contentHeight = iframe.contentWindow.document.body.scrollHeight + 20;
+								var maxHeight = 600;
+								iframe.style.height = Math.min(contentHeight, maxHeight) + 'px';
+								iframe.style.overflowY = contentHeight > maxHeight ? 'scroll' : 'hidden';
+							}
+						}, 500);
+
 						// Update subject preview
 						$('#preview-subject').text(response.data.subject);
 
@@ -283,14 +334,28 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 	 * @function sendTestEmail
 	 * @memberof GreenMetricsAdmin.EmailReporting
 	 * @private
+	 * @param {string} buttonId - The ID of the button that was clicked (optional)
 	 */
-	function sendTestEmail() {
-		var $button = $('#send_test_email');
-		var $result = $('#test_email_result');
+	function sendTestEmail(buttonId) {
+		// Determine which button was clicked
+		var isTemplateTab = buttonId === 'send_test_email_template';
+		var $button = isTemplateTab ? $('#send_test_email_template') : $('#send_test_email');
+		var $result = isTemplateTab ? $('#test_email_template_result') : $('#test_email_result');
+
+		// Store original button text
+		var originalText = $button.html();
 
 		// Disable button and show loading
-		$button.prop('disabled', true).text('Sending...');
+		$button.prop('disabled', true).html('<span class="dashicons dashicons-update" style="font-size: 16px; vertical-align: middle; margin-right: 5px; animation: spin 1.5s linear infinite;"></span> Sending...');
 		$result.text('').hide();
+
+		// Define keyframe animation for the spinner
+		if (!document.getElementById('spin-keyframes')) {
+			var style = document.createElement('style');
+			style.id = 'spin-keyframes';
+			style.innerHTML = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
+			document.head.appendChild(style);
+		}
 
 		// Send AJAX request
 		$.ajax({
@@ -302,11 +367,11 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 			},
 			success: function(response) {
 				if (response && response.success) {
-					$result.removeClass('error').addClass('success').text(response.data.message).show();
+					$result.removeClass('error').addClass('success').text(response.data.message).fadeIn();
 				} else {
 					var errorMsg = (response && response.data && response.data.message) ?
 						response.data.message : 'Failed to send test email. Please check your settings.';
-					$result.removeClass('success').addClass('error').text(errorMsg).show();
+					$result.removeClass('success').addClass('error').text(errorMsg).fadeIn();
 				}
 			},
 			error: function(xhr) {
@@ -340,23 +405,306 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 					// Silent catch - just use default error message
 				}
 
-				$result.removeClass('success').addClass('error').text(errorMessage).show();
+				$result.removeClass('success').addClass('error').text(errorMessage).fadeIn();
 			},
 			complete: function() {
-				// Re-enable button
-				$button.prop('disabled', false).text('Send Test Email');
+				// Re-enable button and restore original text
+				$button.prop('disabled', false).html(originalText);
 
-				// Hide result after 5 seconds
+				// Hide result after 8 seconds
 				setTimeout(function() {
 					$result.fadeOut();
-				}, 5000);
+				}, 8000);
 			}
 		});
+	}
+
+	/**
+	 * View a report
+	 *
+	 * @function viewReport
+	 * @memberof GreenMetricsAdmin.EmailReporting
+	 * @private
+	 * @param {number} reportId - The ID of the report to view
+	 */
+	function viewReport(reportId) {
+		// Show the modal
+		$('#report-view-modal').show();
+
+		// Show loading indicator
+		$('#report-modal-body').html(
+			'<div class="report-loading">' +
+			'<span class="spinner is-active"></span>' +
+			'<p>Loading report...</p>' +
+			'</div>'
+		);
+
+		// Get the report from the server
+		$.ajax({
+			url: ajaxurl,
+			type: 'POST',
+			data: {
+				action: 'greenmetrics_get_report',
+				nonce: $('#greenmetrics_nonce').val(),
+				report_id: reportId
+			},
+			success: function(response) {
+				if (response && response.success) {
+					// Format the report data
+					var report = response.data;
+					var reportHtml = formatReportForModal(report);
+
+					// Update the modal content
+					$('#report-modal-body').html(reportHtml);
+
+					// Load the email content into the iframe
+					setTimeout(function() {
+						var iframe = document.getElementById('report-content-frame');
+						if (iframe) {
+							var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+							iframeDoc.open();
+							iframeDoc.write(report.content);
+							iframeDoc.close();
+
+							// Add event listener for iframe load to adjust height (with max height)
+							iframe.onload = function() {
+								// Calculate the content height
+								var contentHeight = iframe.contentWindow.document.body.scrollHeight + 20;
+								// Set a maximum height of 600px
+								var maxHeight = 600;
+								// Set iframe height to match content, but not more than max height
+								iframe.style.height = Math.min(contentHeight, maxHeight) + 'px';
+							};
+
+							// Also try to adjust height after a short delay
+							setTimeout(function() {
+								if (iframe.contentWindow && iframe.contentWindow.document.body) {
+									var contentHeight = iframe.contentWindow.document.body.scrollHeight + 20;
+									var maxHeight = 600;
+									iframe.style.height = Math.min(contentHeight, maxHeight) + 'px';
+								}
+							}, 500);
+						}
+					}, 100);
+				} else {
+					var errorMsg = (response && response.data && response.data.message) ?
+						response.data.message : 'Failed to load report. Please try again.';
+
+					$('#report-modal-body').html(
+						'<div class="error-message">' +
+						'<p>' + errorMsg + '</p>' +
+						'</div>'
+					);
+				}
+			},
+			error: function() {
+				$('#report-modal-body').html(
+					'<div class="error-message">' +
+					'<p>AJAX request failed. Please try again.</p>' +
+					'</div>'
+				);
+			}
+		});
+	}
+
+	/**
+	 * Format a report for display in the modal
+	 *
+	 * @function formatReportForModal
+	 * @memberof GreenMetricsAdmin.EmailReporting
+	 * @private
+	 * @param {Object} report - The report data
+	 * @return {string} The formatted HTML
+	 */
+	function formatReportForModal(report) {
+		// Format the report type
+		var reportType = '';
+		switch (report.report_type) {
+			case 'daily':
+				reportType = 'Daily';
+				break;
+			case 'weekly':
+				reportType = 'Weekly';
+				break;
+			case 'monthly':
+				reportType = 'Monthly';
+				break;
+			default:
+				reportType = report.report_type;
+		}
+
+		// Add test badge if needed
+		if (report.is_test == 1) {
+			reportType += ' <span class="test-badge">Test</span>';
+		}
+
+		// Format the status
+		var statusClass = '';
+		switch (report.status) {
+			case 'sent':
+				statusClass = 'status-success';
+				break;
+			case 'failed':
+				statusClass = 'status-error';
+				break;
+			default:
+				statusClass = '';
+		}
+
+		// Build the HTML
+		var html = '<div class="report-info">';
+		html += '<h3>' + report.subject + '</h3>';
+		html += '<p><strong>Date:</strong> ' + (report.sent_at_formatted || report.sent_at) + '</p>';
+		html += '<p><strong>Type:</strong> ' + reportType + '</p>';
+		html += '<p><strong>Recipients:</strong> ' + report.recipients + '</p>';
+		html += '<p><strong>Status:</strong> <span class="status-badge ' + statusClass + '">' + report.status.charAt(0).toUpperCase() + report.status.slice(1) + '</span></p>';
+		html += '</div>';
+
+		// Add the email content
+		html += '<div class="report-content">';
+		html += '<h3>Email Content</h3>';
+		html += '<iframe id="report-content-frame" style="width:100%;height:500px;border:1px solid #ddd;border-radius:4px;"></iframe>';
+		html += '</div>';
+
+		// Add the actions
+		html += '<div class="report-actions">';
+		html += '<button type="button" class="button report-modal-close-btn">Close</button>';
+		html += '</div>';
+
+		// Return the HTML
+		return html;
+	}
+
+	/**
+	 * Initialize placeholder buttons
+	 *
+	 * @function initPlaceholders
+	 * @memberof GreenMetricsAdmin.EmailReporting
+	 * @private
+	 */
+	function initPlaceholders() {
+		// Define placeholders - only include ones that are actually functional
+		var placeholders = [
+			{ name: '[site_name]', description: 'Your website name' },
+			{ name: '[site_url]', description: 'Your website URL' },
+			{ name: '[date]', description: 'Current date' },
+			{ name: '[admin_email]', description: 'Admin email address' },
+			{ name: '[user_name]', description: 'Current user\'s name' },
+			{ name: '[user_email]', description: 'Current user\'s email' }
+		];
+
+		// Get the placeholder container
+		var $container = $('#placeholder-buttons');
+		if (!$container.length) {
+			return;
+		}
+
+		// Clear existing buttons
+		$container.empty();
+
+		// Add buttons for each placeholder
+		placeholders.forEach(function(placeholder) {
+			var $button = $(
+				'<div class="placeholder-button-wrapper">' +
+				'<button type="button" class="placeholder-button" ' +
+				'data-placeholder="' + placeholder.name + '" ' +
+				'title="Click to copy: ' + placeholder.description + '">' +
+				'<span class="dashicons dashicons-clipboard" style="font-size: 14px; width: 14px; height: 14px; margin-right: 3px;"></span>' +
+				placeholder.name +
+				'</button>' +
+				'</div>'
+			);
+			$container.append($button);
+		});
+
+		// Add click handler for placeholder buttons
+		$container.on('click', '.placeholder-button', function() {
+			var placeholder = $(this).data('placeholder');
+			insertPlaceholder(placeholder);
+
+			// Show copied feedback
+			$(this).addClass('copied');
+
+			// Reset all buttons after a delay
+			setTimeout(function() {
+				$('.placeholder-button').removeClass('copied');
+			}, 1500);
+		});
+	}
+
+	/**
+	 * Insert a placeholder into the active textarea
+	 *
+	 * @function insertPlaceholder
+	 * @memberof GreenMetricsAdmin.EmailReporting
+	 * @private
+	 * @param {string} placeholder - The placeholder to insert
+	 */
+	function insertPlaceholder(placeholder) {
+		// Don't actually insert the placeholder, just show the copied feedback
+		// This simulates copying to clipboard without modifying any textarea
+
+		// Copy the placeholder to clipboard using modern Clipboard API if available
+		if (navigator.clipboard && navigator.clipboard.writeText) {
+			navigator.clipboard.writeText(placeholder).catch(function(err) {
+				console.error('Could not copy text: ', err);
+				// Fallback to older method if Clipboard API fails
+				copyToClipboardFallback(placeholder);
+			});
+		} else {
+			// Fallback for browsers that don't support Clipboard API
+			copyToClipboardFallback(placeholder);
+		}
+	}
+
+	/**
+	 * Fallback method to copy text to clipboard
+	 *
+	 * @function copyToClipboardFallback
+	 * @memberof GreenMetricsAdmin.EmailReporting
+	 * @private
+	 * @param {string} text - The text to copy
+	 */
+	function copyToClipboardFallback(text) {
+		var tempInput = document.createElement('input');
+		tempInput.style.position = 'absolute';
+		tempInput.style.left = '-1000px';
+		tempInput.value = text;
+		document.body.appendChild(tempInput);
+		tempInput.select();
+
+		try {
+			document.execCommand('copy');
+		} catch (err) {
+			console.error('Fallback clipboard copy failed: ', err);
+		}
+
+		document.body.removeChild(tempInput);
+	}
+
+	/**
+	 * Close the report modal
+	 *
+	 * @function closeReportModal
+	 * @memberof GreenMetricsAdmin.EmailReporting
+	 * @private
+	 */
+	function closeReportModal() {
+		$('#report-view-modal').hide();
 	}
 
 	// Public API
 	return {
 		init: init,
-		updateEmailPreview: updateEmailPreview
+		updateEmailPreview: updateEmailPreview,
+		viewReport: viewReport,
+		adjustIframeHeight: function(iframe) {
+			if (iframe && iframe.contentWindow && iframe.contentWindow.document.body) {
+				var contentHeight = iframe.contentWindow.document.body.scrollHeight + 20;
+				var maxHeight = 600;
+				iframe.style.height = Math.min(contentHeight, maxHeight) + 'px';
+				iframe.style.overflowY = contentHeight > maxHeight ? 'scroll' : 'hidden';
+			}
+		}
 	};
 })(jQuery);

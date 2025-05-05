@@ -50,6 +50,7 @@ GreenMetricsAdmin.Config = (function() {
         isDashboardPage: greenmetricsAdmin.is_dashboard_page || false,
         isReportsPage: greenmetricsAdmin.is_reports_page || false,
         isEmailReportingPage: greenmetricsAdmin.is_email_reporting_page || false,
+        isDisplaySettingsPage: greenmetricsAdmin.is_display_settings_page || false,
         isPluginPage: greenmetricsAdmin.is_plugin_page || false
     };
 })();

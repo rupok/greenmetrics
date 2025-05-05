@@ -13,6 +13,7 @@
  * - chart.js: Chart visualization functionality (loaded only on dashboard and reports pages)
  * - dashboard.js: Dashboard statistics functionality (loaded only on dashboard pages)
  * - reports.js: Advanced reporting functionality (loaded only on reports pages)
+ * - display-settings.js: Display Settings page functionality (loaded only on display settings page)
  *
  * The GreenMetricsAdmin namespace is used to organize all functionality
  *
@@ -28,6 +29,7 @@
  * @requires GreenMetricsAdmin.Dashboard
  * @requires GreenMetricsAdmin.ReportsChart
  * @requires GreenMetricsAdmin.Reports
+ * @requires GreenMetricsAdmin.DisplaySettings
  */
 
 /**
@@ -73,6 +75,16 @@ function initGreenMetricsAdmin() {
     if (typeof GreenMetricsAdmin.EmailReporting !== 'undefined' &&
         GreenMetricsAdmin.Config && GreenMetricsAdmin.Config.isEmailReportingPage) {
         GreenMetricsAdmin.EmailReporting.init();
+    }
+
+    // Initialize Display Settings module
+    if (typeof GreenMetricsAdmin.DisplaySettings !== 'undefined') {
+        GreenMetricsAdmin.DisplaySettings.init();
+    }
+
+    // Initialize Data Management module
+    if (typeof GreenMetricsAdmin.DataManagement !== 'undefined') {
+        GreenMetricsAdmin.DataManagement.init();
     }
 }
 
