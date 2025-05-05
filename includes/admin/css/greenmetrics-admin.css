@@ -81,15 +81,6 @@
 	padding: 0 20px;
 }
 
-/* Add shadow to admin wrap to make it look like a card */
-.greenmetrics_page_greenmetrics_display .wrap,
-.toplevel_page_greenmetrics .wrap {
-	background: #f8f9fa;
-	padding: 20px;
-	border-radius: 16px;
-	box-shadow: 0 2px 30px rgba(0, 0, 0, 0.03);
-}
-
 .greenmetrics-admin-stats,
 .greenmetrics-metrics-trends,
 .greenmetrics-admin-settings {

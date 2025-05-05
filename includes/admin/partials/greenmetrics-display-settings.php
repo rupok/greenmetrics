@@ -108,11 +108,12 @@ $settings = get_option(
 						<div class="greenmetrics-tab-content active" id="tab-badge">
 							<!-- Badge Display -->
 							<div class="greenmetrics-admin-card settings-card badge-display">
-								<h3 class="settings-card-header">
+								<h3 class="settings-card-header accordion-trigger" data-card="badge-display">
 									<span class="dashicons dashicons-visibility card-icon"></span>
 									<?php esc_html_e( 'Badge Display', 'greenmetrics' ); ?>
+									<span class="accordion-icon dashicons dashicons-arrow-down-alt2"></span>
 								</h3>
-								<div class="settings-card-content">
+								<div class="settings-card-content accordion-content">
 									<div class="form-field">
 										<label for="enable_badge"><?php esc_html_e( 'Display Badge', 'greenmetrics' ); ?></label>
 										<?php $admin->render_badge_field(); ?>
@@ -132,11 +133,12 @@ $settings = get_option(
 
 							<!-- Badge Appearance -->
 							<div class="greenmetrics-admin-card settings-card badge-appearance">
-								<h3 class="settings-card-header">
+								<h3 class="settings-card-header accordion-trigger" data-card="badge-appearance">
 									<span class="dashicons dashicons-art card-icon"></span>
 									<?php esc_html_e( 'Badge Appearance', 'greenmetrics' ); ?>
+									<span class="accordion-icon dashicons dashicons-arrow-down-alt2"></span>
 								</h3>
-								<div class="settings-card-content">
+								<div class="settings-card-content accordion-content">
 									<div class="form-field">
 										<label for="badge_text"><?php esc_html_e( 'Badge Text', 'greenmetrics' ); ?></label>
 										<?php $admin->render_badge_text_field(); ?>
@@ -184,11 +186,12 @@ $settings = get_option(
 						<div class="greenmetrics-tab-content" id="tab-popover">
 							<!-- Popover Content -->
 							<div class="greenmetrics-admin-card settings-card popover-content">
-								<h3 class="settings-card-header">
+								<h3 class="settings-card-header accordion-trigger" data-card="popover-content">
 									<span class="dashicons dashicons-editor-table card-icon"></span>
 									<?php esc_html_e( 'Popover Content', 'greenmetrics' ); ?>
+									<span class="accordion-icon dashicons dashicons-arrow-down-alt2"></span>
 								</h3>
-								<div class="settings-card-content">
+								<div class="settings-card-content accordion-content">
 									<div class="form-field">
 										<label for="popover_title"><?php esc_html_e( 'Content Title', 'greenmetrics' ); ?></label>
 										<?php $admin->render_popover_title_field(); ?>
@@ -208,11 +211,12 @@ $settings = get_option(
 
 							<!-- Popover Appearance -->
 							<div class="greenmetrics-admin-card settings-card popover-appearance">
-								<h3 class="settings-card-header">
+								<h3 class="settings-card-header accordion-trigger" data-card="popover-appearance">
 									<span class="dashicons dashicons-admin-appearance card-icon"></span>
 									<?php esc_html_e( 'Popover Appearance', 'greenmetrics' ); ?>
+									<span class="accordion-icon dashicons dashicons-arrow-down-alt2"></span>
 								</h3>
-								<div class="settings-card-content">
+								<div class="settings-card-content accordion-content">
 									<div class="form-field">
 										<label for="popover_bg_color"><?php esc_html_e( 'Content Background Color', 'greenmetrics' ); ?></label>
 										<?php $admin->render_popover_bg_color_field(); ?>
@@ -323,7 +327,9 @@ $settings = get_option(
 						</div>
 					</div>
 
-					<?php submit_button(); ?>
+					<div class="sticky-submit-container">
+						<?php submit_button(); ?>
+					</div>
 				</form>
 			</div>
 
@@ -493,10 +499,76 @@ jQuery(document).ready(function($) {
 		$('.greenmetrics-tab-item[data-tab="' + activeTab + '"]').trigger('click');
 	}
 
+	// Accordion functionality
+	$('.accordion-trigger').on('click', function() {
+		const cardId = $(this).data('card');
+		const $content = $(this).next('.accordion-content');
+		const isActive = $(this).hasClass('active');
+
+		// Close all accordions in the current tab
+		const $currentTab = $(this).closest('.greenmetrics-tab-content');
+		$currentTab.find('.accordion-trigger').removeClass('active');
+		$currentTab.find('.accordion-content').slideUp(300);
+
+		// Toggle the clicked accordion
+		if (!isActive) {
+			$(this).addClass('active');
+			$content.slideDown(300);
+
+			// Store the active accordion in localStorage
+			localStorage.setItem('greenmetrics_display_settings_active_accordion_' + activeTab, cardId);
+		} else {
+			localStorage.removeItem('greenmetrics_display_settings_active_accordion_' + activeTab);
+		}
+	});
+
+	// Initialize accordions - open the first one in each tab by default
+	function initAccordions() {
+		// Get active tab
+		const currentTab = $('.greenmetrics-tab-item.active').data('tab');
+
+		// Try to restore accordion state from localStorage
+		const activeAccordion = localStorage.getItem('greenmetrics_display_settings_active_accordion_' + currentTab);
+
+		if (activeAccordion) {
+			// Open the previously active accordion
+			$('.accordion-trigger[data-card="' + activeAccordion + '"]').addClass('active');
+			$('.accordion-trigger[data-card="' + activeAccordion + '"]').next('.accordion-content').show();
+		} else {
+			// Open the first accordion in each tab by default
+			$('.greenmetrics-tab-content').each(function() {
+				$(this).find('.accordion-trigger').first().addClass('active');
+				$(this).find('.accordion-content').first().show();
+			});
+		}
+	}
+
+	// Initialize accordions
+	initAccordions();
+
+	// Re-initialize accordions when tab changes
+	$('.greenmetrics-tab-item').on('click', function() {
+		initAccordions();
+	});
+
 	// Handle form submission
 	$('#greenmetrics-display-settings-form').on('submit', function() {
+		// Ensure all form fields are included in the submission
+		// by temporarily showing all accordion contents
+		$('.accordion-content').each(function() {
+			if (!$(this).is(':visible')) {
+				$(this).addClass('temp-visible').css('display', 'block').css('height', '0').css('overflow', 'hidden');
+			}
+		});
+
 		// Store the form data in localStorage before submitting
 		localStorage.setItem('greenmetrics_display_settings_submitted', 'true');
+
+		// Use setTimeout to ensure the form is submitted after the DOM is updated
+		setTimeout(function() {
+			// Remove temporary visibility after form is submitted
+			$('.accordion-content.temp-visible').removeClass('temp-visible').css('display', '').css('height', '').css('overflow', '');
+		}, 0);
 	});
 
 	// Check if we need to show a notice after form submission
@@ -765,35 +837,313 @@ jQuery(document).ready(function($) {
 	border-bottom: 1px solid #ccc;
 }
 
+/* Accordion Styles */
+.settings-card {
+	margin-bottom: 20px;
+	border-radius: 4px;
+	overflow: hidden;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.accordion-trigger {
+	cursor: pointer;
+	position: relative;
+	padding: 15px;
+	transition: all 0.2s ease;
+	background-color: #fff;
+	border-bottom: 1px solid #e5e5e5;
+	display: flex;
+	align-items: center;
+	margin-bottom: 0;
+}
+
+.accordion-trigger:hover {
+	background-color: #f8f8f8;
+}
+
+.accordion-trigger.active {
+	background-color: #f9f9f9;
+}
+
+.accordion-trigger .card-icon {
+	margin-right: 8px;
+	vertical-align: middle;
+}
+
+.accordion-icon {
+	position: absolute;
+	right: 15px;
+	top: 50%;
+	transform: translateY(-50%);
+	transition: transform 0.3s ease;
+	color: #777;
+}
+
+.accordion-trigger.active .accordion-icon {
+	transform: translateY(-50%) rotate(180deg);
+}
+
+.accordion-content {
+	display: none;
+	overflow: hidden;
+	transition: max-height 0.3s ease;
+	padding: 20px;
+	background-color: #fff;
+}
+
+.accordion-content.active {
+	display: block;
+}
+
+/* Card specific styling */
+.badge-display {
+	border-left: 4px solid #0073aa;
+}
+
+.badge-appearance {
+	border-left: 4px solid #00a0d2;
+}
+
+.popover-content {
+	border-left: 4px solid #46b450;
+}
+
+.popover-appearance {
+	border-left: 4px solid #ffb900;
+}
+
+/* Accordion title icons */
+.badge-display .accordion-trigger .card-icon {
+	color: #0073aa;
+}
+
+.badge-appearance .accordion-trigger .card-icon {
+	color: #00a0d2;
+}
+
+.popover-content .accordion-trigger .card-icon {
+	color: #46b450;
+}
+
+.popover-appearance .accordion-trigger .card-icon {
+	color: #ffb900;
+}
+
+/* Form field styling */
+.form-field {
+	margin-bottom: 20px;
+}
+
+.form-field:last-child {
+	margin-bottom: 0;
+}
+
+.form-field label {
+	display: block;
+	margin-bottom: 8px;
+	font-weight: 500;
+	color: #333;
+}
+
+.form-field input[type="text"],
+.form-field select {
+	width: 100%;
+	max-width: 400px;
+	padding: 8px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.07);
+}
+
+.form-field input[type="text"]:focus,
+.form-field select:focus {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+	outline: 2px solid transparent;
+}
+
+.form-field .description {
+	margin-top: 4px;
+	color: #666;
+	font-style: italic;
+	font-size: 13px;
+}
+
+/* Color picker styling */
+.wp-picker-container {
+	display: inline-block;
+}
+
+.wp-picker-container .wp-color-result {
+	margin: 0 6px 0 0;
+	height: 30px;
+	border-radius: 3px;
+	box-shadow: none;
+}
+
+.wp-picker-container .wp-color-result-text {
+	line-height: 28px;
+	padding: 0 10px;
+	border-radius: 0 2px 2px 0;
+}
+
+.wp-picker-container .button {
+	height: 30px;
+	margin-left: 6px;
+	padding: 0 10px;
+	line-height: 28px;
+	background: #f7f7f7;
+	border-color: #ccc;
+	color: #555;
+	border-radius: 3px;
+}
+
+.wp-picker-container .button:hover {
+	background: #f0f0f0;
+	border-color: #999;
+	color: #23282d;
+}
+
+/* Toggle switch styling */
+.toggle-switch {
+	position: relative;
+	display: inline-block;
+	width: 40px;
+	height: 22px;
+	margin-top: 4px;
+}
+
+.toggle-switch input {
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.toggle-switch .slider {
+	position: absolute;
+	cursor: pointer;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: #ccc;
+	transition: .4s;
+	border-radius: 34px;
+}
+
+.toggle-switch .slider:before {
+	position: absolute;
+	content: "";
+	height: 16px;
+	width: 16px;
+	left: 3px;
+	bottom: 3px;
+	background-color: white;
+	transition: .4s;
+	border-radius: 50%;
+}
+
+.toggle-switch input:checked + .slider {
+	background-color: #0073aa;
+}
+
+.toggle-switch input:focus + .slider {
+	box-shadow: 0 0 1px #0073aa;
+}
+
+.toggle-switch input:checked + .slider:before {
+	transform: translateX(18px);
+}
+
+/* Sticky Save Button */
+.sticky-submit-container {
+	position: sticky;
+	bottom: 0;
+	background: #fff;
+	padding: 15px 0;
+	margin-top: 20px;
+	z-index: 100;
+	text-align: left;
+}
+
+.sticky-submit-container .button-primary {
+	background: #2271b1;
+	border-color: #2271b1;
+	color: #fff;
+	text-decoration: none;
+	text-shadow: none;
+	padding: 0 16px;
+	height: 32px;
+	line-height: 30px;
+	font-size: 13px;
+	border-radius: 3px;
+	font-weight: 500;
+	box-shadow: none;
+}
+
+.sticky-submit-container .button-primary:hover {
+	background: #135e96;
+	border-color: #135e96;
+	color: #fff;
+}
+
+.greenmetrics-tabs-nav {
+	margin-bottom: 20px;
+}
+
+.greenmetrics-tabs-list {
+	display: flex;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	border-bottom: 1px solid #ccc;
+	background: #f0f0f1;
+}
+
 .greenmetrics-tab-item {
 	padding: 12px 20px;
 	margin: 0;
 	cursor: pointer;
 	font-weight: 500;
 	color: #555;
-	background-color: #f8f8f8;
-	border: 1px solid #ccc;
-	border-bottom: none;
+	background-color: #f0f0f1;
+	border: none;
 	margin-right: 5px;
-	border-radius: 4px 4px 0 0;
 	display: flex;
 	align-items: center;
+	transition: all 0.2s ease;
+	position: relative;
 }
 
 .greenmetrics-tab-item .dashicons {
 	margin-right: 8px;
 	vertical-align: middle;
+	color: #666;
 }
 
 .greenmetrics-tab-item:hover {
-	background-color: #f0f0f0;
+	color: #2271b1;
 }
 
 .greenmetrics-tab-item.active {
 	background-color: #fff;
-	color: #333;
-	border-bottom: 1px solid #fff;
-	margin-bottom: -1px;
+	color: #2271b1;
+	border-top: 3px solid #2271b1;
+	padding-top: 9px;
+}
+
+.greenmetrics-tab-item.active:after {
+	content: '';
+	position: absolute;
+	bottom: -1px;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: #fff;
+}
+
+.greenmetrics-tab-item.active .dashicons {
+	color: #2271b1;
 }
 
 .greenmetrics-tab-content {
@@ -809,9 +1159,136 @@ jQuery(document).ready(function($) {
 	border-radius: 4px;
 }
 
+.greenmetrics-admin-preview-sticky {
+	position: sticky;
+	top: 32px;
+}
+
+.badge-preview h2 {
+	margin-top: 0;
+	font-size: 18px;
+	font-weight: 500;
+	color: #333;
+}
+
+.badge-preview .description {
+	color: #666;
+	margin-bottom: 20px;
+}
+
+.preview-section {
+	margin-bottom: 30px;
+}
+
+.preview-section h3 {
+	font-size: 14px;
+	font-weight: 500;
+	color: #333;
+	border-bottom: 1px solid #eee;
+	padding-bottom: 10px;
+	margin-bottom: 15px;
+}
+
+.badge-preview-panel {
+	position: relative;
+	height: 150px;
+	background: #f9f9f9;
+	border: 1px solid #eee;
+	border-radius: 4px;
+	margin-bottom: 20px;
+	box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.03);
+}
+
+.popover-preview-panel {
+	background: #f9f9f9;
+	border: 1px solid #eee;
+	border-radius: 4px;
+	padding: 15px;
+	display: flex;
+	justify-content: center;
+	box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.03);
+}
+
+#popover-preview-container {
+	box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+}
+
 #badge-preview-container {
 	padding: 15px;
 }
+
+/* Overall Layout Improvements */
+.greenmetrics-admin-content-wrapper {
+	display: grid;
+	grid-template-columns: 2fr 1fr;
+	gap: 20px;
+}
+
+.greenmetrics-admin-settings-column {
+	background: #fff;
+	border-radius: 4px;
+	padding: 20px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.greenmetrics-admin-preview-column {
+	background: #f9f9f9;
+	border-radius: 4px;
+	padding: 20px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.badge-preview {
+	background: #fff;
+	border-radius: 4px;
+	padding: 20px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 782px) {
+	.greenmetrics-admin-content-wrapper {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* Header Styling */
+.greenmetrics-admin-header {
+	background: #fff;
+	border-radius: 4px;
+	padding: 20px;
+	margin-bottom: 20px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.greenmetrics-admin-header .header-content {
+	display: flex;
+	align-items: center;
+}
+
+.greenmetrics-admin-header img {
+	width: 32px;
+	height: 32px;
+	margin-right: 10px;
+}
+
+.greenmetrics-admin-header h1 {
+	margin: 0;
+	padding: 0;
+	font-size: 20px;
+	font-weight: 500;
+	color: #1d2327;
+}
+
+.greenmetrics-admin-header .version {
+	color: #777;
+	font-size: 12px;
+	font-weight: normal;
+}
+
+/* This section is now handled in the accordion styles */
 
 #badge-preview-container.top-left {
 	top: 0;
