@@ -823,7 +823,9 @@
     border-radius: 3px;
     font-size: 13px;
 }
-
+div#wpfooter{
+    position: relative!important;
+}
 /* Responsive Adjustments */
 @media screen and (max-width: 782px) {
     .greenmetrics-admin-content-wrapper {
