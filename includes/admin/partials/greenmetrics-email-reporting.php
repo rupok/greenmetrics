@@ -33,8 +33,21 @@ $tracker = \GreenMetrics\GreenMetrics_Tracker::get_instance();
 $stats   = $tracker->get_stats();
 
 ?>
-<div class="wrap greenmetrics-admin-wrap">
-	<h1><?php esc_html_e( 'GreenMetrics - Email Reporting', 'greenmetrics' ); ?></h1>
+<div class="wrap">
+	<div class="greenmetrics-admin-container email-reporting-page">
+		<div class="greenmetrics-admin-header">
+			<div class="header-content">
+				<img src="<?php echo esc_url( GREENMETRICS_PLUGIN_URL . 'includes/admin/img/greenmetrics-icon.png' ); ?>" alt="<?php esc_attr_e( 'GreenMetrics Icon', 'greenmetrics' ); ?>" />
+				<h1><?php esc_html_e( 'GreenMetrics - Email Reporting', 'greenmetrics' ); ?></h1>
+			</div>
+
+			<span class="version">
+			<?php
+			/* translators: %s: Plugin version number */
+			echo esc_html( sprintf( __( 'GreenMetrics v%s', 'greenmetrics' ), GREENMETRICS_VERSION ) );
+			?>
+			</span>
+		</div>
 
 	<?php settings_errors(); ?>
 	<?php wp_nonce_field( 'greenmetrics_admin_nonce', 'greenmetrics_nonce' ); ?>
@@ -57,11 +70,11 @@ $stats   = $tracker->get_stats();
 		</ul>
 	</div>
 
-	<!-- Tab Content -->
-	<div class="greenmetrics-tabs-content">
-		<!-- Settings Tab -->
-		<div class="greenmetrics-tab-content active" id="tab-settings">
-			<div class="greenmetrics-admin-content-wrapper">
+	<div class="greenmetrics-admin-content-wrapper">
+		<!-- Tab Content -->
+		<div class="greenmetrics-tabs-content">
+			<!-- Settings Tab -->
+			<div class="greenmetrics-tab-content active" id="tab-settings">
 				<!-- Left Column: Settings Form -->
 				<div class="greenmetrics-admin-settings-column">
 					<div class="greenmetrics-admin-card">
@@ -186,7 +199,6 @@ $stats   = $tracker->get_stats();
 				</div>
 			</div>
 		</div>
-	</div>
 </div>
 
 <!-- Templates Tab -->
@@ -720,3 +732,6 @@ jQuery(document).ready(function($) {
     }
 });
 </script>
+
+</div>
+</div>

@@ -66,8 +66,8 @@
 }
 
 /* Email Reports Section */
-.email-reports-section {
-    margin-top: 30px;
+.email-reports-section .greenmetrics-admin-card {
+    margin-top: 0;
 }
 
 .email-reports-section h2 {
@@ -356,13 +356,6 @@
     justify-content: space-between;
     align-items: center;
     margin: 15px 0;
-}
-
-.preview-info {
-    color: #666;
-    font-size: 13px;
-    font-style: italic;
-    text-align: right;
 }
 
 .email-preview-footer {
