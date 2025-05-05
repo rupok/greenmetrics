@@ -35,7 +35,8 @@ For more information, visit [getgreenmetrics.com](https://getgreenmetrics.com).
 * **Data Management**: Automated data aggregation and pruning to maintain optimal database performance.
 * **Advanced Reporting**: Detailed metrics with customizable time periods and visualization options.
 * **Email Reporting**: Scheduled email reports with customizable frequency (daily, weekly, monthly) and content.
-* **Email Templates**: Fully customizable email templates with color schemes and content options.
+* **Email Templates**: Fully customizable email templates with color schemes, placeholders, and content options.
+* **Email History**: Track and view all sent email reports with detailed history and status information.
 * **Visual Chart Generation**: Beautiful charts showing metrics trends over time in email reports.
 * **Export Capabilities**: Export your environmental metrics data for external analysis.
 
@@ -108,7 +109,7 @@ The Advanced Reporting page provides detailed insights into your website's envir
 * **Data Export**: Download your metrics data for external analysis
 
 = Email Reporting =
-The Email Reporting page allows you to set up automated email reports:
+The Email Reporting page allows you to set up automated email reports and track their history:
 
 * **Schedule Configuration**: Set daily, weekly, or monthly reporting frequency
 * **Recipient Management**: Add multiple email recipients
@@ -116,6 +117,10 @@ The Email Reporting page allows you to set up automated email reports:
 * **Template Selection**: Pick from different email templates
 * **Custom Styling**: Personalize colors, fonts, and layout
 * **Visual Charts**: Include trend charts showing metrics over time
+* **Email History**: View a complete history of all sent reports with status tracking
+* **Template Preview**: Real-time preview of your email template as you customize it
+* **Test Emails**: Send test emails to verify your template and settings
+* **Placeholder System**: Use dynamic placeholders like [site_name], [date], [admin_email], etc.
 
 = Display Badge =
 You can display the eco-friendly badge in three ways:
@@ -180,15 +185,19 @@ Statistics are updated in real-time as users visit your site. The dashboard disp
 
 = How do the email reports work? =
 
-Email reports can be scheduled to send daily, weekly, or monthly summaries of your website's environmental metrics. You can customize the recipients, content, and appearance of these reports through the Email Reporting settings page.
+Email reports can be scheduled to send daily, weekly, or monthly summaries of your website's environmental metrics. You can customize the recipients, content, and appearance of these reports through the Email Reporting settings page. The system tracks all sent emails and maintains a complete history for your reference.
 
 = What information is included in email reports? =
 
-Email reports include key metrics such as carbon footprint, energy consumption, and data transfer, along with visual charts showing trends over the selected time period. You can customize which metrics to include and how they're displayed.
+Email reports include key metrics such as carbon footprint, energy consumption, and data transfer, along with visual charts showing trends over the selected time period. You can customize which metrics to include and how they're displayed. Dynamic placeholders allow you to personalize the content with site-specific information.
 
 = Can I customize the appearance of email reports? =
 
-Yes, you can fully customize the email templates, including colors, fonts, header/footer content, and which metrics to display. You can also choose between different template styles to match your brand.
+Yes, you can fully customize the email templates, including colors, fonts, header/footer content, and which metrics to display. You can also choose between different template styles to match your brand. A real-time preview shows exactly how your emails will look as you make changes.
+
+= How does the email history feature work? =
+
+The Email History tab maintains a complete record of all sent email reports, including date/time, recipients, subject, report type, and delivery status. You can view the full content of any previously sent report and track which reports were successfully delivered.
 
 = How does the data management system work? =
 
@@ -213,6 +222,8 @@ No, data aggregation preserves the accuracy of your metrics while reducing datab
 * Advanced Reporting with customizable time periods and visualization options
 * Email Reporting with scheduled reports (daily, weekly, monthly)
 * Customizable email templates with color schemes and styling options
+* Email History tracking with status monitoring and report viewing
+* Dynamic placeholder system for personalized email content
 * Visual chart generation for email reports
 * Data export capabilities
 

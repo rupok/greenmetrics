@@ -26,7 +26,8 @@ Website: [getgreenmetrics.com](https://getgreenmetrics.com)
 - **Data Pruning**: Scheduled cleanup of old data to maintain database efficiency
 - **Advanced Reporting**: Detailed metrics with customizable time periods and visualization options
 - **Email Reporting**: Scheduled email reports with customizable frequency (daily, weekly, monthly)
-- **Email Templates**: Fully customizable email templates with color schemes and content options
+- **Email Templates**: Fully customizable email templates with color schemes, placeholders, and content options
+- **Email History**: Track and view all sent email reports with detailed history and status information
 - **Visual Charts**: Beautiful trend charts showing metrics over time in email reports
 - **Data Export**: Export your environmental metrics data for external analysis
 
@@ -132,10 +133,13 @@ Yes, GreenMetrics tracks metrics on a per-page basis, allowing you to identify w
 Yes, the Display Settings page offers extensive customization options for the badge and popover, including colors, fonts, metrics selection, and hover effects.
 
 ### How do the email reports work?
-Email reports can be scheduled to send daily, weekly, or monthly summaries of your website's environmental metrics. You can customize the recipients, content, and appearance of these reports through the Email Reporting settings page.
+Email reports can be scheduled to send daily, weekly, or monthly summaries of your website's environmental metrics. You can customize the recipients, content, and appearance of these reports through the Email Reporting settings page. The system tracks all sent emails and maintains a complete history for your reference.
 
 ### What information is included in email reports?
-Email reports include key metrics such as carbon footprint, energy consumption, and data transfer, along with visual charts showing trends over the selected time period. You can customize which metrics to include and how they're displayed.
+Email reports include key metrics such as carbon footprint, energy consumption, and data transfer, along with visual charts showing trends over the selected time period. You can customize which metrics to include and how they're displayed. Dynamic placeholders allow you to personalize the content with site-specific information.
+
+### How does the email history feature work?
+The Email History tab maintains a complete record of all sent email reports, including date/time, recipients, subject, report type, and delivery status. You can view the full content of any previously sent report and track which reports were successfully delivered.
 
 ### How does the data management system work?
 The data management system automatically aggregates detailed metrics into daily summaries and prunes old data to maintain optimal database performance. You can configure the aggregation and pruning schedules, or run these operations manually when needed.
