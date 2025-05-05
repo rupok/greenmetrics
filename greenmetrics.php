@@ -137,6 +137,9 @@ function greenmetrics_init() {
 	// Explicitly load the Export Handler class
 	require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-export-handler.php';
 
+	// Explicitly load the Import Handler class
+	require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-import-handler.php';
+
 	// Explicitly load the Email Reporter class
 	require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-email-reporter.php';
 

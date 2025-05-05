@@ -454,9 +454,180 @@ $total_size = \GreenMetrics\GreenMetrics_Data_Manager::format_bytes($table_sizes
 								<li><?php esc_html_e( 'Page Filter: Export data for all pages or a specific page', 'greenmetrics' ); ?></li>
 							</ul>
 
-							<h3><?php esc_html_e( 'Coming Soon: Data Import', 'greenmetrics' ); ?></h3>
-							<p><?php esc_html_e( 'In a future update, you\'ll be able to import data from CSV or JSON files, allowing you to restore backups or migrate data between WordPress installations.', 'greenmetrics' ); ?></p>
+							<h3><?php esc_html_e( 'Data Import', 'greenmetrics' ); ?></h3>
+							<p><?php esc_html_e( 'Import your metrics data from a previous export or from another WordPress installation.', 'greenmetrics' ); ?></p>
+							<p><?php esc_html_e( 'You can import data from CSV or JSON files that were previously exported from GreenMetrics.', 'greenmetrics' ); ?></p>
 						</div>
+					</div>
+
+					<div class="greenmetrics-admin-card">
+						<h2><?php esc_html_e( 'Data Import', 'greenmetrics' ); ?></h2>
+						<p><?php esc_html_e( 'Import your metrics data from a previous export or from another WordPress installation.', 'greenmetrics' ); ?></p>
+
+						<form id="greenmetrics-import-form" method="post" enctype="multipart/form-data">
+
+							<table class="form-table">
+								<tr>
+									<th scope="row"><?php esc_html_e( 'Import File', 'greenmetrics' ); ?></th>
+									<td>
+										<input type="file" name="import_file" id="import-file" accept=".csv,.json">
+										<p class="description"><?php esc_html_e( 'Select a CSV or JSON file to import.', 'greenmetrics' ); ?></p>
+									</td>
+								</tr>
+								<tr>
+									<th scope="row"><?php esc_html_e( 'Data Type', 'greenmetrics' ); ?></th>
+									<td>
+										<select name="data_type" id="import-data-type">
+											<option value="raw"><?php esc_html_e( 'Raw Data (Individual Page Views)', 'greenmetrics' ); ?></option>
+											<option value="aggregated"><?php esc_html_e( 'Aggregated Data (Summary Statistics)', 'greenmetrics' ); ?></option>
+										</select>
+										<p class="description"><?php esc_html_e( 'Select the type of data in the import file.', 'greenmetrics' ); ?></p>
+									</td>
+								</tr>
+								<tr>
+									<th scope="row"><?php esc_html_e( 'Duplicate Handling', 'greenmetrics' ); ?></th>
+									<td>
+										<select name="duplicate_action" id="import-duplicate-action">
+											<option value="skip"><?php esc_html_e( 'Skip Duplicates', 'greenmetrics' ); ?></option>
+											<option value="replace"><?php esc_html_e( 'Replace Duplicates', 'greenmetrics' ); ?></option>
+											<option value="merge"><?php esc_html_e( 'Merge Duplicates', 'greenmetrics' ); ?></option>
+										</select>
+										<p class="description"><?php esc_html_e( 'Choose how to handle duplicate records.', 'greenmetrics' ); ?></p>
+									</td>
+								</tr>
+								<tr>
+									<th scope="row"><?php esc_html_e( 'Import Data', 'greenmetrics' ); ?></th>
+									<td>
+										<button type="button" id="import-data-button" class="button button-primary">
+											<span class="dashicons dashicons-upload" style="vertical-align: middle; margin-top: -3px;"></span>
+											<?php esc_html_e( 'Import Data', 'greenmetrics' ); ?>
+										</button>
+										<p class="description"><?php esc_html_e( 'Upload and import the selected file.', 'greenmetrics' ); ?></p>
+										<div id="import-result" class="import-result" style="display: none; margin-top: 15px; padding: 10px 15px; border-radius: 4px;"></div>
+										<div id="import-progress" class="import-progress" style="display: none; margin-top: 15px;">
+											<div class="progress-bar-container" style="background-color: #f0f0f0; border-radius: 4px; height: 20px; width: 100%; overflow: hidden;">
+												<div class="progress-bar" style="background-color: #4CAF50; height: 100%; width: 0%;"></div>
+											</div>
+											<p class="progress-text" style="margin-top: 5px; text-align: center;"></p>
+										</div>
+									</td>
+								</tr>
+							</table>
+						</form>
+
+						<script>
+							jQuery(document).ready(function($) {
+								// Handle import button click
+								$('#import-data-button').on('click', function() {
+									// Validate form
+									var file = $('#import-file')[0].files[0];
+									if (!file) {
+										showImportResult('error', '<?php echo esc_js( __( 'Please select a file to import.', 'greenmetrics' ) ); ?>');
+										return;
+									}
+
+									// Check file extension
+									var fileExt = file.name.split('.').pop().toLowerCase();
+									if (fileExt !== 'csv' && fileExt !== 'json') {
+										showImportResult('error', '<?php echo esc_js( __( 'Only CSV and JSON files are supported.', 'greenmetrics' ) ); ?>');
+										return;
+									}
+
+									// Show progress
+									$('#import-progress').show();
+									$('#import-result').hide();
+									updateProgress(0, '<?php echo esc_js( __( 'Preparing import...', 'greenmetrics' ) ); ?>');
+
+									// Create FormData
+									var formData = new FormData();
+									formData.append('import_file', file);
+									formData.append('data_type', $('#import-data-type').val());
+									formData.append('duplicate_action', $('#import-duplicate-action').val());
+
+									// Add proper REST API nonce
+									formData.append('_wpnonce', '<?php echo wp_create_nonce('wp_rest'); ?>');
+
+									// Send AJAX request
+									$.ajax({
+										url: '<?php echo esc_url( get_rest_url( null, 'greenmetrics/v1/import' ) ); ?>',
+										type: 'POST',
+										data: formData,
+										processData: false,
+										contentType: false,
+										crossDomain: true,
+										xhrFields: {
+											withCredentials: true
+										},
+										xhr: function() {
+											var xhr = new window.XMLHttpRequest();
+											xhr.upload.addEventListener('progress', function(evt) {
+												if (evt.lengthComputable) {
+													var percentComplete = evt.loaded / evt.total * 100;
+													updateProgress(percentComplete, '<?php echo esc_js( __( 'Uploading file...', 'greenmetrics' ) ); ?> ' + Math.round(percentComplete) + '%');
+												}
+											}, false);
+											return xhr;
+										},
+										success: function(response) {
+											updateProgress(100, '<?php echo esc_js( __( 'Import complete!', 'greenmetrics' ) ); ?>');
+
+											if (response.success) {
+												showImportResult('success', response.message);
+											} else {
+												showImportResult('error', response.message || '<?php echo esc_js( __( 'Unknown error occurred during import.', 'greenmetrics' ) ); ?>');
+											}
+										},
+										error: function(xhr, textStatus, errorThrown) {
+											var errorMessage = '';
+
+											// Check for common REST API errors
+											if (xhr.status === 403) {
+												errorMessage = '<?php echo esc_js( __( 'Authentication error. Please refresh the page and try again.', 'greenmetrics' ) ); ?>';
+											} else {
+												try {
+													var response = JSON.parse(xhr.responseText);
+													errorMessage = response.message || response.code || errorThrown || textStatus;
+												} catch (e) {
+													errorMessage = errorThrown || textStatus || xhr.statusText || '<?php echo esc_js( __( 'Unknown error', 'greenmetrics' ) ); ?>';
+												}
+											}
+
+											console.log('Import error:', xhr.responseText);
+											showImportResult('error', '<?php echo esc_js( __( 'Error: ', 'greenmetrics' ) ); ?>' + errorMessage);
+											$('#import-progress').hide();
+										}
+									});
+								});
+
+								// Function to update progress bar
+								function updateProgress(percent, text) {
+									$('.progress-bar').css('width', percent + '%');
+									$('.progress-text').text(text);
+								}
+
+								// Function to show import result
+								function showImportResult(type, message) {
+									var $result = $('#import-result');
+									$result.removeClass('notice-success notice-error').html(message);
+
+									if (type === 'success') {
+										$result.addClass('notice-success').css({
+											'background-color': '#f0f8e6',
+											'color': '#46b450',
+											'border-left': '4px solid #46b450'
+										});
+									} else {
+										$result.addClass('notice-error').css({
+											'background-color': '#fbeaea',
+											'color': '#dc3232',
+											'border-left': '4px solid #dc3232'
+										});
+									}
+
+									$result.show();
+								}
+							});
+						</script>
 					</div>
 				</div>
 			</div>
