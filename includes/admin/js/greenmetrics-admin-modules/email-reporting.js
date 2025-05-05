@@ -61,6 +61,32 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 			sendTestEmail();
 		});
 
+		// Handle view report button
+		$(document).on('click', '.view-report', function(e) {
+			e.preventDefault();
+			var reportId = $(this).data('report-id');
+			viewReport(reportId);
+		});
+
+		// Handle modal close button
+		$(document).on('click', '.report-modal-close, .report-modal-close-btn', function() {
+			closeReportModal();
+		});
+
+		// Handle clicking outside the modal
+		$(document).on('click', '#report-view-modal', function(e) {
+			if (e.target === this) {
+				closeReportModal();
+			}
+		});
+
+		// Handle escape key to close modal
+		$(document).keyup(function(e) {
+			if (e.key === "Escape" && $('#report-view-modal').is(':visible')) {
+				closeReportModal();
+			}
+		});
+
 		// Initialize day options immediately
 		updateDayOptions();
 
@@ -208,6 +234,28 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 						iframeDoc.write(response.data.content);
 						iframeDoc.close();
 
+						// Add event listener for iframe load to adjust height (with max height)
+						iframe.onload = function() {
+							// Calculate the content height
+							var contentHeight = iframe.contentWindow.document.body.scrollHeight + 20;
+							// Set a maximum height of 600px
+							var maxHeight = 600;
+							// Set iframe height to match content, but not more than max height
+							iframe.style.height = Math.min(contentHeight, maxHeight) + 'px';
+							// Add scrolling if needed
+							iframe.style.overflowY = contentHeight > maxHeight ? 'scroll' : 'hidden';
+						};
+
+						// Also try to adjust height after a short delay
+						setTimeout(function() {
+							if (iframe.contentWindow && iframe.contentWindow.document.body) {
+								var contentHeight = iframe.contentWindow.document.body.scrollHeight + 20;
+								var maxHeight = 600;
+								iframe.style.height = Math.min(contentHeight, maxHeight) + 'px';
+								iframe.style.overflowY = contentHeight > maxHeight ? 'scroll' : 'hidden';
+							}
+						}, 500);
+
 						// Update subject preview
 						$('#preview-subject').text(response.data.subject);
 
@@ -354,9 +402,177 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 		});
 	}
 
+	/**
+	 * View a report
+	 *
+	 * @function viewReport
+	 * @memberof GreenMetricsAdmin.EmailReporting
+	 * @private
+	 * @param {number} reportId - The ID of the report to view
+	 */
+	function viewReport(reportId) {
+		// Show the modal
+		$('#report-view-modal').show();
+
+		// Show loading indicator
+		$('#report-modal-body').html(
+			'<div class="report-loading">' +
+			'<span class="spinner is-active"></span>' +
+			'<p>Loading report...</p>' +
+			'</div>'
+		);
+
+		// Get the report from the server
+		$.ajax({
+			url: ajaxurl,
+			type: 'POST',
+			data: {
+				action: 'greenmetrics_get_report',
+				nonce: $('#greenmetrics_nonce').val(),
+				report_id: reportId
+			},
+			success: function(response) {
+				if (response && response.success) {
+					// Format the report data
+					var report = response.data;
+					var reportHtml = formatReportForModal(report);
+
+					// Update the modal content
+					$('#report-modal-body').html(reportHtml);
+
+					// Load the email content into the iframe
+					setTimeout(function() {
+						var iframe = document.getElementById('report-content-frame');
+						if (iframe) {
+							var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+							iframeDoc.open();
+							iframeDoc.write(report.content);
+							iframeDoc.close();
+
+							// Add event listener for iframe load to adjust height (with max height)
+							iframe.onload = function() {
+								// Calculate the content height
+								var contentHeight = iframe.contentWindow.document.body.scrollHeight + 20;
+								// Set a maximum height of 600px
+								var maxHeight = 600;
+								// Set iframe height to match content, but not more than max height
+								iframe.style.height = Math.min(contentHeight, maxHeight) + 'px';
+							};
+
+							// Also try to adjust height after a short delay
+							setTimeout(function() {
+								if (iframe.contentWindow && iframe.contentWindow.document.body) {
+									var contentHeight = iframe.contentWindow.document.body.scrollHeight + 20;
+									var maxHeight = 600;
+									iframe.style.height = Math.min(contentHeight, maxHeight) + 'px';
+								}
+							}, 500);
+						}
+					}, 100);
+				} else {
+					var errorMsg = (response && response.data && response.data.message) ?
+						response.data.message : 'Failed to load report. Please try again.';
+
+					$('#report-modal-body').html(
+						'<div class="error-message">' +
+						'<p>' + errorMsg + '</p>' +
+						'</div>'
+					);
+				}
+			},
+			error: function() {
+				$('#report-modal-body').html(
+					'<div class="error-message">' +
+					'<p>AJAX request failed. Please try again.</p>' +
+					'</div>'
+				);
+			}
+		});
+	}
+
+	/**
+	 * Format a report for display in the modal
+	 *
+	 * @function formatReportForModal
+	 * @memberof GreenMetricsAdmin.EmailReporting
+	 * @private
+	 * @param {Object} report - The report data
+	 * @return {string} The formatted HTML
+	 */
+	function formatReportForModal(report) {
+		// Format the report type
+		var reportType = '';
+		switch (report.report_type) {
+			case 'daily':
+				reportType = 'Daily';
+				break;
+			case 'weekly':
+				reportType = 'Weekly';
+				break;
+			case 'monthly':
+				reportType = 'Monthly';
+				break;
+			default:
+				reportType = report.report_type;
+		}
+
+		// Add test badge if needed
+		if (report.is_test == 1) {
+			reportType += ' <span class="test-badge">Test</span>';
+		}
+
+		// Format the status
+		var statusClass = '';
+		switch (report.status) {
+			case 'sent':
+				statusClass = 'status-success';
+				break;
+			case 'failed':
+				statusClass = 'status-error';
+				break;
+			default:
+				statusClass = '';
+		}
+
+		// Build the HTML
+		var html = '<div class="report-info">';
+		html += '<h3>' + report.subject + '</h3>';
+		html += '<p><strong>Date:</strong> ' + (report.sent_at_formatted || report.sent_at) + '</p>';
+		html += '<p><strong>Type:</strong> ' + reportType + '</p>';
+		html += '<p><strong>Recipients:</strong> ' + report.recipients + '</p>';
+		html += '<p><strong>Status:</strong> <span class="status-badge ' + statusClass + '">' + report.status.charAt(0).toUpperCase() + report.status.slice(1) + '</span></p>';
+		html += '</div>';
+
+		// Add the email content
+		html += '<div class="report-content">';
+		html += '<h3>Email Content</h3>';
+		html += '<iframe id="report-content-frame" style="width:100%;height:500px;border:1px solid #ddd;border-radius:4px;"></iframe>';
+		html += '</div>';
+
+		// Add the actions
+		html += '<div class="report-actions">';
+		html += '<button type="button" class="button report-modal-close-btn">Close</button>';
+		html += '</div>';
+
+		// Return the HTML
+		return html;
+	}
+
+	/**
+	 * Close the report modal
+	 *
+	 * @function closeReportModal
+	 * @memberof GreenMetricsAdmin.EmailReporting
+	 * @private
+	 */
+	function closeReportModal() {
+		$('#report-view-modal').hide();
+	}
+
 	// Public API
 	return {
 		init: init,
-		updateEmailPreview: updateEmailPreview
+		updateEmailPreview: updateEmailPreview,
+		viewReport: viewReport
 	};
 })(jQuery);

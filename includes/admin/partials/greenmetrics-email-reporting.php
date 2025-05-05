@@ -408,8 +408,178 @@ $stats   = $tracker->get_stats();
 			</div>
 		</div>
 	</div>
+
+	<!-- Email Reports Section -->
+	<div class="greenmetrics-admin-section email-reports-section">
+		<div class="greenmetrics-admin-card">
+			<h2>
+				<span class="dashicons dashicons-email-alt" style="font-size: 24px; margin-right: 10px; color: #2271b1;"></span>
+				<?php esc_html_e( 'Email Report History', 'greenmetrics' ); ?>
+			</h2>
+			<p><?php esc_html_e( 'View a history of sent email reports and manage your reporting activity.', 'greenmetrics' ); ?></p>
+
+			<?php
+			// Get report history
+			if ( class_exists( '\GreenMetrics\GreenMetrics_Email_Report_History' ) ) {
+				$history = \GreenMetrics\GreenMetrics_Email_Report_History::get_instance();
+
+				// Get page number
+				$page = isset( $_GET['report_page'] ) ? absint( $_GET['report_page'] ) : 1;
+
+				// Get reports
+				$reports = $history->get_reports( array(
+					'per_page' => 10,
+					'page'     => $page,
+				) );
+
+				// Get total reports
+				$total_reports = $history->get_total_reports();
+
+				// Calculate total pages
+				$total_pages = ceil( $total_reports / 10 );
+
+				if ( ! empty( $reports ) ) {
+					?>
+					<div class="report-history-table-container">
+						<table class="wp-list-table widefat fixed striped report-history-table">
+							<thead>
+								<tr>
+									<th><?php esc_html_e( 'Date', 'greenmetrics' ); ?></th>
+									<th><?php esc_html_e( 'Type', 'greenmetrics' ); ?></th>
+									<th><?php esc_html_e( 'Recipients', 'greenmetrics' ); ?></th>
+									<th><?php esc_html_e( 'Subject', 'greenmetrics' ); ?></th>
+									<th><?php esc_html_e( 'Status', 'greenmetrics' ); ?></th>
+									<th><?php esc_html_e( 'Actions', 'greenmetrics' ); ?></th>
+								</tr>
+							</thead>
+							<tbody>
+								<?php foreach ( $reports as $report ) : ?>
+									<tr>
+										<td>
+											<?php echo esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $report['sent_at'] ) ) ); ?>
+										</td>
+										<td>
+											<?php
+											$type_label = '';
+											switch ( $report['report_type'] ) {
+												case 'daily':
+													$type_label = __( 'Daily', 'greenmetrics' );
+													break;
+												case 'weekly':
+													$type_label = __( 'Weekly', 'greenmetrics' );
+													break;
+												case 'monthly':
+													$type_label = __( 'Monthly', 'greenmetrics' );
+													break;
+												default:
+													$type_label = $report['report_type'];
+											}
+											echo esc_html( $type_label );
+
+											if ( $report['is_test'] ) {
+												echo ' <span class="test-badge">' . esc_html__( 'Test', 'greenmetrics' ) . '</span>';
+											}
+											?>
+										</td>
+										<td>
+											<?php echo esc_html( $report['recipients'] ); ?>
+										</td>
+										<td>
+											<?php echo esc_html( $report['subject'] ); ?>
+										</td>
+										<td>
+											<?php
+											$status_class = '';
+											switch ( $report['status'] ) {
+												case 'sent':
+													$status_class = 'status-success';
+													break;
+												case 'failed':
+													$status_class = 'status-error';
+													break;
+												default:
+													$status_class = '';
+											}
+											?>
+											<span class="status-badge <?php echo esc_attr( $status_class ); ?>">
+												<?php echo esc_html( ucfirst( $report['status'] ) ); ?>
+											</span>
+										</td>
+										<td>
+											<button type="button" class="button button-small view-report" data-report-id="<?php echo esc_attr( $report['id'] ); ?>">
+												<span class="dashicons dashicons-visibility" style="font-size: 16px; vertical-align: middle; margin-right: 3px;"></span>
+												<?php esc_html_e( 'View', 'greenmetrics' ); ?>
+											</button>
+										</td>
+									</tr>
+								<?php endforeach; ?>
+							</tbody>
+						</table>
+
+						<?php if ( $total_pages > 1 ) : ?>
+							<div class="tablenav">
+								<div class="tablenav-pages">
+									<span class="displaying-num">
+										<?php
+										/* translators: %s: Number of items. */
+										printf( _n( '%s item', '%s items', $total_reports, 'greenmetrics' ), number_format_i18n( $total_reports ) );
+										?>
+									</span>
+									<span class="pagination-links">
+										<?php
+										$page_links = paginate_links( array(
+											'base'      => add_query_arg( 'report_page', '%#%' ),
+											'format'    => '',
+											'prev_text' => __( '&laquo;', 'greenmetrics' ),
+											'next_text' => __( '&raquo;', 'greenmetrics' ),
+											'total'     => $total_pages,
+											'current'   => $page,
+										) );
+
+										echo $page_links;
+										?>
+									</span>
+								</div>
+							</div>
+						<?php endif; ?>
+					</div>
+					<?php
+				} else {
+					?>
+					<div class="no-reports-message">
+						<p><?php esc_html_e( 'No email reports have been sent yet.', 'greenmetrics' ); ?></p>
+						<p><?php esc_html_e( 'Configure your email settings above and click "Send Test Email" to see how your reports will look.', 'greenmetrics' ); ?></p>
+						<p>
+							<a href="#send_test_email" class="button">
+								<span class="dashicons dashicons-email-alt" style="font-size: 16px; vertical-align: middle; margin-right: 3px;"></span>
+								<?php esc_html_e( 'Send a Test Email', 'greenmetrics' ); ?>
+							</a>
+						</p>
+					</div>
+					<?php
+				}
+			} else {
+				?>
+				<div class="error-message">
+					<p><?php esc_html_e( 'Error: Email Report History class not found.', 'greenmetrics' ); ?></p>
+				</div>
+				<?php
+			}
+			?>
+
+
+		</div>
+	</div>
+</div>
+
+<!-- Report View Modal -->
+<div id="report-view-modal" class="report-modal">
+	<div class="report-modal-content">
+		<span class="report-modal-close">&times;</span>
+		<div id="report-modal-body">
+			<!-- Report content will be loaded here -->
+		</div>
+	</div>
 </div>
 
 <!-- JavaScript functionality is now handled by the email-reporting.js module -->
-
-

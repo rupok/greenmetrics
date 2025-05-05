@@ -18,6 +18,11 @@ if ( ! class_exists( '\GreenMetrics\GreenMetrics_Formatter' ) ) {
 	require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-formatter.php';
 }
 
+// Make sure the Email Report History class is loaded
+if ( ! class_exists( '\GreenMetrics\GreenMetrics_Email_Report_History' ) ) {
+	require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-email-report-history.php';
+}
+
 /**
  * Email Reporter Class
  *
@@ -211,6 +216,42 @@ class GreenMetrics_Email_Reporter {
 
 		// Send the email
 		$result = wp_mail( $recipients, $subject, $content, $headers );
+
+		// Get the report type based on frequency
+		$frequency = isset($settings['email_reporting_frequency']) ? $settings['email_reporting_frequency'] : 'weekly';
+
+		// Record the email in the history
+		if (class_exists('\GreenMetrics\GreenMetrics_Email_Report_History')) {
+			$history = GreenMetrics_Email_Report_History::get_instance();
+			$status = $result ? 'sent' : 'failed';
+
+			// Get mail error if any
+			$mail_error = '';
+			if (!$result) {
+				global $phpmailer;
+				if (isset($phpmailer) && is_object($phpmailer) && isset($phpmailer->ErrorInfo)) {
+					$mail_error = $phpmailer->ErrorInfo;
+				}
+			}
+
+			// Record the email
+			$history->record_email(
+				$frequency,
+				$subject,
+				$recipients,
+				$content,
+				$status,
+				$is_test
+			);
+
+			if (function_exists('greenmetrics_log')) {
+				greenmetrics_log( 'Email report recorded in history', array(
+					'frequency' => $frequency,
+					'status' => $status,
+					'is_test' => $is_test ? 'Yes' : 'No'
+				) );
+			}
+		}
 
 		// Log the result
 		if ( $result ) {

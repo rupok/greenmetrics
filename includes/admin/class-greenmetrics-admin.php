@@ -43,6 +43,7 @@ class GreenMetrics_Admin {
 		add_action( 'wp_ajax_nopriv_greenmetrics_get_icon', array( $this, 'handle_get_icon' ) );
 		add_action( 'wp_ajax_greenmetrics_send_test_email', array( $this, 'handle_send_test_email' ) );
 		add_action( 'wp_ajax_greenmetrics_get_email_preview', array( $this, 'handle_get_email_preview' ) );
+		add_action( 'wp_ajax_greenmetrics_get_report', array( $this, 'handle_get_report' ) );
 	}
 
 	/**
@@ -2185,6 +2186,50 @@ class GreenMetrics_Admin {
 		// Redirect back to the data management page with stats-refreshed parameter
 		wp_safe_redirect( add_query_arg( 'stats-refreshed', 'true', admin_url( 'admin.php?page=greenmetrics_data_management' ) ) );
 		exit;
+	}
+
+	/**
+	 * Handle AJAX request to get a report.
+	 */
+	public function handle_get_report() {
+		// Verify nonce
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['nonce'] ), 'greenmetrics_admin_nonce' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Security check failed.', 'greenmetrics' ) ) );
+			return;
+		}
+
+		// Check permissions
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'You do not have sufficient permissions to perform this action.', 'greenmetrics' ) ) );
+			return;
+		}
+
+		// Get the report ID
+		$report_id = isset( $_POST['report_id'] ) ? intval( $_POST['report_id'] ) : 0;
+
+		if ( $report_id <= 0 ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid report ID.', 'greenmetrics' ) ) );
+			return;
+		}
+
+		// Get the report
+		if ( class_exists( '\GreenMetrics\GreenMetrics_Email_Report_History' ) ) {
+			$history = \GreenMetrics\GreenMetrics_Email_Report_History::get_instance();
+			$report = $history->get_report( $report_id );
+
+			if ( ! $report ) {
+				wp_send_json_error( array( 'message' => __( 'Report not found.', 'greenmetrics' ) ) );
+				return;
+			}
+
+			// Format the date
+			$report['sent_at_formatted'] = date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $report['sent_at'] ) );
+
+			// Return the report
+			wp_send_json_success( $report );
+		} else {
+			wp_send_json_error( array( 'message' => __( 'Email Report History class not found.', 'greenmetrics' ) ) );
+		}
 	}
 
 	/**
