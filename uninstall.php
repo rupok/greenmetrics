@@ -15,6 +15,11 @@
  * @package    GreenMetrics
  */
 
+// If this file is called directly, abort.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 // If uninstall not called from WordPress, then exit.
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
@@ -37,9 +42,11 @@ $wpdb->query(
 );
 
 // Drop the stats table
-// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange -- Necessary schema change during uninstallation
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared -- Necessary schema change during uninstallation
 $table_name = $wpdb->prefix . 'greenmetrics_stats';
-$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %s', $table_name ) );
+// Escape table name (though prefix plus a literal suffix is already safe)
+$table_name = esc_sql( $table_name );
+$wpdb->query( "DROP TABLE IF EXISTS {$table_name}" );
 
 // Clear any scheduled events
 $events = array(
