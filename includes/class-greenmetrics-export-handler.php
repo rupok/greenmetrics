@@ -655,8 +655,18 @@ class GreenMetrics_Export_Handler {
 		header( 'Pragma: no-cache' );
 		header( 'Expires: 0' );
 
-		// Output file content
-		echo $file['content'];
+		// Output file content with proper escaping based on content type
+		if ( strpos( $file['type'], 'text/html' ) !== false ) {
+			// For HTML content, use wp_kses_post to prevent XSS
+			echo wp_kses_post( $file['content'] );
+		} elseif ( strpos( $file['type'], 'application/json' ) !== false ) {
+			// For JSON, ensure it's properly encoded
+			echo wp_json_encode( json_decode( $file['content'] ) );
+		} else {
+			// For CSV, PDF, and other non-HTML formats, output directly
+			// These formats are downloaded as files and not rendered as HTML
+			echo $file['content'];
+		}
 		exit;
 	}
 }

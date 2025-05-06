@@ -596,7 +596,7 @@ $stats   = $tracker->get_stats();
 												'current'   => $page,
 											) );
 
-											echo $page_links;
+											echo wp_kses_post( $page_links );
 											?>
 										</span>
 									</div>
