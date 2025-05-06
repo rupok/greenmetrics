@@ -221,8 +221,19 @@ class GreenMetrics_Email_Report_History {
 			$sql .= $wpdb->prepare( " AND (subject LIKE %s OR recipients LIKE %s)", $search, $search );
 		}
 
-		// Add ordering
-		$sql .= " ORDER BY {$args['orderby']} {$args['order']}";
+		// Whitelist the sortable columns to prevent SQL injection
+		$allowed_cols = array( 'sent_at', 'status', 'report_type' );
+		$order_col = in_array( $args['orderby'], $allowed_cols, true )
+		              ? $args['orderby']
+		              : 'sent_at';
+
+		// Normalize the order direction
+		$order_dir = strtoupper( $args['order'] ) === 'ASC'
+		               ? 'ASC'
+		               : 'DESC';
+
+		// Append the safe ORDER BY
+		$sql .= " ORDER BY {$order_col} {$order_dir}";
 
 		// Add pagination
 		$offset = ( $args['page'] - 1 ) * $args['per_page'];
