@@ -40,7 +40,6 @@ class GreenMetrics_Admin {
 		// AJAX handlers
 		add_action( 'wp_ajax_greenmetrics_refresh_stats', array( $this, 'handle_refresh_stats' ) );
 		add_action( 'wp_ajax_greenmetrics_get_icon', array( $this, 'handle_get_icon' ) );
-		add_action( 'wp_ajax_nopriv_greenmetrics_get_icon', array( $this, 'handle_get_icon' ) );
 		add_action( 'wp_ajax_greenmetrics_send_test_email', array( $this, 'handle_send_test_email' ) );
 		add_action( 'wp_ajax_greenmetrics_get_email_preview', array( $this, 'handle_get_email_preview' ) );
 		add_action( 'wp_ajax_greenmetrics_get_report', array( $this, 'handle_get_report' ) );
@@ -1986,6 +1985,12 @@ class GreenMetrics_Admin {
 	 * Handle sending a test email.
 	 */
 	public function handle_send_test_email() {
+		// Check if user has proper permissions
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Permission denied', 'greenmetrics' ), 403 );
+			return;
+		}
+
 		// Disable direct output to prevent HTML in JSON response
 		ob_start();
 
@@ -1997,14 +2002,6 @@ class GreenMetrics_Admin {
 				// Clean output buffer
 				ob_end_clean();
 				wp_send_json_error( array( 'message' => __( 'Security check failed.', 'greenmetrics' ) ) );
-				return;
-			}
-
-			// Check permissions
-			if ( ! current_user_can( 'manage_options' ) ) {
-				// Clean output buffer
-				ob_end_clean();
-				wp_send_json_error( array( 'message' => __( 'You do not have sufficient permissions to perform this action.', 'greenmetrics' ) ) );
 				return;
 			}
 
@@ -2054,6 +2051,12 @@ class GreenMetrics_Admin {
 	 * Handle getting an email preview.
 	 */
 	public function handle_get_email_preview() {
+		// Check if user has proper permissions
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Permission denied', 'greenmetrics' ), 403 );
+			return;
+		}
+
 		// Disable direct output to prevent HTML in JSON response
 		ob_start();
 
@@ -2063,14 +2066,6 @@ class GreenMetrics_Admin {
 				// Clean output buffer
 				ob_end_clean();
 				wp_send_json_error( array( 'message' => __( 'Security check failed.', 'greenmetrics' ) ) );
-				return;
-			}
-
-			// Check permissions
-			if ( ! current_user_can( 'manage_options' ) ) {
-				// Clean output buffer
-				ob_end_clean();
-				wp_send_json_error( array( 'message' => __( 'You do not have sufficient permissions to perform this action.', 'greenmetrics' ) ) );
 				return;
 			}
 
@@ -2228,6 +2223,16 @@ class GreenMetrics_Admin {
 	 * Handle refresh statistics form submission.
 	 */
 	public function handle_refresh_stats() {
+		// Check if user has proper permissions
+		if ( ! current_user_can( 'manage_options' ) ) {
+			if ( wp_doing_ajax() ) {
+				wp_send_json_error( __( 'Permission denied', 'greenmetrics' ), 403 );
+			} else {
+				wp_die( __( 'Permission denied', 'greenmetrics' ), '', 403 );
+			}
+			return;
+		}
+
 		// Check if the form was submitted and the refresh_stats action was set
 		if ( isset( $_POST['action'] ) && 'refresh_stats' === $_POST['action'] ) {
 			// Verify nonce
@@ -2277,15 +2282,15 @@ class GreenMetrics_Admin {
 	 * Handle AJAX request to get a report.
 	 */
 	public function handle_get_report() {
-		// Verify nonce
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['nonce'] ), 'greenmetrics_admin_nonce' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Security check failed.', 'greenmetrics' ) ) );
+		// Check if user has proper permissions
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Permission denied', 'greenmetrics' ), 403 );
 			return;
 		}
 
-		// Check permissions
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( 'You do not have sufficient permissions to perform this action.', 'greenmetrics' ) ) );
+		// Verify nonce
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['nonce'] ), 'greenmetrics_admin_nonce' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Security check failed.', 'greenmetrics' ) ) );
 			return;
 		}
 
@@ -2321,6 +2326,12 @@ class GreenMetrics_Admin {
 	 * Handle AJAX request to get an icon.
 	 */
 	public function handle_get_icon() {
+		// Check if user has proper permissions
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Permission denied', 'greenmetrics' ), 403 );
+			return;
+		}
+
 		// Verify nonce
 		if ( ! isset( $_POST['nonce'] ) ||
 			! wp_verify_nonce(
