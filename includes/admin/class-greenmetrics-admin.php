@@ -2162,9 +2162,19 @@ class GreenMetrics_Admin {
 		$message = '';
 
 		// Run aggregation if requested
-		if ( isset( $_POST['run_aggregation'] ) && $_POST['run_aggregation'] ) {
+		if ( isset( $_POST['run_aggregation'] )
+			&& sanitize_text_field( wp_unslash( $_POST['run_aggregation'] ) )
+		) {
 			$aggregation_age = isset( $settings['aggregation_age'] ) ? intval( $settings['aggregation_age'] ) : 30;
-			$aggregation_type = isset( $settings['aggregation_type'] ) ? $settings['aggregation_type'] : 'daily';
+			
+			// Whitelist aggregation types
+			$allowed_agg_types = array( 'daily', 'weekly', 'monthly' );
+			$raw_agg_type      = isset( $settings['aggregation_type'] )
+				? sanitize_text_field( $settings['aggregation_type'] )
+				: 'daily';
+			$aggregation_type  = in_array( $raw_agg_type, $allowed_agg_types, true )
+				? $raw_agg_type
+				: 'daily';
 
 			$result = $data_manager->aggregate_old_data( $aggregation_age, $aggregation_type );
 
@@ -2182,7 +2192,9 @@ class GreenMetrics_Admin {
 		}
 
 		// Run pruning if requested
-		if ( isset( $_POST['run_pruning'] ) && $_POST['run_pruning'] ) {
+		if ( isset( $_POST['run_pruning'] )
+			&& sanitize_text_field( wp_unslash( $_POST['run_pruning'] ) )
+		) {
 			$retention_period = isset( $settings['retention_period'] ) ? intval( $settings['retention_period'] ) : 90;
 
 			$result = $data_manager->prune_old_data( $retention_period );
@@ -2205,12 +2217,16 @@ class GreenMetrics_Admin {
 		$redirect_url = add_query_arg( 'data-management-updated', 'true', $redirect_url );
 
 		// Add aggregation parameter if aggregation was run
-		if ( isset( $_POST['run_aggregation'] ) && $_POST['run_aggregation'] ) {
+		if ( isset( $_POST['run_aggregation'] )
+			&& sanitize_text_field( wp_unslash( $_POST['run_aggregation'] ) )
+		) {
 			$redirect_url = add_query_arg( 'aggregation', 'true', $redirect_url );
 		}
 
 		// Add pruning parameter if pruning was run
-		if ( isset( $_POST['run_pruning'] ) && $_POST['run_pruning'] ) {
+		if ( isset( $_POST['run_pruning'] )
+			&& sanitize_text_field( wp_unslash( $_POST['run_pruning'] ) )
+		) {
 			$redirect_url = add_query_arg( 'pruning', 'true', $redirect_url );
 		}
 
