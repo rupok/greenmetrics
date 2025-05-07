@@ -483,8 +483,13 @@ $stats   = $tracker->get_stats();
 				if ( class_exists( '\GreenMetrics\GreenMetrics_Email_Report_History' ) ) {
 					$history = \GreenMetrics\GreenMetrics_Email_Report_History::get_instance();
 
-					// Get page number
+					// Get page number from URL with sanitization
 					$page = isset( $_GET['report_page'] ) ? absint( $_GET['report_page'] ) : 1;
+
+					// Verify we're on an admin page to prevent unauthorized access
+					if ( ! is_admin() ) {
+						$page = 1;
+					}
 
 					// Get reports
 					$reports = $history->get_reports( array(
@@ -582,7 +587,10 @@ $stats   = $tracker->get_stats();
 										<span class="displaying-num">
 											<?php
 											/* translators: %s: Number of items. */
-											printf( _n( '%s item', '%s items', $total_reports, 'greenmetrics' ), number_format_i18n( $total_reports ) );
+											printf(
+												esc_html( _n( '%s item', '%s items', $total_reports, 'greenmetrics' ) ),
+												esc_html( number_format_i18n( $total_reports ) )
+											);
 											?>
 										</span>
 										<span class="pagination-links">

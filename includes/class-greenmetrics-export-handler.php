@@ -650,8 +650,8 @@ class GreenMetrics_Export_Handler {
 	 */
 	public function stream_download( $file ) {
 		// Set headers for download
-		header( 'Content-Type: ' . $file['type'] );
-		header( 'Content-Disposition: attachment; filename="' . $file['filename'] . '"' );
+		header( 'Content-Type: ' . sanitize_text_field( $file['type'] ) );
+		header( 'Content-Disposition: attachment; filename="' . sanitize_file_name( $file['filename'] ) . '"' );
 		header( 'Pragma: no-cache' );
 		header( 'Expires: 0' );
 
@@ -663,9 +663,34 @@ class GreenMetrics_Export_Handler {
 			// For JSON, ensure it's properly encoded
 			echo wp_json_encode( json_decode( $file['content'] ) );
 		} else {
-			// For CSV, PDF, and other non-HTML formats, output directly
-			// These formats are downloaded as files and not rendered as HTML
-			echo $file['content'];
+			// For CSV, PDF, and other non-HTML formats
+			// These are binary or plain text formats that are downloaded as files, not rendered as HTML
+			// We need to ensure we're sending the correct content type and handling the output properly
+
+			// Validate that we have the expected content type for security
+			$allowed_types = array(
+				'text/csv',
+				'application/pdf',
+				'text/plain',
+				'application/octet-stream',
+				'application/vnd.ms-excel',
+				'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+			);
+
+			if ( ! in_array( $file['type'], $allowed_types, true ) ) {
+				wp_die( esc_html__( 'Invalid file type for export.', 'greenmetrics' ) );
+			}
+
+			// For binary files like PDF, we need to ensure we're not corrupting the data
+			// For text files like CSV, we need to ensure we're not introducing security issues
+			if ( strpos( $file['type'], 'text/' ) === 0 ) {
+				// For text-based formats like CSV, preserve structure while ensuring valid UTF-8
+				echo wp_check_invalid_utf8( $file['content'] );
+			} else {
+				// For binary formats, output directly
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Binary data cannot be escaped
+				echo $file['content'];
+			}
 		}
 		exit;
 	}
