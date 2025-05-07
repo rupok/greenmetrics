@@ -483,8 +483,24 @@ $stats   = $tracker->get_stats();
 				if ( class_exists( '\GreenMetrics\GreenMetrics_Email_Report_History' ) ) {
 					$history = \GreenMetrics\GreenMetrics_Email_Report_History::get_instance();
 
-					// Get page number
+					// Get page number from URL with sanitization
 					$page = isset( $_GET['report_page'] ) ? absint( $_GET['report_page'] ) : 1;
+
+					// Verify we're on an admin page to prevent unauthorized access
+					if ( ! is_admin() ) {
+						$page = 1;
+					}
+
+					// Verify nonce if pagination is being used
+					if ( isset( $_GET['report_page'] ) && isset( $_GET['_wpnonce'] ) ) {
+						if ( ! wp_verify_nonce( sanitize_key( $_GET['_wpnonce'] ), 'greenmetrics_email_report_pagination' ) ) {
+							// If nonce verification fails, reset to page 1
+							$page = 1;
+						}
+					}
+
+					// Add a nonce for pagination links
+					$nonce = wp_create_nonce( 'greenmetrics_email_report_pagination' );
 
 					// Get reports
 					$reports = $history->get_reports( array(
@@ -582,13 +598,20 @@ $stats   = $tracker->get_stats();
 										<span class="displaying-num">
 											<?php
 											/* translators: %s: Number of items. */
-											printf( _n( '%s item', '%s items', $total_reports, 'greenmetrics' ), number_format_i18n( $total_reports ) );
+											printf(
+												esc_html( _n( '%s item', '%s items', $total_reports, 'greenmetrics' ) ),
+												esc_html( number_format_i18n( $total_reports ) )
+											);
 											?>
 										</span>
 										<span class="pagination-links">
 											<?php
+											// Add nonce to pagination links
 											$page_links = paginate_links( array(
-												'base'      => add_query_arg( 'report_page', '%#%' ),
+												'base'      => add_query_arg( array(
+													'report_page' => '%#%',
+													'_wpnonce'    => $nonce,
+												) ),
 												'format'    => '',
 												'prev_text' => __( '&laquo;', 'greenmetrics' ),
 												'next_text' => __( '&raquo;', 'greenmetrics' ),
@@ -596,7 +619,7 @@ $stats   = $tracker->get_stats();
 												'current'   => $page,
 											) );
 
-											echo $page_links;
+											echo wp_kses_post( $page_links );
 											?>
 										</span>
 									</div>

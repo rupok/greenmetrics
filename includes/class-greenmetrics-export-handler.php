@@ -137,6 +137,10 @@ class GreenMetrics_Export_Handler {
 			return new \WP_Error( 'table_not_found', __( 'Metrics data table not found.', 'greenmetrics' ) );
 		}
 
+		// Sanitize table name and wrap in backticks
+		$table_name = '`' . esc_sql( $table_name ) . '`';
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- safe identifier interpolation
+
 		// Build query
 		$query = "SELECT
 			id,
@@ -174,6 +178,7 @@ class GreenMetrics_Export_Handler {
 		$query .= " ORDER BY created_at DESC LIMIT %d";
 		$query_args[] = $args['limit'];
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- safe identifier interpolation
 		// Prepare and execute query
 		$prepared_query = $wpdb->prepare( $query, $query_args );
 		$results = $wpdb->get_results( $prepared_query, ARRAY_A );
@@ -206,6 +211,10 @@ class GreenMetrics_Export_Handler {
 		if ( ! GreenMetrics_DB_Helper::table_exists( $table_name ) ) {
 			return new \WP_Error( 'table_not_found', __( 'Aggregated metrics data table not found.', 'greenmetrics' ) );
 		}
+
+		// Sanitize table name and wrap in backticks
+		$table_name = '`' . esc_sql( $table_name ) . '`';
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- safe identifier interpolation
 
 		// Build query
 		$query = "SELECT
@@ -259,6 +268,7 @@ class GreenMetrics_Export_Handler {
 		$query .= " ORDER BY date_start DESC LIMIT %d";
 		$query_args[] = $args['limit'];
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- safe identifier interpolation
 		// Prepare and execute query
 		$prepared_query = $wpdb->prepare( $query, $query_args );
 		$results = $wpdb->get_results( $prepared_query, ARRAY_A );
@@ -650,13 +660,48 @@ class GreenMetrics_Export_Handler {
 	 */
 	public function stream_download( $file ) {
 		// Set headers for download
-		header( 'Content-Type: ' . $file['type'] );
-		header( 'Content-Disposition: attachment; filename="' . $file['filename'] . '"' );
+		header( 'Content-Type: ' . sanitize_text_field( $file['type'] ) );
+		header( 'Content-Disposition: attachment; filename="' . sanitize_file_name( $file['filename'] ) . '"' );
 		header( 'Pragma: no-cache' );
 		header( 'Expires: 0' );
 
-		// Output file content
-		echo $file['content'];
+		// Output file content with proper escaping based on content type
+		if ( strpos( $file['type'], 'text/html' ) !== false ) {
+			// For HTML content, use wp_kses_post to prevent XSS
+			echo wp_kses_post( $file['content'] );
+		} elseif ( strpos( $file['type'], 'application/json' ) !== false ) {
+			// For JSON, ensure it's properly encoded
+			echo wp_json_encode( json_decode( $file['content'] ) );
+		} else {
+			// For CSV, PDF, and other non-HTML formats
+			// These are binary or plain text formats that are downloaded as files, not rendered as HTML
+			// We need to ensure we're sending the correct content type and handling the output properly
+
+			// Validate that we have the expected content type for security
+			$allowed_types = array(
+				'text/csv',
+				'application/pdf',
+				'text/plain',
+				'application/octet-stream',
+				'application/vnd.ms-excel',
+				'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+			);
+
+			if ( ! in_array( $file['type'], $allowed_types, true ) ) {
+				wp_die( esc_html__( 'Invalid file type for export.', 'greenmetrics' ) );
+			}
+
+			// For binary files like PDF, we need to ensure we're not corrupting the data
+			// For text files like CSV, we need to ensure we're not introducing security issues
+			if ( strpos( $file['type'], 'text/' ) === 0 ) {
+				// For text-based formats like CSV, preserve structure while ensuring valid UTF-8
+				echo wp_check_invalid_utf8( $file['content'] );
+			} else {
+				// For binary formats, output directly
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Binary data cannot be escaped
+				echo $file['content'];
+			}
+		}
 		exit;
 	}
 }

@@ -545,7 +545,7 @@ $total_size = \GreenMetrics\GreenMetrics_Data_Manager::format_bytes($table_sizes
 									formData.append('duplicate_action', $('#import-duplicate-action').val());
 
 									// Add proper REST API nonce
-									formData.append('_wpnonce', '<?php echo wp_create_nonce('wp_rest'); ?>');
+									formData.append('_wpnonce', <?php echo wp_json_encode( wp_create_nonce('wp_rest') ); ?>);
 
 									// Send AJAX request
 									$.ajax({

@@ -460,6 +460,16 @@ class GreenMetrics_Rest_API {
 	 */
 	public function import_data( $request ) {
 		try {
+			// Verify that the request is properly authenticated
+			if ( ! current_user_can( 'manage_options' ) ) {
+				return GreenMetrics_Error_Handler::create_error(
+					'permission_denied',
+					__( 'You do not have permission to import data.', 'greenmetrics' ),
+					array(),
+					403
+				);
+			}
+
 			// Check if file was uploaded
 			if ( empty( $_FILES ) || ! isset( $_FILES['import_file'] ) ) {
 				greenmetrics_log( 'REST: Import error - No file uploaded', $_FILES, 'error' );
@@ -473,9 +483,10 @@ class GreenMetrics_Rest_API {
 
 			// Check for file upload errors
 			if ( isset( $_FILES['import_file']['error'] ) && $_FILES['import_file']['error'] !== UPLOAD_ERR_OK ) {
-				$error_message = $this->get_file_upload_error_message( $_FILES['import_file']['error'] );
+				$error_code = isset( $_FILES['import_file']['error'] ) ? intval( $_FILES['import_file']['error'] ) : 0;
+				$error_message = $this->get_file_upload_error_message( $error_code );
 				greenmetrics_log( 'REST: Import error - File upload error', array(
-					'error_code' => $_FILES['import_file']['error'],
+					'error_code' => $error_code,
 					'error_message' => $error_message
 				), 'error' );
 
@@ -500,8 +511,19 @@ class GreenMetrics_Rest_API {
 			// Get import handler instance
 			$import_handler = GreenMetrics_Import_Handler::get_instance();
 
+			// Sanitize and validate the uploaded file data
+			$sanitized_file = array();
+			if ( isset( $_FILES['import_file'] ) ) {
+				// Only copy the necessary fields and sanitize them
+				$sanitized_file['name'] = isset( $_FILES['import_file']['name'] ) ? sanitize_file_name( wp_unslash( $_FILES['import_file']['name'] ) ) : '';
+				$sanitized_file['type'] = isset( $_FILES['import_file']['type'] ) ? sanitize_text_field( wp_unslash( $_FILES['import_file']['type'] ) ) : '';
+				$sanitized_file['tmp_name'] = isset( $_FILES['import_file']['tmp_name'] ) ? sanitize_text_field( wp_unslash( $_FILES['import_file']['tmp_name'] ) ) : '';
+				$sanitized_file['error'] = isset( $_FILES['import_file']['error'] ) ? intval( $_FILES['import_file']['error'] ) : 0;
+				$sanitized_file['size'] = isset( $_FILES['import_file']['size'] ) ? intval( $_FILES['import_file']['size'] ) : 0;
+			}
+
 			// Import data
-			$result = $import_handler->import_data( $_FILES['import_file'], $args );
+			$result = $import_handler->import_data( $sanitized_file, $args );
 
 			// Check for errors
 			if ( is_wp_error( $result ) ) {
@@ -570,6 +592,16 @@ class GreenMetrics_Rest_API {
 	 */
 	public function export_data( $request ) {
 		try {
+			// Verify that the request is properly authenticated
+			if ( ! current_user_can( 'manage_options' ) ) {
+				return GreenMetrics_Error_Handler::create_error(
+					'permission_denied',
+					__( 'You do not have permission to export data.', 'greenmetrics' ),
+					array(),
+					403
+				);
+			}
+
 			// Get export parameters
 			$format = $request->get_param( 'format' );
 			$data_type = $request->get_param( 'data_type' );

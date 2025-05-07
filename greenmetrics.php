@@ -149,6 +149,9 @@ function greenmetrics_init() {
 	// Explicitly load the Email Report History class
 	require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-email-report-history.php';
 
+	// Explicitly load the SVG Sanitizer class
+	require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-svg-sanitizer.php';
+
 	// Debug and development settings should never run in production
 	if ( defined( 'GREENMETRICS_DEBUG' ) && GREENMETRICS_DEBUG && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 		// Log current settings in development environments only
@@ -164,6 +167,9 @@ function greenmetrics_init() {
 		$tracker      = \GreenMetrics\GreenMetrics_Tracker::get_instance();
 		$rest_api     = new \GreenMetrics\GreenMetrics_Rest_API();
 		$data_manager = \GreenMetrics\GreenMetrics_Data_Manager::get_instance();
+
+		// Initialize the SVG Sanitizer
+		\GreenMetrics\GreenMetrics_SVG_Sanitizer::get_instance();
 
 		// Schedule data management tasks
 		\GreenMetrics\GreenMetrics_Data_Manager::schedule_data_management();
