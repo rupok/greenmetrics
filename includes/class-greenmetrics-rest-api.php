@@ -460,6 +460,16 @@ class GreenMetrics_Rest_API {
 	 */
 	public function import_data( $request ) {
 		try {
+			// Verify that the request is properly authenticated
+			if ( ! current_user_can( 'manage_options' ) ) {
+				return GreenMetrics_Error_Handler::create_error(
+					'permission_denied',
+					__( 'You do not have permission to import data.', 'greenmetrics' ),
+					array(),
+					403
+				);
+			}
+
 			// Check if file was uploaded
 			if ( empty( $_FILES ) || ! isset( $_FILES['import_file'] ) ) {
 				greenmetrics_log( 'REST: Import error - No file uploaded', $_FILES, 'error' );
@@ -582,6 +592,16 @@ class GreenMetrics_Rest_API {
 	 */
 	public function export_data( $request ) {
 		try {
+			// Verify that the request is properly authenticated
+			if ( ! current_user_can( 'manage_options' ) ) {
+				return GreenMetrics_Error_Handler::create_error(
+					'permission_denied',
+					__( 'You do not have permission to export data.', 'greenmetrics' ),
+					array(),
+					403
+				);
+			}
+
 			// Get export parameters
 			$format = $request->get_param( 'format' );
 			$data_type = $request->get_param( 'data_type' );

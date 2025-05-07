@@ -491,6 +491,17 @@ $stats   = $tracker->get_stats();
 						$page = 1;
 					}
 
+					// Verify nonce if pagination is being used
+					if ( isset( $_GET['report_page'] ) && isset( $_GET['_wpnonce'] ) ) {
+						if ( ! wp_verify_nonce( sanitize_key( $_GET['_wpnonce'] ), 'greenmetrics_email_report_pagination' ) ) {
+							// If nonce verification fails, reset to page 1
+							$page = 1;
+						}
+					}
+
+					// Add a nonce for pagination links
+					$nonce = wp_create_nonce( 'greenmetrics_email_report_pagination' );
+
 					// Get reports
 					$reports = $history->get_reports( array(
 						'per_page' => 10,
@@ -595,8 +606,12 @@ $stats   = $tracker->get_stats();
 										</span>
 										<span class="pagination-links">
 											<?php
+											// Add nonce to pagination links
 											$page_links = paginate_links( array(
-												'base'      => add_query_arg( 'report_page', '%#%' ),
+												'base'      => add_query_arg( array(
+													'report_page' => '%#%',
+													'_wpnonce'    => $nonce,
+												) ),
 												'format'    => '',
 												'prev_text' => __( '&laquo;', 'greenmetrics' ),
 												'next_text' => __( '&raquo;', 'greenmetrics' ),
