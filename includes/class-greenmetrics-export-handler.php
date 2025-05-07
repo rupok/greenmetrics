@@ -137,6 +137,10 @@ class GreenMetrics_Export_Handler {
 			return new \WP_Error( 'table_not_found', __( 'Metrics data table not found.', 'greenmetrics' ) );
 		}
 
+		// Sanitize table name and wrap in backticks
+		$table_name = '`' . esc_sql( $table_name ) . '`';
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- safe identifier interpolation
+
 		// Build query
 		$query = "SELECT
 			id,
@@ -174,6 +178,7 @@ class GreenMetrics_Export_Handler {
 		$query .= " ORDER BY created_at DESC LIMIT %d";
 		$query_args[] = $args['limit'];
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- safe identifier interpolation
 		// Prepare and execute query
 		$prepared_query = $wpdb->prepare( $query, $query_args );
 		$results = $wpdb->get_results( $prepared_query, ARRAY_A );
@@ -206,6 +211,10 @@ class GreenMetrics_Export_Handler {
 		if ( ! GreenMetrics_DB_Helper::table_exists( $table_name ) ) {
 			return new \WP_Error( 'table_not_found', __( 'Aggregated metrics data table not found.', 'greenmetrics' ) );
 		}
+
+		// Sanitize table name and wrap in backticks
+		$table_name = '`' . esc_sql( $table_name ) . '`';
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- safe identifier interpolation
 
 		// Build query
 		$query = "SELECT
@@ -259,6 +268,7 @@ class GreenMetrics_Export_Handler {
 		$query .= " ORDER BY date_start DESC LIMIT %d";
 		$query_args[] = $args['limit'];
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- safe identifier interpolation
 		// Prepare and execute query
 		$prepared_query = $wpdb->prepare( $query, $query_args );
 		$results = $wpdb->get_results( $prepared_query, ARRAY_A );

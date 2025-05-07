@@ -540,6 +540,10 @@ class GreenMetrics_Import_Handler {
 		global $wpdb;
 
 		// Define unique fields based on data type
+		// Sanitize table name and wrap in backticks
+		$table_name = '`' . esc_sql( $table_name ) . '`';
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- safe identifier interpolation
+
 		if ( 'raw' === $data_type ) {
 			// For raw data, check page_id and created_at (within 1 second)
 			$query = $wpdb->prepare(

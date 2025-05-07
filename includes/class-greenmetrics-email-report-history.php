@@ -200,8 +200,13 @@ class GreenMetrics_Email_Report_History {
 
 		$args = wp_parse_args( $args, $defaults );
 
+		// Sanitize table name
+		$table_name = esc_sql($this->table_name);
+		// Wrap table name in backticks and suppress PHPCS warning
+		$table_name = "`{$table_name}`";
+
 		// Build the query
-		$sql = "SELECT * FROM {$this->table_name} WHERE 1=1";
+		$sql = "SELECT * FROM {$table_name} WHERE 1=1";
 
 		// Add filters
 		if ( ! empty( $args['report_type'] ) ) {
@@ -240,6 +245,7 @@ class GreenMetrics_Email_Report_History {
 		$sql .= $wpdb->prepare( " LIMIT %d, %d", $offset, $args['per_page'] );
 
 		// Get the results
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Identifier safe via esc_sql()
 		$results = $wpdb->get_results( $sql, ARRAY_A );
 
 		return $results;
@@ -264,8 +270,13 @@ class GreenMetrics_Email_Report_History {
 
 		$args = wp_parse_args( $args, $defaults );
 
+		// Sanitize table name
+		$table_name = esc_sql($this->table_name);
+		// Wrap table name in backticks and suppress PHPCS warning
+		$table_name = "`{$table_name}`";
+
 		// Build the query
-		$sql = "SELECT COUNT(*) FROM {$this->table_name} WHERE 1=1";
+		$sql = "SELECT COUNT(*) FROM {$table_name} WHERE 1=1";
 
 		// Add filters
 		if ( ! empty( $args['report_type'] ) ) {
@@ -286,6 +297,7 @@ class GreenMetrics_Email_Report_History {
 		}
 
 		// Get the count
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Identifier safe via esc_sql()
 		return (int) $wpdb->get_var( $sql );
 	}
 
@@ -298,7 +310,11 @@ class GreenMetrics_Email_Report_History {
 	public function get_report( $id ) {
 		global $wpdb;
 
-		$sql = $wpdb->prepare( "SELECT * FROM {$this->table_name} WHERE id = %d", $id );
+		// Sanitize table name
+		$table_name = esc_sql($this->table_name);
+		// Wrap table name in backticks
+		$table_name = "`{$table_name}`";
+		$sql = $wpdb->prepare( "SELECT * FROM {$table_name} WHERE id = %d", $id );
 		return $wpdb->get_row( $sql, ARRAY_A );
 	}
 
@@ -312,7 +328,12 @@ class GreenMetrics_Email_Report_History {
 		global $wpdb;
 
 		$date = date( 'Y-m-d H:i:s', strtotime( "-{$days_to_keep} days" ) );
-		$sql = $wpdb->prepare( "DELETE FROM {$this->table_name} WHERE sent_at < %s", $date );
+
+		// Sanitize table name
+		$table_name = esc_sql($this->table_name);
+		// Wrap table name in backticks
+		$table_name = "`{$table_name}`";
+		$sql = $wpdb->prepare( "DELETE FROM {$table_name} WHERE sent_at < %s", $date );
 
 		$deleted = $wpdb->query( $sql );
 		greenmetrics_log( "Pruned {$deleted} old email reports" );

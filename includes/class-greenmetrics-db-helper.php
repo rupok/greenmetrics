@@ -118,9 +118,12 @@ class GreenMetrics_DB_Helper {
 		}
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Necessary direct query for schema check
-		// Use backticks to properly escape table name
-		$table_name_escaped = '`' . str_replace('`', '``', $table_name) . '`';
-		$results = $wpdb->get_results( 'DESCRIBE ' . $table_name_escaped );
+		// Use esc_sql to properly escape table name for SQL query
+		$table_name_escaped = esc_sql($table_name);
+		// For table names, we need to use direct interpolation with esc_sql
+		// since $wpdb->prepare() doesn't have a placeholder for identifiers
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- safe identifier interpolation
+		$results = $wpdb->get_results( "DESCRIBE `{$table_name_escaped}`" );
 
 		if ( ! $results ) {
 			// Return empty array if no results (e.g., table doesn't exist)

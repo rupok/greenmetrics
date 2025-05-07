@@ -549,6 +549,9 @@ class GreenMetrics_Data_Manager {
 			}
 		}
 
+		// Sanitize table name
+		$table_name = esc_sql( $this->aggregated_table_name );
+
 		// Build the query
 		$query = "SELECT
 			date_start,
@@ -565,7 +568,7 @@ class GreenMetrics_Data_Manager {
 			SUM(total_energy_consumption) as total_energy_consumption,
 			AVG(avg_energy_consumption) as avg_energy_consumption,
 			AVG(avg_performance_score) as avg_performance_score
-		FROM {$this->aggregated_table_name}
+		FROM {$table_name}
 		WHERE aggregation_type = %s";
 
 		$params = array( $aggregation_type );
@@ -624,9 +627,12 @@ class GreenMetrics_Data_Manager {
 			)
 		);
 
-		// Get row counts
-		$main_table_rows = $wpdb->get_var( "SELECT COUNT(*) FROM {$this->table_name}" );
-		$aggregated_table_rows = $wpdb->get_var( "SELECT COUNT(*) FROM {$this->aggregated_table_name}" );
+		// Get row counts with proper escaping
+		$main_table       = esc_sql( $this->table_name );
+		$aggregated_table = esc_sql( $this->aggregated_table_name );
+
+		$main_table_rows       = $wpdb->get_var( "SELECT COUNT(*) FROM {$main_table}" );
+		$aggregated_table_rows = $wpdb->get_var( "SELECT COUNT(*) FROM {$aggregated_table}" );
 
 		return array(
 			'main_table' => array(
