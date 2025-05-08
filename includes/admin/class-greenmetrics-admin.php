@@ -2147,15 +2147,11 @@ class GreenMetrics_Admin {
 	 * Handle running data management tasks.
 	 */
 	public function handle_run_data_management() {
-		// Check nonce
-		if ( ! isset( $_POST['greenmetrics_data_management_nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['greenmetrics_data_management_nonce'] ), 'greenmetrics_run_data_management' ) ) {
-			wp_die( esc_html__( 'Security check failed.', 'greenmetrics' ) );
-		}
-
-		// Check permissions
+		// Verify capability and nonce for data management actions
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'greenmetrics' ) );
+			wp_die( __( 'Permission denied', 'greenmetrics' ), '', 403 );
 		}
+		check_admin_referer( 'greenmetrics_run_data_management', 'greenmetrics_data_management_nonce' );
 
 		$data_manager = \GreenMetrics\GreenMetrics_Data_Manager::get_instance();
 		$settings = \GreenMetrics\GreenMetrics_Settings_Manager::get_instance()->get();
@@ -2166,7 +2162,7 @@ class GreenMetrics_Admin {
 			&& sanitize_text_field( wp_unslash( $_POST['run_aggregation'] ) )
 		) {
 			$aggregation_age = isset( $settings['aggregation_age'] ) ? intval( $settings['aggregation_age'] ) : 30;
-			
+
 			// Whitelist aggregation types
 			$allowed_agg_types = array( 'daily', 'weekly', 'monthly' );
 			$raw_agg_type      = isset( $settings['aggregation_type'] )
@@ -2273,15 +2269,11 @@ class GreenMetrics_Admin {
 	 * Handle refresh statistics form submission from the data management page.
 	 */
 	public function handle_refresh_stats_redirect() {
-		// Verify nonce
-		if ( ! isset( $_POST['greenmetrics_refresh_nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['greenmetrics_refresh_nonce'] ), 'greenmetrics_refresh_stats' ) ) {
-			wp_die( esc_html__( 'Security check failed.', 'greenmetrics' ) );
-		}
-
-		// Check permissions
+		// Verify capability and nonce for stats refresh actions
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'greenmetrics' ) );
+			wp_die( __( 'Permission denied', 'greenmetrics' ), '', 403 );
 		}
+		check_admin_referer( 'greenmetrics_refresh_stats', 'greenmetrics_refresh_nonce' );
 
 		// Trigger manual cache refresh
 		\GreenMetrics\GreenMetrics_Tracker::manual_cache_refresh();
