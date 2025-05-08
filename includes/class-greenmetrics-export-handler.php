@@ -157,26 +157,29 @@ class GreenMetrics_Export_Handler {
 
 		$query_args = array();
 
-		// Add date range filter
-		if ( ! empty( $args['start_date'] ) ) {
+		// Validate and add date range filter
+		$raw_start = isset( $args['start_date'] ) ? sanitize_text_field( $args['start_date'] ) : '';
+		if ( preg_match( '/^\d{4}-\d{2}-\d{2}$/', $raw_start ) ) {
 			$query .= " AND created_at >= %s";
-			$query_args[] = $args['start_date'] . ' 00:00:00';
+			$query_args[] = $raw_start . ' 00:00:00';
 		}
-
-		if ( ! empty( $args['end_date'] ) ) {
+		$raw_end = isset( $args['end_date'] ) ? sanitize_text_field( $args['end_date'] ) : '';
+		if ( preg_match( '/^\d{4}-\d{2}-\d{2}$/', $raw_end ) ) {
 			$query .= " AND created_at <= %s";
-			$query_args[] = $args['end_date'] . ' 23:59:59';
+			$query_args[] = $raw_end . ' 23:59:59';
 		}
 
-		// Add page filter
-		if ( ! empty( $args['page_id'] ) ) {
+		// Validate and add page filter
+		$page_id = absint( $args['page_id'] );
+		if ( $page_id > 0 ) {
 			$query .= " AND page_id = %d";
-			$query_args[] = $args['page_id'];
+			$query_args[] = $page_id;
 		}
 
-		// Add order and limit
+		// Validate and add order and limit
+		$limit = min( absint( $args['limit'] ), 10000 );
 		$query .= " ORDER BY created_at DESC LIMIT %d";
-		$query_args[] = $args['limit'];
+		$query_args[] = $limit;
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- safe identifier interpolation
 		// Prepare and execute query
@@ -247,26 +250,29 @@ class GreenMetrics_Export_Handler {
 			$query_args[] = $args['aggregation_type'];
 		}
 
-		// Add date range filter
-		if ( ! empty( $args['start_date'] ) ) {
+		// Validate and add date range filter
+		$raw_start = isset( $args['start_date'] ) ? sanitize_text_field( $args['start_date'] ) : '';
+		if ( preg_match( '/^\d{4}-\d{2}-\d{2}$/', $raw_start ) ) {
 			$query .= " AND date_start >= %s";
-			$query_args[] = $args['start_date'] . ' 00:00:00';
+			$query_args[] = $raw_start . ' 00:00:00';
 		}
-
-		if ( ! empty( $args['end_date'] ) ) {
+		$raw_end = isset( $args['end_date'] ) ? sanitize_text_field( $args['end_date'] ) : '';
+		if ( preg_match( '/^\d{4}-\d{2}-\d{2}$/', $raw_end ) ) {
 			$query .= " AND date_end <= %s";
-			$query_args[] = $args['end_date'] . ' 23:59:59';
+			$query_args[] = $raw_end . ' 23:59:59';
 		}
 
-		// Add page filter
-		if ( ! empty( $args['page_id'] ) ) {
+		// Validate and add page filter
+		$page_id = absint( $args['page_id'] );
+		if ( $page_id > 0 ) {
 			$query .= " AND page_id = %d";
-			$query_args[] = $args['page_id'];
+			$query_args[] = $page_id;
 		}
 
-		// Add order and limit
+		// Validate and add order and limit
+		$limit = min( absint( $args['limit'] ), 10000 );
 		$query .= " ORDER BY date_start DESC LIMIT %d";
-		$query_args[] = $args['limit'];
+		$query_args[] = $limit;
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- safe identifier interpolation
 		// Prepare and execute query
