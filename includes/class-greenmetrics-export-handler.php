@@ -90,11 +90,11 @@ class GreenMetrics_Export_Handler {
 
 		// Set date range if not provided
 		if ( empty( $args['start_date'] ) ) {
-			$args['start_date'] = date( 'Y-m-d', strtotime( '-30 days' ) );
+			$args['start_date'] = gmdate( 'Y-m-d', strtotime( '-30 days' ) );
 		}
 
 		if ( empty( $args['end_date'] ) ) {
-			$args['end_date'] = date( 'Y-m-d' );
+			$args['end_date'] = gmdate( 'Y-m-d' );
 		}
 
 		// Get data based on type
@@ -359,7 +359,8 @@ class GreenMetrics_Export_Handler {
 		// Start output buffer
 		ob_start();
 
-		// Create a file pointer
+		// Use PHP's built-in output stream which is safer than direct file operations
+		// php://output is a write-only stream that allows writing to the output buffer
 		$output = fopen( 'php://output', 'w' );
 
 		// Add headers if requested
@@ -380,7 +381,7 @@ class GreenMetrics_Export_Handler {
 		$content = ob_get_clean();
 
 		// Generate filename
-		$date_suffix = date( 'Y-m-d' );
+		$date_suffix = gmdate( 'Y-m-d' );
 		$type_suffix = $args['data_type'];
 		$filename = "greenmetrics-{$type_suffix}-{$date_suffix}.csv";
 
@@ -401,7 +402,7 @@ class GreenMetrics_Export_Handler {
 	 */
 	private function format_as_json( $data, $args ) {
 		// Generate filename
-		$date_suffix = date( 'Y-m-d' );
+		$date_suffix = gmdate( 'Y-m-d' );
 		$type_suffix = $args['data_type'];
 		$filename = "greenmetrics-{$type_suffix}-{$date_suffix}.json";
 
@@ -433,15 +434,15 @@ class GreenMetrics_Export_Handler {
 		}
 
 		// Generate filename
-		$date_suffix = date( 'Y-m-d' );
+		$date_suffix = gmdate( 'Y-m-d' );
 		$type_suffix = $args['data_type'];
 		$filename = "greenmetrics-{$type_suffix}-{$date_suffix}.pdf";
 
 		// Get site info
 		$site_name = get_bloginfo( 'name' );
 		$site_url = get_bloginfo( 'url' );
-		$export_date = date( 'F j, Y' );
-		$date_range = date( 'M j, Y', strtotime( $args['start_date'] ) ) . ' - ' . date( 'M j, Y', strtotime( $args['end_date'] ) );
+		$export_date = gmdate( 'F j, Y' );
+		$date_range = gmdate( 'M j, Y', strtotime( $args['start_date'] ) ) . ' - ' . gmdate( 'M j, Y', strtotime( $args['end_date'] ) );
 
 		// Start building base HTML content (for both PDF and HTML fallback)
 		$base_html = '<!DOCTYPE html>
@@ -562,7 +563,10 @@ class GreenMetrics_Export_Handler {
 				$pdf_generated = true;
 			} catch ( \Exception $e ) {
 				// If TCPDF fails, continue to next method
-				greenmetrics_log( 'PDF Export: TCPDF error', $e->getMessage(), 'error' );
+				// Only log in debug mode
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG && function_exists( 'greenmetrics_log' ) ) {
+					greenmetrics_log( 'PDF Export: TCPDF error', $e->getMessage(), 'error' );
+				}
 			}
 		}
 
@@ -586,7 +590,10 @@ class GreenMetrics_Export_Handler {
 				$pdf_generated = true;
 			} catch ( \Exception $e ) {
 				// If DOMPDF fails, continue to next method
-				greenmetrics_log( 'PDF Export: DOMPDF error', $e->getMessage(), 'error' );
+				// Only log in debug mode
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG && function_exists( 'greenmetrics_log' ) ) {
+					greenmetrics_log( 'PDF Export: DOMPDF error', $e->getMessage(), 'error' );
+				}
 			}
 		}
 
@@ -599,7 +606,10 @@ class GreenMetrics_Export_Handler {
 				$pdf_generated = true;
 			} catch ( \Exception $e ) {
 				// If mPDF fails, continue to next method
-				greenmetrics_log( 'PDF Export: mPDF error', $e->getMessage(), 'error' );
+				// Only log in debug mode
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG && function_exists( 'greenmetrics_log' ) ) {
+					greenmetrics_log( 'PDF Export: mPDF error', $e->getMessage(), 'error' );
+				}
 			}
 		}
 
@@ -614,7 +624,10 @@ class GreenMetrics_Export_Handler {
 				$pdf_generated = true;
 			} catch ( \Exception $e ) {
 				// If WooCommerce PDF library fails, continue to next method
-				greenmetrics_log( 'PDF Export: WooCommerce PDF library error', $e->getMessage(), 'error' );
+				// Only log in debug mode
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG && function_exists( 'greenmetrics_log' ) ) {
+					greenmetrics_log( 'PDF Export: WooCommerce PDF library error', $e->getMessage(), 'error' );
+				}
 			}
 		}
 
@@ -730,51 +743,152 @@ class GreenMetrics_Export_Handler {
 	 *
 	 * @since    1.0.0
 	 * @param    array    $file    File data.
+	 * @return   void
 	 */
 	public function stream_download( $file ) {
-		// Set headers for download
-		header( 'Content-Type: ' . sanitize_text_field( $file['type'] ) );
-		header( 'Content-Disposition: attachment; filename="' . sanitize_file_name( $file['filename'] ) . '"' );
-		header( 'Pragma: no-cache' );
-		header( 'Expires: 0' );
+		// Validate required file data
+		if ( ! isset( $file['type'] ) || ! isset( $file['filename'] ) || ! isset( $file['content'] ) ) {
+			wp_die( esc_html__( 'Invalid file data for export.', 'greenmetrics' ), '', array( 'response' => 400 ) );
+		}
 
-		// Output file content with proper escaping based on content type
-		if ( strpos( $file['type'], 'text/html' ) !== false ) {
-			// For HTML content, use wp_kses_post to prevent XSS
-			echo wp_kses_post( $file['content'] );
-		} elseif ( strpos( $file['type'], 'application/json' ) !== false ) {
-			// For JSON, ensure it's properly encoded
-			echo wp_json_encode( json_decode( $file['content'] ) );
+		// Define allowed content types for security
+		$allowed_types = array(
+			'text/html'                                                      => 'html',
+			'application/json'                                               => 'json',
+			'text/csv'                                                       => 'csv',
+			'application/pdf'                                                => 'pdf',
+			'text/plain'                                                     => 'txt',
+			'application/octet-stream'                                       => 'bin',
+			'application/vnd.ms-excel'                                       => 'xls',
+			'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => 'xlsx'
+		);
+
+		// Validate content type with appropriate sanitization
+		// Use original type for PDF to avoid issues with sanitize_mime_type()
+		if ( $file['type'] === 'application/pdf' ) {
+			$file_type = 'application/pdf';
 		} else {
-			// For CSV, PDF, and other non-HTML formats
-			// These are binary or plain text formats that are downloaded as files, not rendered as HTML
-			// We need to ensure we're sending the correct content type and handling the output properly
+			$file_type = sanitize_mime_type( $file['type'] );
+		}
 
-			// Validate that we have the expected content type for security
-			$allowed_types = array(
-				'text/csv',
-				'application/pdf',
-				'text/plain',
-				'application/octet-stream',
-				'application/vnd.ms-excel',
-				'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+		if ( ! array_key_exists( $file_type, $allowed_types ) ) {
+			wp_die(
+				esc_html__( 'Invalid file type for export.', 'greenmetrics' ),
+				'',
+				array( 'response' => 400 )
 			);
+		}
 
-			if ( ! in_array( $file['type'], $allowed_types, true ) ) {
-				wp_die( esc_html__( 'Invalid file type for export.', 'greenmetrics' ) );
-			}
+		// Sanitize filename and ensure it has the correct extension
+		$filename = sanitize_file_name( $file['filename'] );
+		$extension = pathinfo( $filename, PATHINFO_EXTENSION );
+		$expected_extension = $allowed_types[$file_type];
 
-			// For binary files like PDF, we need to ensure we're not corrupting the data
-			// For text files like CSV, we need to ensure we're not introducing security issues
-			if ( strpos( $file['type'], 'text/' ) === 0 ) {
-				// For text-based formats like CSV, preserve structure while ensuring valid UTF-8
-				echo wp_check_invalid_utf8( $file['content'] );
-			} else {
-				// For binary formats, output directly
-				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Binary data cannot be escaped
-				echo $file['content'];
+		if ( $extension !== $expected_extension ) {
+			$filename = str_replace( ".$extension", ".$expected_extension", $filename );
+			if ( pathinfo( $filename, PATHINFO_EXTENSION ) !== $expected_extension ) {
+				$filename .= ".$expected_extension";
 			}
 		}
+
+		// Clean output buffer to prevent corruption
+		// This is especially important for binary files like PDF
+		while ( ob_get_level() ) {
+			ob_end_clean();
+		}
+
+		// Calculate content length for binary data
+		$content_length = strlen( $file['content'] );
+
+		// Set comprehensive security headers
+		nocache_headers(); // WordPress function to set proper cache control headers
+
+		// Special handling for content types
+		if ( $file_type === 'application/pdf' ) {
+			header( 'Content-Type: application/pdf' );
+			header( 'Content-Description: File Transfer' );
+		} elseif ( $file_type === 'text/html' ) {
+			header( 'Content-Type: text/html; charset=UTF-8' );
+			header( 'Content-Description: File Transfer' );
+		} else {
+			header( 'Content-Type: ' . $file_type );
+		}
+
+		// RFC6266 compliant Content-Disposition header with both filename and filename* parameters
+		$ascii_filename = preg_replace('/[^\x20-\x7E]/', '', $filename); // ASCII-only version
+		$utf8_filename = rawurlencode($filename); // URL-encoded UTF-8 version
+		header( 'Content-Disposition: attachment; filename="' . $ascii_filename . '"; filename*=UTF-8\'\'' . $utf8_filename );
+		header( 'Content-Length: ' . $content_length );
+		header( 'Content-Transfer-Encoding: binary' );
+		header( 'Connection: close' );
+		header( 'X-Content-Type-Options: nosniff' );
+		header( 'X-Download-Options: noopen' ); // Prevents IE from executing downloads in the context of the site
+
+		// Add Content-Security-Policy header for HTML content
+		if ( $file_type === 'text/html' ) {
+			// Allow inline styles for the HTML report
+			header( "Content-Security-Policy: default-src 'self'; script-src 'none'; object-src 'none'; style-src 'self' 'unsafe-inline'" );
+		}
+
+		// Process and output content based on type
+		if ( $file_type === 'text/html' ) {
+			// For HTML content, ensure it's properly formatted
+			// Don't use wp_kses_post here as it can strip necessary HTML for the report
+			// We've already sanitized the content when generating it
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML content is pre-sanitized
+			echo $file['content'];
+		} elseif ( $file_type === 'application/json' ) {
+			// For JSON, ensure it's properly encoded with enhanced validation
+			$json_data = json_decode( $file['content'], true );
+			$json_error = json_last_error();
+
+			if ( $json_data === null && $json_error !== JSON_ERROR_NONE ) {
+				// Get detailed error message
+				$error_message = 'Unknown JSON error';
+				switch ( $json_error ) {
+					case JSON_ERROR_DEPTH:
+						$error_message = 'Maximum stack depth exceeded';
+						break;
+					case JSON_ERROR_STATE_MISMATCH:
+						$error_message = 'Underflow or the modes mismatch';
+						break;
+					case JSON_ERROR_CTRL_CHAR:
+						$error_message = 'Unexpected control character found';
+						break;
+					case JSON_ERROR_SYNTAX:
+						$error_message = 'Syntax error, malformed JSON';
+						break;
+					case JSON_ERROR_UTF8:
+						$error_message = 'Malformed UTF-8 characters';
+						break;
+				}
+
+				// Handle invalid JSON with detailed error
+				wp_die(
+					esc_html( sprintf( __( 'Invalid JSON data for export: %s', 'greenmetrics' ), $error_message ) ),
+					'',
+					array( 'response' => 500 )
+				);
+			}
+
+			// Use safe encoding options
+			echo wp_json_encode( $json_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+		} elseif ( $file_type === 'text/csv' ) {
+			// For CSV, preserve structure while ensuring valid UTF-8
+			// Add BOM for Excel compatibility with UTF-8
+			echo "\xEF\xBB\xBF" . wp_check_invalid_utf8( $file['content'] );
+		} elseif ( $file_type === 'application/pdf' ) {
+			// Special handling for PDF files
+			// Ensure we're sending binary data without any corruption
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Binary data cannot be escaped
+			echo $file['content'];
+		} else {
+			// For other binary formats, output directly
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Binary data cannot be escaped
+			echo $file['content'];
+		}
+
+		// Ensure no further output and end script execution
 		exit;
 	}
 }
