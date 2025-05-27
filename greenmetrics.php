@@ -22,7 +22,7 @@ define( 'GREENMETRICS_VERSION', '1.0.0' );
 define( 'GREENMETRICS_PLUGIN_FILE', __FILE__ );
 define( 'GREENMETRICS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'GREENMETRICS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'GREENMETRICS_DEBUG', true ); // Disabled by default for production environments
+define( 'GREENMETRICS_DEBUG', false ); // Disabled by default for production environments
 
 // Define a constant that can be used for compile-time optimizations
 // When true, all logging calls will be completely bypassed

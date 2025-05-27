@@ -428,10 +428,17 @@ class GreenMetrics_Rest_API {
 			// Check if we should force refresh the cache
 			$force_refresh = $request->get_param( 'force_refresh' ) === 'true';
 
+
+
 			// Get metrics by date range with improved caching
 			$metrics = $tracker->get_metrics_by_date_range( $start_date, $end_date, $interval, $force_refresh );
 
-			if ( ! $metrics || ! is_array( $metrics ) ) {
+			if ( ! is_array( $metrics ) ) {
+				greenmetrics_log( 'REST API: Invalid metrics returned from tracker', array(
+					'metrics' => $metrics,
+					'is_array' => is_array( $metrics )
+				), 'error' );
+
 				return GreenMetrics_Error_Handler::create_error(
 					'invalid_metrics',
 					'Failed to retrieve metrics by date range',
@@ -439,6 +446,8 @@ class GreenMetrics_Rest_API {
 					500
 				);
 			}
+
+
 
 			return rest_ensure_response( $metrics );
 		} catch ( \Exception $e ) {
