@@ -315,6 +315,7 @@ class GreenMetrics_Email_Report_History {
 		// Wrap table name in backticks
 		$table_name = "`{$table_name}`";
 		$sql = $wpdb->prepare( "SELECT * FROM {$table_name} WHERE id = %d", $id );
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query is properly prepared above with $wpdb->prepare()
 		return $wpdb->get_row( $sql, ARRAY_A );
 	}
 
@@ -335,6 +336,7 @@ class GreenMetrics_Email_Report_History {
 		$table_name = "`{$table_name}`";
 		$sql = $wpdb->prepare( "DELETE FROM {$table_name} WHERE sent_at < %s", $date );
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query is properly prepared above with $wpdb->prepare()
 		$deleted = $wpdb->query( $sql );
 		greenmetrics_log( "Pruned {$deleted} old email reports" );
 

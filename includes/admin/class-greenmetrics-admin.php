@@ -2014,7 +2014,7 @@ class GreenMetrics_Admin {
 	public function handle_run_data_management() {
 		// Verify capability and nonce for data management actions
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( __( 'Permission denied', 'greenmetrics' ), '', 403 );
+			wp_die( esc_html__( 'Permission denied', 'greenmetrics' ), '', 403 );
 		}
 		check_admin_referer( 'greenmetrics_run_data_management', 'greenmetrics_data_management_nonce' );
 
@@ -2105,7 +2105,7 @@ class GreenMetrics_Admin {
 			if ( wp_doing_ajax() ) {
 				wp_send_json_error( __( 'Permission denied', 'greenmetrics' ), 403 );
 			} else {
-				wp_die( __( 'Permission denied', 'greenmetrics' ), '', 403 );
+				wp_die( esc_html__( 'Permission denied', 'greenmetrics' ), '', 403 );
 			}
 			return;
 		}
@@ -2136,7 +2136,7 @@ class GreenMetrics_Admin {
 	public function handle_refresh_stats_redirect() {
 		// Verify capability and nonce for stats refresh actions
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( __( 'Permission denied', 'greenmetrics' ), '', 403 );
+			wp_die( esc_html__( 'Permission denied', 'greenmetrics' ), '', 403 );
 		}
 		check_admin_referer( 'greenmetrics_refresh_stats', 'greenmetrics_refresh_nonce' );
 

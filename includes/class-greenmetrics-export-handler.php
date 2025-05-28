@@ -871,6 +871,7 @@ class GreenMetrics_Export_Handler {
 
 				// Handle invalid JSON with detailed error
 				wp_die(
+					/* translators: %s: Error message describing the JSON validation issue */
 					esc_html( sprintf( __( 'Invalid JSON data for export: %s', 'greenmetrics' ), $error_message ) ),
 					'',
 					array( 'response' => 500 )
@@ -882,6 +883,7 @@ class GreenMetrics_Export_Handler {
 		} elseif ( $file_type === 'text/csv' ) {
 			// For CSV, preserve structure while ensuring valid UTF-8
 			// Add BOM for Excel compatibility with UTF-8
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSV content is already sanitized and cannot be escaped
 			echo "\xEF\xBB\xBF" . wp_check_invalid_utf8( $file['content'] );
 		} elseif ( $file_type === 'application/pdf' ) {
 			// Special handling for PDF files

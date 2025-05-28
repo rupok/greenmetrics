@@ -140,30 +140,47 @@ class GreenMetrics_Import_Handler {
 	 * @return   array|WP_Error          Import result or error.
 	 */
 	private function import_csv( $file_path, $args ) {
-		// Open the CSV file
-		$handle = fopen( $file_path, 'r' );
-		if ( false === $handle ) {
-			return new \WP_Error( 'file_open_error', __( 'Could not open the CSV file.', 'greenmetrics' ) );
+		// Initialize WordPress filesystem
+		global $wp_filesystem;
+		if ( empty( $wp_filesystem ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			WP_Filesystem();
 		}
 
-		// Read the header row
-		$headers = fgetcsv( $handle );
-		if ( false === $headers ) {
-			fclose( $handle );
+		// Read the entire CSV file content
+		$file_content = $wp_filesystem->get_contents( $file_path );
+		if ( false === $file_content ) {
+			return new \WP_Error( 'file_read_error', __( 'Could not read the CSV file.', 'greenmetrics' ) );
+		}
+
+		// Parse CSV content
+		$lines = str_getcsv( $file_content, "\n" );
+		if ( empty( $lines ) ) {
+			return new \WP_Error( 'csv_parse_error', __( 'Could not parse the CSV file.', 'greenmetrics' ) );
+		}
+
+		// Parse the header row
+		$headers = str_getcsv( array_shift( $lines ) );
+		if ( false === $headers || empty( $headers ) ) {
 			return new \WP_Error( 'csv_read_error', __( 'Could not read the CSV file header.', 'greenmetrics' ) );
 		}
 
 		// Validate headers based on data type
 		$validation = $this->validate_headers( $headers, $args['data_type'] );
 		if ( is_wp_error( $validation ) ) {
-			fclose( $handle );
 			return $validation;
 		}
 
 		// Read data rows
 		$data = array();
 		$row_count = 0;
-		while ( ( $row = fgetcsv( $handle ) ) !== false ) {
+		foreach ( $lines as $line ) {
+			if ( empty( trim( $line ) ) ) {
+				continue;
+			}
+
+			$row = str_getcsv( $line );
+
 			// Skip empty rows
 			if ( empty( $row ) || count( array_filter( $row ) ) === 0 ) {
 				continue;
@@ -180,8 +197,6 @@ class GreenMetrics_Import_Handler {
 			$data[] = $data_row;
 			$row_count++;
 		}
-
-		fclose( $handle );
 
 		// Check if we have any data
 		if ( empty( $data ) ) {
@@ -563,6 +578,7 @@ class GreenMetrics_Import_Handler {
 			);
 		}
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query is properly prepared above with $wpdb->prepare()
 		$result = $wpdb->get_row( $query, ARRAY_A );
 
 		return $result ? $result : false;

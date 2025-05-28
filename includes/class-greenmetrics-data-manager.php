@@ -581,6 +581,7 @@ class GreenMetrics_Data_Manager {
 		$query .= " GROUP BY date_start ORDER BY date_start DESC";
 
 		// Execute the query
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query is properly prepared with placeholders and parameters
 		$results = $wpdb->get_results( $wpdb->prepare( $query, $params ), ARRAY_A );
 
 		if ( ! $results ) {
