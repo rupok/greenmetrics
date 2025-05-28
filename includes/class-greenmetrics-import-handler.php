@@ -472,7 +472,7 @@ class GreenMetrics_Import_Handler {
 						$key
 					) );
 				}
-				$prepared[ $key ] = date( 'Y-m-d H:i:s', $timestamp );
+				$prepared[ $key ] = gmdate( 'Y-m-d H:i:s', $timestamp );
 			} else {
 				// Default sanitization for other fields
 				$prepared[ $key ] = sanitize_text_field( $value );

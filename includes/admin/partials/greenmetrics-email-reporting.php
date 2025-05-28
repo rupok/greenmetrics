@@ -597,7 +597,7 @@ $stats   = $tracker->get_stats();
 									<div class="tablenav-pages">
 										<span class="displaying-num">
 											<?php
-											/* translators: %s: Number of items. */
+											/* translators: %s: Number of email report items. */
 											printf(
 												esc_html( _n( '%s item', '%s items', $total_reports, 'greenmetrics' ) ),
 												esc_html( number_format_i18n( $total_reports ) )

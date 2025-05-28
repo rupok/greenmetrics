@@ -328,7 +328,7 @@ class GreenMetrics_Email_Report_History {
 	public function prune_old_reports( $days_to_keep = 30 ) {
 		global $wpdb;
 
-		$date = date( 'Y-m-d H:i:s', strtotime( "-{$days_to_keep} days" ) );
+		$date = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days_to_keep} days" ) );
 
 		// Sanitize table name
 		$table_name = esc_sql($this->table_name);

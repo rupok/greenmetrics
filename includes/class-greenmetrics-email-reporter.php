@@ -831,22 +831,22 @@ class GreenMetrics_Email_Reporter {
 		switch ($frequency) {
 			case 'daily':
 				// Last 24 hours
-				$start_date = date('Y-m-d H:i:s', strtotime('-1 day', strtotime($end_date)));
+				$start_date = gmdate('Y-m-d H:i:s', strtotime('-1 day', strtotime($end_date)));
 				break;
 
 			case 'weekly':
 				// Last 7 days
-				$start_date = date('Y-m-d H:i:s', strtotime('-7 days', strtotime($end_date)));
+				$start_date = gmdate('Y-m-d H:i:s', strtotime('-7 days', strtotime($end_date)));
 				break;
 
 			case 'monthly':
 				// Last 30 days
-				$start_date = date('Y-m-d H:i:s', strtotime('-30 days', strtotime($end_date)));
+				$start_date = gmdate('Y-m-d H:i:s', strtotime('-30 days', strtotime($end_date)));
 				break;
 
 			default:
 				// Default to weekly
-				$start_date = date('Y-m-d H:i:s', strtotime('-7 days', strtotime($end_date)));
+				$start_date = gmdate('Y-m-d H:i:s', strtotime('-7 days', strtotime($end_date)));
 		}
 
 		return array(

@@ -183,8 +183,7 @@ class GreenMetrics_Export_Handler {
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- safe identifier interpolation
 		// Prepare and execute query
-		$prepared_query = $wpdb->prepare( $query, $query_args );
-		$results = $wpdb->get_results( $prepared_query, ARRAY_A );
+		$results = $wpdb->get_results( $wpdb->prepare( $query, $query_args ), ARRAY_A );
 
 		// Check for database errors
 		if ( $wpdb->last_error ) {
@@ -276,8 +275,7 @@ class GreenMetrics_Export_Handler {
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- safe identifier interpolation
 		// Prepare and execute query
-		$prepared_query = $wpdb->prepare( $query, $query_args );
-		$results = $wpdb->get_results( $prepared_query, ARRAY_A );
+		$results = $wpdb->get_results( $wpdb->prepare( $query, $query_args ), ARRAY_A );
 
 		// Check for database errors
 		if ( $wpdb->last_error ) {

@@ -742,7 +742,7 @@ class GreenMetrics_Chart_Generator {
 			if ( strpos( $filename, 'greenmetrics-chart-' ) === 0 && strlen( $filename ) > 40 ) {
 				// This is likely a cached chart (has an MD5 hash in the name)
 				if ( $file_age > 24 * HOUR_IN_SECONDS ) {
-					@unlink( $file );
+					wp_delete_file( $file );
 					if ( function_exists( 'greenmetrics_log' ) ) {
 						greenmetrics_log( 'Deleted cached chart: ' . $filename, null, 'debug' );
 					}
@@ -751,7 +751,7 @@ class GreenMetrics_Chart_Generator {
 			// Handle non-cached charts (keep for 1 hour)
 			else {
 				if ( $file_age > 1 * HOUR_IN_SECONDS ) {
-					@unlink( $file );
+					wp_delete_file( $file );
 					if ( function_exists( 'greenmetrics_log' ) ) {
 						greenmetrics_log( 'Deleted temporary chart: ' . $filename, null, 'debug' );
 					}
