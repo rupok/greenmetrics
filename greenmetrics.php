@@ -10,6 +10,8 @@
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: greenmetrics
  * Domain Path: /languages
+ * Requires at least: 5.5
+ * Requires PHP: 7.2
  */
 
 // If this file is called directly, abort.
