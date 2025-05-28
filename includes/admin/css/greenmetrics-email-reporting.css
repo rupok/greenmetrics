@@ -655,6 +655,47 @@
     margin-bottom: 25px;
 }
 
+/* Tab Consistency Styles */
+.greenmetrics-tabs-nav {
+	margin-bottom: 20px;
+}
+
+.greenmetrics-tabs-list {
+	background: #f0f0f1;
+	border-bottom: 1px solid #ccc;
+}
+
+.greenmetrics-tab-item {
+	background-color: #f0f0f1;
+	border: none;
+	margin: 0;
+	margin-right: 5px;
+	position: relative;
+}
+
+.greenmetrics-tab-item.active {
+	background-color: #fff;
+	color: #2271b1;
+	border-top: 3px solid #2271b1;
+	padding-top: 9px;
+	border-bottom: none;
+	margin-bottom: 0;
+}
+
+.greenmetrics-tab-item.active:after {
+	content: "";
+	position: absolute;
+	bottom: -1px;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: #fff;
+}
+
+.greenmetrics-tab-item.active .dashicons {
+	color: #2271b1;
+}
+
 .template-selector-container select {
     min-width: 200px;
 }

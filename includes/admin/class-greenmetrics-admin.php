@@ -773,8 +773,8 @@ class GreenMetrics_Admin {
 					</div>
 				</div>
 				<div class="font-size-arrows">
-					<span class="dashicons dashicons-arrow-up-alt2" onclick="incrementFontSize('badge_icon_size_number')"></span>
-					<span class="dashicons dashicons-arrow-down-alt2" onclick="decrementFontSize('badge_icon_size_number')"></span>
+					<span class="dashicons dashicons-arrow-up-alt2"></span>
+					<span class="dashicons dashicons-arrow-down-alt2"></span>
 				</div>
 				<input type="hidden"
 					id="badge_icon_size"
@@ -1241,8 +1241,8 @@ class GreenMetrics_Admin {
 					</div>
 				</div>
 				<div class="font-size-arrows">
-					<span class="dashicons dashicons-arrow-up-alt2" onclick="incrementFontSize('popover_content_font_size_number')"></span>
-					<span class="dashicons dashicons-arrow-down-alt2" onclick="decrementFontSize('popover_content_font_size_number')"></span>
+					<span class="dashicons dashicons-arrow-up-alt2"></span>
+					<span class="dashicons dashicons-arrow-down-alt2"></span>
 				</div>
 				<input type="hidden"
 					id="popover_content_font_size"
@@ -1251,33 +1251,7 @@ class GreenMetrics_Admin {
 			</div>
 			<p class="description"><?php esc_html_e( 'Font size for the popover content.', 'greenmetrics' ); ?></p>
 		</div>
-		<script>
-		function incrementFontSize(inputId) {
-			const input = document.getElementById(inputId);
-			const hiddenInput = document.getElementById(inputId.replace('_number', ''));
-			const currentValue = parseInt(input.value) || 0;
-			const newValue = Math.min(currentValue + 1, parseInt(input.max));
-			input.value = newValue;
-			hiddenInput.value = newValue + 'px';
-
-			// Trigger change event for preview update
-			const event = new Event('change', { bubbles: true });
-			input.dispatchEvent(event);
-		}
-
-		function decrementFontSize(inputId) {
-			const input = document.getElementById(inputId);
-			const hiddenInput = document.getElementById(inputId.replace('_number', ''));
-			const currentValue = parseInt(input.value) || 0;
-			const newValue = Math.max(currentValue - 1, parseInt(input.min));
-			input.value = newValue;
-			hiddenInput.value = newValue + 'px';
-
-			// Trigger change event for preview update
-			const event = new Event('change', { bubbles: true });
-			input.dispatchEvent(event);
-		}
-		</script>
+		<!-- Font size control functions are now in greenmetrics-admin-modules/font-size-controls.js -->
 		<?php
 	}
 
@@ -1342,8 +1316,8 @@ class GreenMetrics_Admin {
 					</div>
 				</div>
 				<div class="font-size-arrows">
-					<span class="dashicons dashicons-arrow-up-alt2" onclick="incrementFontSize('popover_metrics_label_font_size_number')"></span>
-					<span class="dashicons dashicons-arrow-down-alt2" onclick="decrementFontSize('popover_metrics_label_font_size_number')"></span>
+					<span class="dashicons dashicons-arrow-up-alt2"></span>
+					<span class="dashicons dashicons-arrow-down-alt2"></span>
 				</div>
 				<input type="hidden"
 					id="popover_metrics_label_font_size"
@@ -1380,8 +1354,8 @@ class GreenMetrics_Admin {
 					</div>
 				</div>
 				<div class="font-size-arrows">
-					<span class="dashicons dashicons-arrow-up-alt2" onclick="incrementFontSize('popover_metrics_font_size_number')"></span>
-					<span class="dashicons dashicons-arrow-down-alt2" onclick="decrementFontSize('popover_metrics_font_size_number')"></span>
+					<span class="dashicons dashicons-arrow-up-alt2"></span>
+					<span class="dashicons dashicons-arrow-down-alt2"></span>
 				</div>
 				<input type="hidden"
 					id="popover_metrics_font_size"
@@ -1515,121 +1489,10 @@ class GreenMetrics_Admin {
 				'all'
 			);
 
-			// Add inline styles to ensure consistent tab navigation
-			$tab_consistency_styles = '
-			/* Ensure consistent tab navigation with other admin pages */
-			.greenmetrics-tabs-nav {
-				margin-bottom: 20px;
-			}
-
-			.greenmetrics-tabs-list {
-				background: #f0f0f1;
-				border-bottom: 1px solid #ccc;
-			}
-
-			.greenmetrics-tab-item {
-				background-color: #f0f0f1;
-				border: none;
-				margin: 0;
-				margin-right: 5px;
-				position: relative;
-			}
-
-			.greenmetrics-tab-item.active {
-				background-color: #fff;
-				color: #2271b1;
-				border-top: 3px solid #2271b1;
-				padding-top: 9px;
-				border-bottom: none;
-				margin-bottom: 0;
-			}
-
-			.greenmetrics-tab-item.active:after {
-				content: "";
-				position: absolute;
-				bottom: -1px;
-				left: 0;
-				right: 0;
-				height: 1px;
-				background: #fff;
-			}
-
-			.greenmetrics-tab-item.active .dashicons {
-				color: #2271b1;
-			}';
-
-			wp_add_inline_style( 'greenmetrics-email-reporting', $tab_consistency_styles );
+			// Tab consistency styles are now in greenmetrics-email-reporting.css
 		}
 
-		// Add inline styles for the font size inputs
-		$font_size_styles = '
-		.greenmetrics-font-size-wrapper {
-			margin-bottom: 15px;
-		}
-		.font-size-control {
-			display: flex;
-			align-items: center;
-			max-width: 165px;
-			position: relative;
-			margin-bottom: 5px;
-		}
-		.font-size-input-group {
-			display: flex;
-			border: 1px solid #8d96a0;
-			border-radius: 4px;
-			overflow: hidden;
-			flex: 1;
-		}
-		.font-size-number {
-			border: none !important;
-			box-shadow: none !important;
-			flex: 1;
-			text-align: center;
-			padding: 0 5px !important;
-			min-height: 30px;
-			-moz-appearance: textfield;
-			width: 65px !important;
-			font-size: 13px !important;
-		}
-		.font-size-number:focus {
-			outline: none !important;
-		}
-		.font-size-number::-webkit-outer-spin-button,
-		.font-size-number::-webkit-inner-spin-button {
-			-webkit-appearance: none;
-			margin: 0;
-		}
-		.font-size-unit {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			background: #f0f0f1;
-			min-width: 30px;
-			color: #50575e;
-			border-left: 1px solid #8d96a0;
-			font-size: 13px;
-		}
-		.font-size-arrows {
-			display: flex;
-			flex-direction: column;
-			margin-left: 6px;
-			height: 30px;
-			justify-content: space-between;
-		}
-		.font-size-arrows .dashicons {
-			font-size: 18px;
-			height: 15px;
-			width: 15px;
-			cursor: pointer;
-			color: #2271b1;
-			transition: color 0.2s ease;
-			line-height: 15px;
-		}
-		.font-size-arrows .dashicons:hover {
-			color: #135e96;
-		}
-		';
-		wp_add_inline_style( 'greenmetrics-admin', $font_size_styles );
+		// Font size control styles are now in greenmetrics-admin.css
 	}
 
 	/**
@@ -1789,6 +1652,8 @@ class GreenMetrics_Admin {
 			GREENMETRICS_VERSION,
 			true
 		);
+
+		// Font size controls are handled by the preview.js module
 
 		// Load preview module - only needed on plugin settings pages
 		// (which we are always on if we got this far and it's not the dashboard)

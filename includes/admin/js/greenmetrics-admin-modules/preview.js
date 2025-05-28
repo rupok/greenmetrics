@@ -218,6 +218,17 @@ GreenMetricsAdmin.Preview = (function ($) {
 				openMediaUploader();
 			}
 		);
+
+		// Handle font size arrow clicks
+		$( document ).on( 'click', '.font-size-arrows .dashicons-arrow-up-alt2', function() {
+			var inputId = $( this ).closest( '.font-size-control' ).find( '.font-size-number' ).attr( 'id' );
+			incrementFontSize( inputId );
+		});
+
+		$( document ).on( 'click', '.font-size-arrows .dashicons-arrow-down-alt2', function() {
+			var inputId = $( this ).closest( '.font-size-control' ).find( '.font-size-number' ).attr( 'id' );
+			decrementFontSize( inputId );
+		});
 	}
 
 	// Open WordPress media uploader
@@ -654,6 +665,10 @@ GreenMetricsAdmin.Preview = (function ($) {
 			input.dispatchEvent( new Event( 'change' ) );
 		}
 	}
+
+	// Make font size functions globally accessible for backward compatibility
+	window.incrementFontSize = incrementFontSize;
+	window.decrementFontSize = decrementFontSize;
 
 	// Public API
 	return {

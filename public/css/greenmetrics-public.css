@@ -168,7 +168,7 @@
         font-size: 10px;
         padding: 6px 10px;
     }
-    
+
     .greenmetrics-badge .leaf-icon {
         width: 12px;
         height: 12px;
@@ -391,7 +391,7 @@
         font-size: 10px;
         padding: 6px 10px;
     }
-    
+
     .greenmetrics-global-badge-button .leaf-icon {
         width: 12px;
         height: 12px;
@@ -433,6 +433,19 @@
     .greenmetrics-global-badge-metric-value {
         font-size: 14px;
     }
+}
+
+/* Global Badge Dynamic Hover Styles */
+.greenmetrics-global-badge-wrapper .greenmetrics-global-badge-content .greenmetrics-global-badge-metrics .greenmetrics-global-badge-metric:hover {
+	background-color: var(--hover-bg-color, #f3f4f6) !important;
+	transition: background-color 0.2s ease !important;
+}
+
+.greenmetrics-global-badge-button .icon-container svg {
+	width: var(--icon-size, 20px);
+	height: var(--icon-size, 20px);
+	fill: currentColor;
+	display: block;
 }
 
 /* Additional styles for the Gutenberg block */

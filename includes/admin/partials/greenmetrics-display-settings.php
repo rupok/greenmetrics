@@ -461,13 +461,4 @@ $settings = get_option(
 	</div>
 </div>
 
-<!-- JavaScript variables needed by display-settings.js module -->
-<script>
-// Define ajaxurl if not already defined (WordPress admin variable)
-if (typeof ajaxurl === 'undefined') {
-    var ajaxurl = '<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>';
-}
-
-// Add localized strings for JavaScript
-const customIconText = "<?php echo esc_js( __( 'Custom Icon', 'greenmetrics' ) ); ?>";
-</script>
+<!-- JavaScript variables are now localized via wp_localize_script in the admin class -->
