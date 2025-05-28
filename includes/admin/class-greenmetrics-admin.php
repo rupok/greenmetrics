@@ -1949,7 +1949,7 @@ class GreenMetrics_Admin {
 
 			// Handle color settings
 			if ( isset( $_POST['colors'] ) && is_array( $_POST['colors'] ) ) {
-				$colors = $_POST['colors'];
+				$colors = wp_unslash( $_POST['colors'] );
 				$settings['email_color_primary'] = isset( $colors['primary'] ) ? sanitize_hex_color( $colors['primary'] ) : '#4CAF50';
 				$settings['email_color_secondary'] = isset( $colors['secondary'] ) ? sanitize_hex_color( $colors['secondary'] ) : '#f9f9f9';
 				$settings['email_color_accent'] = isset( $colors['accent'] ) ? sanitize_hex_color( $colors['accent'] ) : '#333333';
