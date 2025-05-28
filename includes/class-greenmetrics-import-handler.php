@@ -510,36 +510,15 @@ class GreenMetrics_Import_Handler {
 	}
 
 	/**
-	 * Get table columns.
+	 * Get table columns using the centralized DB Helper.
 	 *
 	 * @since    1.0.0
 	 * @param    string    $table_name    The table name.
 	 * @return   array                    Array of column names.
 	 */
 	private function get_table_columns( $table_name ) {
-		global $wpdb;
-
-		// Check if we have cached columns
-		static $columns_cache = array();
-
-		if ( isset( $columns_cache[ $table_name ] ) ) {
-			return $columns_cache[ $table_name ];
-		}
-
-		// Get columns from the database
-		$columns = array();
-		$results = $wpdb->get_results( "SHOW COLUMNS FROM {$table_name}", ARRAY_A );
-
-		if ( ! empty( $results ) ) {
-			foreach ( $results as $column ) {
-				$columns[] = $column['Field'];
-			}
-		}
-
-		// Cache the results
-		$columns_cache[ $table_name ] = $columns;
-
-		return $columns;
+		// Use the centralized DB Helper which has proper caching and error handling
+		return GreenMetrics_DB_Helper::get_table_columns( $table_name );
 	}
 
 	/**

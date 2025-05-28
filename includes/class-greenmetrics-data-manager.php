@@ -286,6 +286,7 @@ class GreenMetrics_Data_Manager {
 		}
 
 		// Check if there's data to aggregate
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Administrative operation for data aggregation
 		$count = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COUNT(*) FROM {$this->table_name} WHERE created_at < %s",
@@ -349,6 +350,7 @@ class GreenMetrics_Data_Manager {
 			}
 
 			// Aggregate the data for this period
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Administrative operation for data aggregation
 			$aggregated_data = $wpdb->get_row(
 				$wpdb->prepare(
 					"SELECT
@@ -477,8 +479,12 @@ class GreenMetrics_Data_Manager {
 			}
 
 			// Get dates that have been aggregated
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Administrative operation for data cleanup
 			$aggregated_dates = $wpdb->get_col(
-				"SELECT DISTINCT date_start FROM {$this->aggregated_table_name} WHERE aggregation_type = '{$aggregation_type}'"
+				$wpdb->prepare(
+					"SELECT DISTINCT date_start FROM {$this->aggregated_table_name} WHERE aggregation_type = %s",
+					$aggregation_type
+				)
 			);
 
 			if ( empty( $aggregated_dates ) ) {
@@ -632,7 +638,9 @@ class GreenMetrics_Data_Manager {
 		$main_table       = esc_sql( $this->table_name );
 		$aggregated_table = esc_sql( $this->aggregated_table_name );
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Administrative operation for table size reporting
 		$main_table_rows       = $wpdb->get_var( "SELECT COUNT(*) FROM {$main_table}" );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Administrative operation for table size reporting
 		$aggregated_table_rows = $wpdb->get_var( "SELECT COUNT(*) FROM {$aggregated_table}" );
 
 		return array(

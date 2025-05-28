@@ -31,8 +31,8 @@ delete_option( 'greenmetrics_table_columns' );
 delete_option( 'greenmetrics_version' );
 
 // Delete any transients
-// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Necessary cleanup during uninstallation
 global $wpdb;
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Necessary cleanup during uninstallation
 $wpdb->query(
 	$wpdb->prepare(
 		"DELETE FROM $wpdb->options WHERE option_name LIKE %s OR option_name LIKE %s",
@@ -41,12 +41,19 @@ $wpdb->query(
 	)
 );
 
-// Drop the stats table
-// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared -- Necessary schema change during uninstallation
-$table_name = $wpdb->prefix . 'greenmetrics_stats';
-// Escape table name (though prefix plus a literal suffix is already safe)
-$table_name = esc_sql( $table_name );
-$wpdb->query( "DROP TABLE IF EXISTS {$table_name}" );
+// Drop the stats tables
+$tables_to_drop = array(
+	$wpdb->prefix . 'greenmetrics_stats',
+	$wpdb->prefix . 'greenmetrics_aggregated_stats',
+	$wpdb->prefix . 'greenmetrics_email_reports'
+);
+
+foreach ( $tables_to_drop as $table_name ) {
+	// Escape table name for safety
+	$table_name_escaped = esc_sql( $table_name );
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- Necessary schema change during uninstallation
+	$wpdb->query( "DROP TABLE IF EXISTS `{$table_name_escaped}`" );
+}
 
 // Clear any scheduled events
 $events = array(

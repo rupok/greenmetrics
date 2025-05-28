@@ -381,6 +381,7 @@ $total_size = \GreenMetrics\GreenMetrics_Data_Manager::format_bytes($table_sizes
 												// Get pages with metrics
 												global $wpdb;
 												$table_name = $wpdb->prefix . 'greenmetrics_stats';
+												// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Safe table name interpolation
 												$page_ids = $wpdb->get_col( "SELECT DISTINCT page_id FROM $table_name ORDER BY page_id" );
 
 												foreach ( $page_ids as $page_id ) {
