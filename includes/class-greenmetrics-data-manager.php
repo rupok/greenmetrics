@@ -81,15 +81,20 @@ class GreenMetrics_Data_Manager {
 
 		$charset_collate = $wpdb->get_charset_collate();
 
-		// Capture any PHP errors that might occur during table creation
-		$previous_error_reporting = error_reporting();
-		error_reporting( E_ALL );
-		$previous_error_handler = set_error_handler(
-			function ( $errno, $errstr, $errfile, $errline ) {
-				greenmetrics_log( "PHP Error during aggregated table creation: $errstr", array( 'file' => $errfile, 'line' => $errline ), 'error' );
-				return false; // Let the standard error handler continue
-			}
-		);
+		// Capture any PHP errors that might occur during table creation (only in debug mode)
+		$previous_error_reporting = null;
+		$previous_error_handler = null;
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			$previous_error_reporting = error_reporting();
+			error_reporting( E_ALL );
+			$previous_error_handler = set_error_handler(
+				function ( $errno, $errstr, $errfile, $errline ) {
+					greenmetrics_log( "PHP Error during aggregated table creation: $errstr", array( 'file' => $errfile, 'line' => $errline ), 'error' );
+					return false; // Let the standard error handler continue
+				}
+			);
+		}
 
 		try {
 			$sql = "CREATE TABLE IF NOT EXISTS {$this->aggregated_table_name} (
@@ -175,11 +180,15 @@ class GreenMetrics_Data_Manager {
 			// Store the error for reference
 			update_option( 'greenmetrics_aggregated_db_error', $e->getMessage() );
 		} finally {
-			// Restore previous error handler and reporting level
-			if ( $previous_error_handler ) {
-				restore_error_handler();
+			// Restore previous error handler and reporting level (only if they were set)
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				if ( $previous_error_handler ) {
+					restore_error_handler();
+				}
+				if ( $previous_error_reporting !== null ) {
+					error_reporting( $previous_error_reporting );
+				}
 			}
-			error_reporting( $previous_error_reporting );
 		}
 	}
 

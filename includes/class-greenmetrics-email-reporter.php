@@ -903,7 +903,7 @@ class GreenMetrics_Email_Reporter {
 			// Log the error
 			if (function_exists('greenmetrics_log')) {
 				greenmetrics_log('Error formatting ' . $type . ': ' . $e->getMessage(), null, 'error');
-			} else {
+			} elseif (defined('WP_DEBUG') && WP_DEBUG) {
 				error_log('GreenMetrics - Error formatting ' . $type . ': ' . $e->getMessage());
 			}
 
