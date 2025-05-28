@@ -30,7 +30,7 @@ define( 'GREENMETRICS_NO_DEBUG', ! GREENMETRICS_DEBUG );
 
 /**
  * Helper function for logging debug messages.
- * Only logs if GREENMETRICS_DEBUG is enabled.
+ * Only logs if GREENMETRICS_DEBUG is enabled and uses WordPress native logging.
  *
  * In production builds, this function does nothing and incurs no performance penalty
  * because the constant GREENMETRICS_NO_DEBUG will be evaluated at "compile time".
@@ -47,8 +47,13 @@ function greenmetrics_log( $message, $data = null, $level = 'info' ) {
 		return;
 	}
 
+	// Only log when WordPress debugging is enabled
+	if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
+		return;
+	}
+
 	// The code below only runs when debugging is enabled
-	$log_message = gmdate( '[Y-m-d H:i:s]' ) . " GreenMetrics: $message";
+	$log_message = gmdate( '[Y-m-d H:i:s]' ) . " GreenMetrics ($level): $message";
 
 	if ( null !== $data ) {
 		// Format the data as a simple string without using debug functions
@@ -65,16 +70,13 @@ function greenmetrics_log( $message, $data = null, $level = 'info' ) {
 		}
 	}
 
-	// Write to a log file in wp-content directory which is typically writable
-	$log_file = WP_CONTENT_DIR . '/greenmetrics-debug.log';
-	file_put_contents( $log_file, $log_message . PHP_EOL, FILE_APPEND );
-
-	// Only log to error_log in debug mode
-	if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-		// Use WordPress logging function to avoid direct error_log
-		if ( function_exists( 'wp_debug_log' ) ) {
-			wp_debug_log( $log_message );
-		}
+	// Use WordPress native logging function only
+	// This writes to wp-content/debug.log when WP_DEBUG_LOG is enabled
+	if ( function_exists( 'wp_debug_log' ) ) {
+		wp_debug_log( $log_message );
+	} else {
+		// Fallback to error_log if wp_debug_log is not available
+		error_log( $log_message );
 	}
 }
 
