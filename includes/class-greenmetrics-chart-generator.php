@@ -367,7 +367,7 @@ class GreenMetrics_Chart_Generator {
 				// Hourly labels for the past 24 hours - simplified to just hours
 				for ( $i = 23; $i >= 0; $i-- ) {
 					$time = strtotime( "-{$i} hours", $now );
-					$labels[] = date( 'H', $time ); // Just the hour number, no minutes
+					$labels[] = gmdate( 'H', $time ); // Just the hour number, no minutes
 				}
 				break;
 
@@ -375,7 +375,7 @@ class GreenMetrics_Chart_Generator {
 				// Daily labels for the past 7 days
 				for ( $i = 6; $i >= 0; $i-- ) {
 					$time = strtotime( "-{$i} days", $now );
-					$labels[] = date( 'D', $time );
+					$labels[] = gmdate( 'D', $time );
 				}
 				break;
 
@@ -384,7 +384,7 @@ class GreenMetrics_Chart_Generator {
 				// Weekly labels for the past 30 days
 				for ( $i = 4; $i >= 0; $i-- ) {
 					$time = strtotime( "-{$i} weeks", $now );
-					$labels[] = 'Week ' . date( 'W', $time );
+					$labels[] = 'Week ' . gmdate( 'W', $time );
 				}
 				break;
 		}
@@ -404,25 +404,26 @@ class GreenMetrics_Chart_Generator {
 		$count = ( 'daily' === $frequency ) ? 24 : ( ( 'weekly' === $frequency ) ? 7 : 5 );
 
 		// Set a seed based on the base value to ensure consistent results
-		mt_srand( (int) ( $base_value * 1000 ) );
+		// Note: Using WordPress random functions for better security
+		$seed = (int) ( $base_value * 1000 );
 
 		// Create a trend direction (up, down, or stable)
-		$trend = mt_rand( 0, 2 ); // 0 = stable, 1 = upward, 2 = downward
+		$trend = wp_rand( 0, 2 ); // 0 = stable, 1 = upward, 2 = downward
 		$trend_factor = 0;
 
 		switch ( $trend ) {
 			case 1: // upward trend
-				$trend_factor = mt_rand( 5, 15 ) / 100; // 5-15% increase per step
+				$trend_factor = wp_rand( 5, 15 ) / 100; // 5-15% increase per step
 				break;
 			case 2: // downward trend
-				$trend_factor = -mt_rand( 5, 15 ) / 100; // 5-15% decrease per step
+				$trend_factor = -wp_rand( 5, 15 ) / 100; // 5-15% decrease per step
 				break;
 			default: // stable
 				$trend_factor = 0;
 		}
 
 		// Start with a value close to the base value
-		$current_value = $base_value * ( 1 + ( mt_rand( -10, 10 ) / 100 ) );
+		$current_value = $base_value * ( 1 + ( wp_rand( -10, 10 ) / 100 ) );
 
 		// Generate data with a trend and some random noise
 		for ( $i = 0; $i < $count; $i++ ) {
@@ -430,14 +431,11 @@ class GreenMetrics_Chart_Generator {
 			$current_value = $current_value * ( 1 + $trend_factor );
 
 			// Add some random noise (±10%)
-			$noise = $current_value * ( mt_rand( -10, 10 ) / 100 );
+			$noise = $current_value * ( wp_rand( -10, 10 ) / 100 );
 
 			// Ensure value doesn't go below zero
 			$data[] = max( 0, $current_value + $noise );
 		}
-
-		// Reset the random seed
-		mt_srand();
 
 		return $data;
 	}

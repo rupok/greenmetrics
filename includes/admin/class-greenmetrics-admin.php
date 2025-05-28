@@ -1887,7 +1887,9 @@ class GreenMetrics_Admin {
 				$result = $email_reporter->send_test_email();
 			} catch ( \Exception $e ) {
 				// Log critical errors only
-				error_log('GreenMetrics - Error sending test email: ' . $e->getMessage());
+				if ( function_exists( 'greenmetrics_log' ) ) {
+					greenmetrics_log( 'Error sending test email: ' . $e->getMessage(), null, 'error' );
+				}
 
 				// Clean output buffer
 				ob_end_clean();
@@ -1972,7 +1974,9 @@ class GreenMetrics_Admin {
 				}
 			} catch ( \Exception $e ) {
 				// Log critical errors only
-				error_log('GreenMetrics - Error generating email preview: ' . $e->getMessage());
+				if ( function_exists( 'greenmetrics_log' ) ) {
+					greenmetrics_log( 'Error generating email preview: ' . $e->getMessage(), null, 'error' );
+				}
 				// Clean output buffer
 				ob_end_clean();
 				wp_send_json_error( array( 'message' => 'Error generating preview: ' . $e->getMessage() ) );

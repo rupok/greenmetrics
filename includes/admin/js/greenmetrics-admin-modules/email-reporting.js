@@ -124,9 +124,11 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 			// Save active tab to localStorage
 			localStorage.setItem('greenmetrics_active_email_tab', tabId);
 
-			// Adjust preview height if templates tab is active
+			// Update preview when switching to templates tab
 			if (tabId === 'templates') {
+				// Update the email preview to reflect current template settings
 				setTimeout(function() {
+					updateEmailPreview();
 					adjustPreviewHeight();
 				}, 100);
 			}
@@ -154,9 +156,10 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 			}, 500);
 		});
 
-		// If templates tab is active on page load, adjust the preview height
+		// If templates tab is active on page load, update preview and adjust height
 		if (localStorage.getItem('greenmetrics_active_email_tab') === 'templates') {
 			setTimeout(function() {
+				updateEmailPreview();
 				adjustPreviewHeight();
 			}, 500);
 		}
