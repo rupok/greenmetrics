@@ -24,21 +24,36 @@ $settings = get_option(
 );
 
 // Get current date for default date range
-$end_date = date('Y-m-d');
-$start_date = date('Y-m-d', strtotime('-30 days'));
+$end_date = gmdate('Y-m-d');
+$start_date = gmdate('Y-m-d', strtotime('-30 days'));
 
-// Get pages with metrics data
-global $wpdb;
-$table_name = $wpdb->prefix . 'greenmetrics_stats';
-$page_ids = $wpdb->get_col("SELECT DISTINCT page_id FROM $table_name ORDER BY page_id");
-$pages = array();
+// Get pages with metrics data (with caching)
+$cache_key = 'greenmetrics_pages_with_metrics';
+$pages = get_transient($cache_key);
 
-foreach ($page_ids as $page_id) {
-    $title = get_the_title($page_id);
-    if (empty($title)) {
-        $title = __('Unknown Page', 'greenmetrics') . ' (ID: ' . $page_id . ')';
+if (false === $pages) {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'greenmetrics_stats';
+
+    // Check if table exists before querying
+    if (\GreenMetrics\GreenMetrics_DB_Helper::table_exists($table_name)) {
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is properly escaped with esc_sql()
+        $page_ids = $wpdb->get_col("SELECT DISTINCT page_id FROM `" . esc_sql($table_name) . "` WHERE page_id > 0 ORDER BY page_id");
+        $pages = array();
+
+        foreach ($page_ids as $page_id) {
+            $title = get_the_title($page_id);
+            if (empty($title)) {
+                $title = __('Unknown Page', 'greenmetrics') . ' (ID: ' . $page_id . ')';
+            }
+            $pages[$page_id] = $title;
+        }
+    } else {
+        $pages = array();
     }
-    $pages[$page_id] = $title;
+
+    // Cache for 5 minutes
+    set_transient($cache_key, $pages, 5 * MINUTE_IN_SECONDS);
 }
 ?>
 
