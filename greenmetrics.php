@@ -127,8 +127,8 @@ function greenmetrics_init() {
 
 	$initialized = true;
 
-	// Load text domain
-	load_plugin_textdomain( 'greenmetrics', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+	// Note: load_plugin_textdomain() is not needed for WordPress.org plugins since WordPress 4.6
+	// WordPress automatically loads translations for plugins using the plugin slug 'greenmetrics'
 
 	// Explicitly load the Icons class to avoid autoloading issues
 	require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-icons.php';
