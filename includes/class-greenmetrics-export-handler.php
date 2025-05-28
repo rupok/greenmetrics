@@ -152,7 +152,7 @@ class GreenMetrics_Export_Handler {
 			energy_consumption,
 			performance_score,
 			created_at
-		FROM {$table_name}
+		FROM " . $table_name . "
 		WHERE 1=1";
 
 		$query_args = array();
@@ -181,8 +181,8 @@ class GreenMetrics_Export_Handler {
 		$query .= " ORDER BY created_at DESC LIMIT %d";
 		$query_args[] = $limit;
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- safe identifier interpolation
 		// Prepare and execute query
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name is safely sanitized with esc_sql()
 		$results = $wpdb->get_results( $wpdb->prepare( $query, $query_args ), ARRAY_A );
 
 		// Check for database errors
@@ -238,7 +238,7 @@ class GreenMetrics_Export_Handler {
 			avg_energy_consumption,
 			avg_performance_score,
 			created_at
-		FROM {$table_name}
+		FROM " . $table_name . "
 		WHERE 1=1";
 
 		$query_args = array();
@@ -273,8 +273,8 @@ class GreenMetrics_Export_Handler {
 		$query .= " ORDER BY date_start DESC LIMIT %d";
 		$query_args[] = $limit;
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- safe identifier interpolation
 		// Prepare and execute query
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name is safely sanitized with esc_sql()
 		$results = $wpdb->get_results( $wpdb->prepare( $query, $query_args ), ARRAY_A );
 
 		// Check for database errors

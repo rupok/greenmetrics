@@ -900,10 +900,12 @@ class GreenMetrics_Email_Reporter {
 					return (string) $value;
 			}
 		} catch (\Exception $e) {
-			// Log the error
+			// Log the error using WordPress native debugging
 			if (function_exists('greenmetrics_log')) {
 				greenmetrics_log('Error formatting ' . $type . ': ' . $e->getMessage(), null, 'error');
-			} elseif (defined('WP_DEBUG') && WP_DEBUG) {
+			} elseif (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+				// Use WordPress native debug logging when available
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Only used when WP_DEBUG_LOG is enabled
 				error_log('GreenMetrics - Error formatting ' . $type . ': ' . $e->getMessage());
 			}
 
