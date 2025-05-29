@@ -299,7 +299,7 @@ class GreenMetrics_Data_Manager {
 		}
 
 		// Check if there's data to aggregate
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Administrative operation for data aggregation
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Administrative operation, table name cannot use placeholders
 		$count = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COUNT(*) FROM {$this->table_name} WHERE created_at < %s",
@@ -316,6 +316,7 @@ class GreenMetrics_Data_Manager {
 		}
 
 		// Get the dates that need aggregation
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Complex query with date functions and table name, cannot use placeholders for identifiers
 		$dates_to_aggregate = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT DISTINCT {$date_format} as date_start,
@@ -349,6 +350,7 @@ class GreenMetrics_Data_Manager {
 			$date_end = $period['date_end'];
 
 			// Check if this period is already aggregated
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name cannot use placeholders
 			$already_aggregated = $wpdb->get_var(
 				$wpdb->prepare(
 					"SELECT COUNT(*) FROM {$this->aggregated_table_name}
@@ -363,7 +365,7 @@ class GreenMetrics_Data_Manager {
 			}
 
 			// Aggregate the data for this period
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Administrative operation for data aggregation
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Administrative operation, table name cannot use placeholders
 			$aggregated_data = $wpdb->get_row(
 				$wpdb->prepare(
 					"SELECT
@@ -449,6 +451,7 @@ class GreenMetrics_Data_Manager {
 		$cutoff_date = gmdate( 'Y-m-d 00:00:00', strtotime( "-{$days_old} days" ) );
 
 		// Check if there's data to prune
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name cannot use placeholders
 		$count = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COUNT(*) FROM {$this->table_name} WHERE created_at < %s",
@@ -492,7 +495,7 @@ class GreenMetrics_Data_Manager {
 			}
 
 			// Get dates that have been aggregated
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Administrative operation for data cleanup
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Administrative operation, table name cannot use placeholders
 			$aggregated_dates = $wpdb->get_col(
 				$wpdb->prepare(
 					"SELECT DISTINCT date_start FROM {$this->aggregated_table_name} WHERE aggregation_type = %s",
@@ -512,6 +515,7 @@ class GreenMetrics_Data_Manager {
 			$dates_in = implode( "','", array_map( 'esc_sql', $aggregated_dates ) );
 
 			// Delete records for dates that have been aggregated and are older than the cutoff
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Complex query with date functions and IN clause, cannot use placeholders for identifiers
 			$result = $wpdb->query(
 				$wpdb->prepare(
 					"DELETE FROM {$this->table_name}
@@ -522,6 +526,7 @@ class GreenMetrics_Data_Manager {
 			);
 		} else {
 			// Delete all records older than the cutoff date
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name cannot use placeholders
 			$result = $wpdb->query(
 				$wpdb->prepare(
 					"DELETE FROM {$this->table_name} WHERE created_at < %s",
@@ -651,10 +656,10 @@ class GreenMetrics_Data_Manager {
 		$main_table       = esc_sql( $this->table_name );
 		$aggregated_table = esc_sql( $this->aggregated_table_name );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Administrative operation for table size reporting
-		$main_table_rows       = $wpdb->get_var( "SELECT COUNT(*) FROM {$main_table}" );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Administrative operation for table size reporting
-		$aggregated_table_rows = $wpdb->get_var( "SELECT COUNT(*) FROM {$aggregated_table}" );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Administrative operation for table size reporting, table name cannot use placeholders
+		$main_table_rows       = $wpdb->get_var( "SELECT COUNT(*) FROM `{$main_table}`" );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Administrative operation for table size reporting, table name cannot use placeholders
+		$aggregated_table_rows = $wpdb->get_var( "SELECT COUNT(*) FROM `{$aggregated_table}`" );
 
 		return array(
 			'main_table' => array(
