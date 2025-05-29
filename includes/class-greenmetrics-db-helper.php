@@ -122,7 +122,7 @@ class GreenMetrics_DB_Helper {
 		$table_name_escaped = esc_sql($table_name);
 		// For table names, we need to use direct interpolation with esc_sql
 		// since $wpdb->prepare() doesn't have a placeholder for identifiers
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- safe identifier interpolation
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name identifiers cannot use placeholders, safely escaped with esc_sql()
 		$results = $wpdb->get_results( "DESCRIBE `{$table_name_escaped}`" );
 
 		if ( ! $results ) {
@@ -237,8 +237,11 @@ class GreenMetrics_DB_Helper {
 		$previous_error_handler = null;
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.prevent_path_disclosure_error_reporting -- Debug mode only, used for enhanced error logging during table creation
 			$previous_error_reporting = error_reporting();
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.prevent_path_disclosure_error_reporting -- Debug mode only, used for enhanced error logging during table creation
 			error_reporting( E_ALL );
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- Debug mode only, used for enhanced error logging during table creation
 			$previous_error_handler = set_error_handler(
 				function ( $errno, $errstr, $errfile, $errline ) {
 					greenmetrics_log( "PHP Error during table creation: $errstr", array( 'file' => $errfile, 'line' => $errline ), 'error' );
@@ -332,6 +335,7 @@ class GreenMetrics_DB_Helper {
 					restore_error_handler();
 				}
 				if ( $previous_error_reporting !== null ) {
+					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.prevent_path_disclosure_error_reporting -- Debug mode only, restoring previous error reporting level
 					error_reporting( $previous_error_reporting );
 				}
 			}

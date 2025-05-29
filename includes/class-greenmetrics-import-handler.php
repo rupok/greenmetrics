@@ -536,10 +536,10 @@ class GreenMetrics_Import_Handler {
 		// Define unique fields based on data type
 		// Sanitize table name and wrap in backticks
 		$table_name = '`' . esc_sql( $table_name ) . '`';
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- safe identifier interpolation
 
 		if ( 'raw' === $data_type ) {
 			// For raw data, check page_id and created_at (within 1 second)
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name identifiers cannot use placeholders, safely escaped with esc_sql()
 			$query = $wpdb->prepare(
 				"SELECT * FROM {$table_name} WHERE page_id = %d AND created_at BETWEEN DATE_SUB(%s, INTERVAL 1 SECOND) AND DATE_ADD(%s, INTERVAL 1 SECOND) LIMIT 1",
 				$data['page_id'],
@@ -548,6 +548,7 @@ class GreenMetrics_Import_Handler {
 			);
 		} else {
 			// For aggregated data, check page_id, date_start, date_end, and aggregation_type
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name identifiers cannot use placeholders, safely escaped with esc_sql()
 			$query = $wpdb->prepare(
 				"SELECT * FROM {$table_name} WHERE page_id = %d AND date_start = %s AND date_end = %s AND aggregation_type = %s LIMIT 1",
 				$data['page_id'],
