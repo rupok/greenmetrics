@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 /**
  * GreenMetrics Import Handler
  *
@@ -14,6 +15,8 @@ namespace GreenMetrics;
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
+
+// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 
 /**
  * GreenMetrics Import Handler Class.
