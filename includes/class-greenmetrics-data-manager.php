@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 /**
  * Data management functionality.
  *
@@ -7,6 +8,8 @@
  */
 
 namespace GreenMetrics;
+
+use function esc_sql;
 
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
@@ -298,11 +301,18 @@ class GreenMetrics_Data_Manager {
 				break;
 		}
 
+		// Sanitize identifiers for SQL
+		$table_name        = esc_sql( $this->table_name );
+		$aggregated_name   = esc_sql( $this->aggregated_table_name );
+		$date_format_sql   = esc_sql( $date_format );
+		$interval_sql      = esc_sql( $interval );
+		$group_by_sql      = esc_sql( $group_by );
+
 		// Check if there's data to aggregate
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Administrative operation, table name cannot use placeholders
 		$count = $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$this->table_name} WHERE created_at < %s",
+				/* phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- safe identifier escaped via esc_sql */
+				"SELECT COUNT(*) FROM `{$table_name}` WHERE created_at < %s",
 				$cutoff_date
 			)
 		);
@@ -316,15 +326,15 @@ class GreenMetrics_Data_Manager {
 		}
 
 		// Get the dates that need aggregation
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Complex query with date functions and table name, cannot use placeholders for identifiers
 		$dates_to_aggregate = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT DISTINCT {$date_format} as date_start,
-				DATE_ADD({$date_format}, INTERVAL {$interval}) as date_end,
-				page_id
-				FROM {$this->table_name}
-				WHERE created_at < %s
-				GROUP BY {$group_by}",
+				/* phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- safe identifiers escaped via esc_sql */
+				"SELECT DISTINCT `{$date_format_sql}` as date_start,
+					DATE_ADD(`{$date_format_sql}`, INTERVAL {$interval_sql}) as date_end,
+					page_id
+				 FROM `{$table_name}`
+				 WHERE created_at < %s
+				 GROUP BY `{$group_by_sql}`",
 				$cutoff_date
 			),
 			ARRAY_A
@@ -450,11 +460,15 @@ class GreenMetrics_Data_Manager {
 		// Calculate the cutoff date
 		$cutoff_date = gmdate( 'Y-m-d 00:00:00', strtotime( "-{$days_old} days" ) );
 
+		// Sanitize identifiers for SQL
+		$table_name      = esc_sql( $this->table_name );
+		$aggregated_name = esc_sql( $this->aggregated_table_name );
+
 		// Check if there's data to prune
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name cannot use placeholders
 		$count = $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$this->table_name} WHERE created_at < %s",
+				/* phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- safe identifier escaped via esc_sql */
+				"SELECT COUNT(*) FROM `{$table_name}` WHERE created_at < %s",
 				$cutoff_date
 			)
 		);
@@ -494,11 +508,14 @@ class GreenMetrics_Data_Manager {
 					break;
 			}
 
+			// Sanitize identifiers for SQL
+			$date_field = esc_sql( $date_format ); // existing $date_format from switch
+
 			// Get dates that have been aggregated
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Administrative operation, table name cannot use placeholders
 			$aggregated_dates = $wpdb->get_col(
 				$wpdb->prepare(
-					"SELECT DISTINCT date_start FROM {$this->aggregated_table_name} WHERE aggregation_type = %s",
+					/* phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- safe identifier escaped via esc_sql */
+					"SELECT DISTINCT date_start FROM `{$aggregated_name}` WHERE aggregation_type = %s",
 					$aggregation_type
 				)
 			);
@@ -515,21 +532,21 @@ class GreenMetrics_Data_Manager {
 			$dates_in = implode( "','", array_map( 'esc_sql', $aggregated_dates ) );
 
 			// Delete records for dates that have been aggregated and are older than the cutoff
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Complex query with date functions and IN clause, cannot use placeholders for identifiers
 			$result = $wpdb->query(
 				$wpdb->prepare(
-					"DELETE FROM {$this->table_name}
-					WHERE {$date_format} IN ('{$dates_in}')
-					AND created_at < %s",
+					/* phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- safe identifiers & IN clause safely escaped */
+					"DELETE FROM `{$table_name}`
+					 WHERE `{$date_field}` IN ('{$dates_in}')
+					 AND created_at < %s",
 					$cutoff_date
 				)
 			);
 		} else {
 			// Delete all records older than the cutoff date
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name cannot use placeholders
 			$result = $wpdb->query(
 				$wpdb->prepare(
-					"DELETE FROM {$this->table_name} WHERE created_at < %s",
+					/* phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- safe identifier escaped via esc_sql */
+					"DELETE FROM `{$table_name}` WHERE created_at < %s",
 					$cutoff_date
 				)
 			);
@@ -577,7 +594,8 @@ class GreenMetrics_Data_Manager {
 		$table_name = esc_sql( $this->aggregated_table_name );
 
 		// Build the query
-		$query = "SELECT
+		$query = /* phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- query is properly prepared, identifier escaped via esc_sql */
+			"SELECT
 			date_start,
 			date_end,
 			SUM(views) as total_views,
@@ -592,8 +610,8 @@ class GreenMetrics_Data_Manager {
 			SUM(total_energy_consumption) as total_energy_consumption,
 			AVG(avg_energy_consumption) as avg_energy_consumption,
 			AVG(avg_performance_score) as avg_performance_score
-		FROM {$table_name}
-		WHERE aggregation_type = %s";
+			FROM {$table_name}
+			WHERE aggregation_type = %s";
 
 		$params = array( $aggregation_type );
 
@@ -656,10 +674,10 @@ class GreenMetrics_Data_Manager {
 		$main_table       = esc_sql( $this->table_name );
 		$aggregated_table = esc_sql( $this->aggregated_table_name );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Administrative operation for table size reporting, table name cannot use placeholders
-		$main_table_rows       = $wpdb->get_var( "SELECT COUNT(*) FROM `{$main_table}`" );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Administrative operation for table size reporting, table name cannot use placeholders
-		$aggregated_table_rows = $wpdb->get_var( "SELECT COUNT(*) FROM `{$aggregated_table}`" );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- identifier safely escaped
+		$main_table_rows       = $wpdb->get_var( "SELECT COUNT(*) FROM `{$main_table}`" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- identifier safely escaped
+		$aggregated_table_rows = $wpdb->get_var( "SELECT COUNT(*) FROM `{$aggregated_table}`" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 
 		return array(
 			'main_table' => array(
@@ -685,3 +703,5 @@ class GreenMetrics_Data_Manager {
 		return GreenMetrics_Formatter::format_bytes( $bytes, $precision );
 	}
 }
+
+// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching

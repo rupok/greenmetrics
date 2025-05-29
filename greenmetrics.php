@@ -76,9 +76,13 @@ function greenmetrics_log( $message, $data = null, $level = 'info' ) {
 	// This writes to wp-content/debug.log when WP_DEBUG_LOG is enabled
 	if ( function_exists( 'wp_debug_log' ) ) {
 		wp_debug_log( $log_message );
-	} else {
-		// Fallback to error_log if wp_debug_log is not available
-		error_log( $log_message );
+	} elseif ( defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
+		// Fallback to WordPress's built-in logging when wp_debug_log is not available
+		// but only when debug logging is explicitly enabled
+		if ( function_exists( 'error_log' ) ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Fallback logging only when WP_DEBUG_LOG is enabled
+			error_log( $log_message );
+		}
 	}
 }
 

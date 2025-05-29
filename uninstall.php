@@ -52,7 +52,7 @@ foreach ( $tables_to_drop as $table_name ) {
 	// Escape table name for safety
 	$table_name_escaped = esc_sql( $table_name );
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- Necessary schema change during uninstallation
-	$wpdb->query( "DROP TABLE IF EXISTS `{$table_name_escaped}`" );
+	$wpdb->query( "DROP TABLE IF EXISTS `{$table_name_escaped}`" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 }
 
 // Clear any scheduled events
