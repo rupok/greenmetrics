@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: GreenMetrics – Website Carbon Footprint, Sustainability & Performance Metrics
+ * Plugin Name: GreenMetrics
  * Plugin URI: https://getgreenmetrics.com
  * Description: Measure your website's environmental impact with carbon footprint, energy consumption and performance metrics for a more sustainable web.
  * Version: 1.0.0

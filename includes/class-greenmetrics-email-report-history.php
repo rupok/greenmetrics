@@ -313,7 +313,7 @@ class GreenMetrics_Email_Report_History {
 		// Build query with sanitized table name
 		$table_name = esc_sql( $this->table_name );
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name is sanitized with esc_sql()
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is sanitized with esc_sql()
 		return $wpdb->get_row(
 			$wpdb->prepare( "SELECT * FROM `{$table_name}` WHERE id = %d", $id ),
 			ARRAY_A
@@ -334,7 +334,7 @@ class GreenMetrics_Email_Report_History {
 		// Build query with sanitized table name
 		$table_name = esc_sql( $this->table_name );
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name is sanitized with esc_sql()
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is sanitized with esc_sql()
 		$deleted = $wpdb->query(
 			$wpdb->prepare( "DELETE FROM `{$table_name}` WHERE sent_at < %s", $date )
 		);
