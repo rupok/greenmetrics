@@ -310,16 +310,12 @@ class GreenMetrics_Email_Report_History {
 	public function get_report( $id ) {
 		global $wpdb;
 
-		// Sanitize table name
-		$table_name = esc_sql($this->table_name);
-		// Wrap table name in backticks
-		$table_name = "`{$table_name}`";
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name safe via esc_sql()
+		// Build query with sanitized table name
+		$table_name = esc_sql( $this->table_name );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name is sanitized with esc_sql()
 		return $wpdb->get_row(
-			$wpdb->prepare(
-				"SELECT * FROM {$table_name} WHERE id = %d",
-				$id
-			),
+			$wpdb->prepare( "SELECT * FROM `{$table_name}` WHERE id = %d", $id ),
 			ARRAY_A
 		);
 	}
@@ -335,16 +331,12 @@ class GreenMetrics_Email_Report_History {
 
 		$date = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days_to_keep} days" ) );
 
-		// Sanitize table name
-		$table_name = esc_sql($this->table_name);
-		// Wrap table name in backticks
-		$table_name = "`{$table_name}`";
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name safe via esc_sql()
+		// Build query with sanitized table name
+		$table_name = esc_sql( $this->table_name );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name is sanitized with esc_sql()
 		$deleted = $wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$table_name} WHERE sent_at < %s",
-				$date
-			)
+			$wpdb->prepare( "DELETE FROM `{$table_name}` WHERE sent_at < %s", $date )
 		);
 		greenmetrics_log( "Pruned {$deleted} old email reports" );
 
