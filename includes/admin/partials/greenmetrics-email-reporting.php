@@ -597,8 +597,8 @@ $stats   = $tracker->get_stats();
 									<div class="tablenav-pages">
 										<span class="displaying-num">
 											<?php
-											/* translators: %s: Number of items. */
 											printf(
+												/* translators: %s: Number of email report items (e.g., "5 items") */
 												esc_html( _n( '%s item', '%s items', $total_reports, 'greenmetrics' ) ),
 												esc_html( number_format_i18n( $total_reports ) )
 											);
@@ -664,99 +664,7 @@ $stats   = $tracker->get_stats();
 	</div>
 </div>
 
-<!-- JavaScript functionality is now handled by the email-reporting.js module -->
-
-<script>
-jQuery(document).ready(function($) {
-    // Tab functionality
-    $('.greenmetrics-tab-item').on('click', function() {
-        var tabId = $(this).data('tab');
-
-        // Update active tab
-        $('.greenmetrics-tab-item').removeClass('active');
-        $(this).addClass('active');
-
-        // Show selected tab content
-        $('.greenmetrics-tab-content').removeClass('active');
-        $('#tab-' + tabId).addClass('active');
-
-        // If switching to templates tab, update and resize the preview iframe
-        if (tabId === 'templates') {
-            // If GreenMetricsAdmin is available, update the preview
-            if (typeof GreenMetricsAdmin !== 'undefined' &&
-                GreenMetricsAdmin.EmailReporting &&
-                GreenMetricsAdmin.EmailReporting.updateEmailPreview) {
-
-                GreenMetricsAdmin.EmailReporting.updateEmailPreview();
-            }
-
-            // Adjust the height after a short delay to allow content to load
-            setTimeout(function() {
-                adjustPreviewHeight();
-            }, 300);
-        }
-
-        // Save active tab to localStorage
-        localStorage.setItem('greenmetrics_active_email_tab', tabId);
-    });
-
-    // Restore active tab from localStorage
-    var activeTab = localStorage.getItem('greenmetrics_active_email_tab');
-    if (activeTab) {
-        $('.greenmetrics-tab-item[data-tab="' + activeTab + '"]').trigger('click');
-    }
-
-    // Handle "Send Test Email" link in history tab
-    $('.send-test-email-link').on('click', function(e) {
-        e.preventDefault();
-        // Get target tab (default to templates)
-        var targetTab = $(this).data('target-tab') || 'templates';
-
-        // Switch to target tab
-        $('.greenmetrics-tab-item[data-tab="' + targetTab + '"]').trigger('click');
-
-        // Scroll to appropriate test email button
-        var targetButton = targetTab === 'settings' ? '#send_test_email' : '#send_test_email_template';
-        $('html, body').animate({
-            scrollTop: $(targetButton).offset().top - 100
-        }, 500);
-    });
-
-    // Function to adjust the preview iframe height
-    function adjustPreviewHeight() {
-        var iframe = document.getElementById('email-preview-frame');
-
-        // If GreenMetricsAdmin is available, use its function
-        if (typeof GreenMetricsAdmin !== 'undefined' &&
-            GreenMetricsAdmin.EmailReporting &&
-            GreenMetricsAdmin.EmailReporting.adjustIframeHeight) {
-
-            GreenMetricsAdmin.EmailReporting.adjustIframeHeight(iframe);
-        } else {
-            // Fallback to direct adjustment
-            if (iframe && iframe.contentWindow && iframe.contentWindow.document.body) {
-                var contentHeight = iframe.contentWindow.document.body.scrollHeight + 20;
-                var maxHeight = 600;
-                iframe.style.height = Math.min(contentHeight, maxHeight) + 'px';
-                iframe.style.overflowY = contentHeight > maxHeight ? 'scroll' : 'hidden';
-            }
-        }
-
-        // If the iframe is not yet loaded or has no content, try again after a delay
-        if (!iframe || !iframe.contentWindow || !iframe.contentWindow.document.body ||
-            iframe.contentWindow.document.body.scrollHeight < 50) {
-            setTimeout(adjustPreviewHeight, 200);
-        }
-    }
-
-    // If templates tab is active on page load, adjust the preview height
-    if (localStorage.getItem('greenmetrics_active_email_tab') === 'templates') {
-        setTimeout(function() {
-            adjustPreviewHeight();
-        }, 500);
-    }
-});
-</script>
+<!-- Tab functionality is now handled in greenmetrics-admin-modules/email-reporting.js -->
 
 					</div>
 				</div>

@@ -1,6 +1,6 @@
 === GreenMetrics – Website Carbon Footprint, Sustainability & Performance Metrics ===
-Contributors: re_enter_rupok
-Tags: sustainability, carbon footprint, website performance, energy usage, eco-friendly, co2, green web, optimization, website efficiency, carbon emissions, environmental impact
+Contributors: greenmetrics, re_enter_rupok
+Tags: sustainability, carbon footprint, website performance, eco-friendly, environmental impact
 Requires at least: 5.5
 Tested up to: 6.8
 Requires PHP: 7.2

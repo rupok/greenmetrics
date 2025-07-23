@@ -10,6 +10,8 @@
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: greenmetrics
  * Domain Path: /languages
+ * Requires at least: 5.5
+ * Requires PHP: 7.2
  */
 
 // If this file is called directly, abort.
@@ -22,7 +24,7 @@ define( 'GREENMETRICS_VERSION', '1.0.0' );
 define( 'GREENMETRICS_PLUGIN_FILE', __FILE__ );
 define( 'GREENMETRICS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'GREENMETRICS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'GREENMETRICS_DEBUG', true ); // Disabled by default for production environments
+define( 'GREENMETRICS_DEBUG', false ); // Disabled by default for production environments
 
 // Define a constant that can be used for compile-time optimizations
 // When true, all logging calls will be completely bypassed
@@ -30,7 +32,7 @@ define( 'GREENMETRICS_NO_DEBUG', ! GREENMETRICS_DEBUG );
 
 /**
  * Helper function for logging debug messages.
- * Only logs if GREENMETRICS_DEBUG is enabled.
+ * Only logs if GREENMETRICS_DEBUG is enabled and uses WordPress native logging.
  *
  * In production builds, this function does nothing and incurs no performance penalty
  * because the constant GREENMETRICS_NO_DEBUG will be evaluated at "compile time".
@@ -47,8 +49,13 @@ function greenmetrics_log( $message, $data = null, $level = 'info' ) {
 		return;
 	}
 
+	// Only log when WordPress debugging is enabled
+	if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
+		return;
+	}
+
 	// The code below only runs when debugging is enabled
-	$log_message = gmdate( '[Y-m-d H:i:s]' ) . " GreenMetrics: $message";
+	$log_message = gmdate( '[Y-m-d H:i:s]' ) . " GreenMetrics ($level): $message";
 
 	if ( null !== $data ) {
 		// Format the data as a simple string without using debug functions
@@ -65,15 +72,16 @@ function greenmetrics_log( $message, $data = null, $level = 'info' ) {
 		}
 	}
 
-	// Write to a log file in wp-content directory which is typically writable
-	$log_file = WP_CONTENT_DIR . '/greenmetrics-debug.log';
-	file_put_contents( $log_file, $log_message . PHP_EOL, FILE_APPEND );
-
-	// Only log to error_log in debug mode
-	if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-		// Use WordPress logging function to avoid direct error_log
-		if ( function_exists( 'wp_debug_log' ) ) {
-			wp_debug_log( $log_message );
+	// Use WordPress native logging function only
+	// This writes to wp-content/debug.log when WP_DEBUG_LOG is enabled
+	if ( function_exists( 'wp_debug_log' ) ) {
+		wp_debug_log( $log_message );
+	} elseif ( defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
+		// Fallback to WordPress's built-in logging when wp_debug_log is not available
+		// but only when debug logging is explicitly enabled
+		if ( function_exists( 'error_log' ) ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Fallback logging only when WP_DEBUG_LOG is enabled
+			error_log( $log_message );
 		}
 	}
 }
@@ -125,8 +133,8 @@ function greenmetrics_init() {
 
 	$initialized = true;
 
-	// Load text domain
-	load_plugin_textdomain( 'greenmetrics', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+	// Note: load_plugin_textdomain() is not needed for WordPress.org plugins since WordPress 4.6
+	// WordPress automatically loads translations for plugins using the plugin slug 'greenmetrics'
 
 	// Explicitly load the Icons class to avoid autoloading issues
 	require_once GREENMETRICS_PLUGIN_DIR . 'includes/class-greenmetrics-icons.php';

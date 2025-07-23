@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 /**
  * GreenMetrics Import Handler
  *
@@ -14,6 +15,8 @@ namespace GreenMetrics;
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
+
+// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 
 /**
  * GreenMetrics Import Handler Class.
@@ -140,30 +143,47 @@ class GreenMetrics_Import_Handler {
 	 * @return   array|WP_Error          Import result or error.
 	 */
 	private function import_csv( $file_path, $args ) {
-		// Open the CSV file
-		$handle = fopen( $file_path, 'r' );
-		if ( false === $handle ) {
-			return new \WP_Error( 'file_open_error', __( 'Could not open the CSV file.', 'greenmetrics' ) );
+		// Initialize WordPress filesystem
+		global $wp_filesystem;
+		if ( empty( $wp_filesystem ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			WP_Filesystem();
 		}
 
-		// Read the header row
-		$headers = fgetcsv( $handle );
-		if ( false === $headers ) {
-			fclose( $handle );
+		// Read the entire CSV file content
+		$file_content = $wp_filesystem->get_contents( $file_path );
+		if ( false === $file_content ) {
+			return new \WP_Error( 'file_read_error', __( 'Could not read the CSV file.', 'greenmetrics' ) );
+		}
+
+		// Parse CSV content
+		$lines = str_getcsv( $file_content, "\n" );
+		if ( empty( $lines ) ) {
+			return new \WP_Error( 'csv_parse_error', __( 'Could not parse the CSV file.', 'greenmetrics' ) );
+		}
+
+		// Parse the header row
+		$headers = str_getcsv( array_shift( $lines ) );
+		if ( false === $headers || empty( $headers ) ) {
 			return new \WP_Error( 'csv_read_error', __( 'Could not read the CSV file header.', 'greenmetrics' ) );
 		}
 
 		// Validate headers based on data type
 		$validation = $this->validate_headers( $headers, $args['data_type'] );
 		if ( is_wp_error( $validation ) ) {
-			fclose( $handle );
 			return $validation;
 		}
 
 		// Read data rows
 		$data = array();
 		$row_count = 0;
-		while ( ( $row = fgetcsv( $handle ) ) !== false ) {
+		foreach ( $lines as $line ) {
+			if ( empty( trim( $line ) ) ) {
+				continue;
+			}
+
+			$row = str_getcsv( $line );
+
 			// Skip empty rows
 			if ( empty( $row ) || count( array_filter( $row ) ) === 0 ) {
 				continue;
@@ -180,8 +200,6 @@ class GreenMetrics_Import_Handler {
 			$data[] = $data_row;
 			$row_count++;
 		}
-
-		fclose( $handle );
 
 		// Check if we have any data
 		if ( empty( $data ) ) {
@@ -457,7 +475,7 @@ class GreenMetrics_Import_Handler {
 						$key
 					) );
 				}
-				$prepared[ $key ] = date( 'Y-m-d H:i:s', $timestamp );
+				$prepared[ $key ] = gmdate( 'Y-m-d H:i:s', $timestamp );
 			} else {
 				// Default sanitization for other fields
 				$prepared[ $key ] = sanitize_text_field( $value );
@@ -495,36 +513,15 @@ class GreenMetrics_Import_Handler {
 	}
 
 	/**
-	 * Get table columns.
+	 * Get table columns using the centralized DB Helper.
 	 *
 	 * @since    1.0.0
 	 * @param    string    $table_name    The table name.
 	 * @return   array                    Array of column names.
 	 */
 	private function get_table_columns( $table_name ) {
-		global $wpdb;
-
-		// Check if we have cached columns
-		static $columns_cache = array();
-
-		if ( isset( $columns_cache[ $table_name ] ) ) {
-			return $columns_cache[ $table_name ];
-		}
-
-		// Get columns from the database
-		$columns = array();
-		$results = $wpdb->get_results( "SHOW COLUMNS FROM {$table_name}", ARRAY_A );
-
-		if ( ! empty( $results ) ) {
-			foreach ( $results as $column ) {
-				$columns[] = $column['Field'];
-			}
-		}
-
-		// Cache the results
-		$columns_cache[ $table_name ] = $columns;
-
-		return $columns;
+		// Use the centralized DB Helper which has proper caching and error handling
+		return GreenMetrics_DB_Helper::get_table_columns( $table_name );
 	}
 
 	/**
@@ -542,10 +539,10 @@ class GreenMetrics_Import_Handler {
 		// Define unique fields based on data type
 		// Sanitize table name and wrap in backticks
 		$table_name = '`' . esc_sql( $table_name ) . '`';
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- safe identifier interpolation
 
 		if ( 'raw' === $data_type ) {
 			// For raw data, check page_id and created_at (within 1 second)
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name identifiers cannot use placeholders, safely escaped with esc_sql()
 			$query = $wpdb->prepare(
 				"SELECT * FROM {$table_name} WHERE page_id = %d AND created_at BETWEEN DATE_SUB(%s, INTERVAL 1 SECOND) AND DATE_ADD(%s, INTERVAL 1 SECOND) LIMIT 1",
 				$data['page_id'],
@@ -554,6 +551,7 @@ class GreenMetrics_Import_Handler {
 			);
 		} else {
 			// For aggregated data, check page_id, date_start, date_end, and aggregation_type
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name identifiers cannot use placeholders, safely escaped with esc_sql()
 			$query = $wpdb->prepare(
 				"SELECT * FROM {$table_name} WHERE page_id = %d AND date_start = %s AND date_end = %s AND aggregation_type = %s LIMIT 1",
 				$data['page_id'],
@@ -563,6 +561,7 @@ class GreenMetrics_Import_Handler {
 			);
 		}
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query is properly prepared above with $wpdb->prepare()
 		$result = $wpdb->get_row( $query, ARRAY_A );
 
 		return $result ? $result : false;

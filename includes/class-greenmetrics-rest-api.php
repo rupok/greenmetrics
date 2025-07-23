@@ -428,10 +428,17 @@ class GreenMetrics_Rest_API {
 			// Check if we should force refresh the cache
 			$force_refresh = $request->get_param( 'force_refresh' ) === 'true';
 
+
+
 			// Get metrics by date range with improved caching
 			$metrics = $tracker->get_metrics_by_date_range( $start_date, $end_date, $interval, $force_refresh );
 
-			if ( ! $metrics || ! is_array( $metrics ) ) {
+			if ( ! is_array( $metrics ) ) {
+				greenmetrics_log( 'REST API: Invalid metrics returned from tracker', array(
+					'metrics' => $metrics,
+					'is_array' => is_array( $metrics )
+				), 'error' );
+
 				return GreenMetrics_Error_Handler::create_error(
 					'invalid_metrics',
 					'Failed to retrieve metrics by date range',
@@ -439,6 +446,8 @@ class GreenMetrics_Rest_API {
 					500
 				);
 			}
+
+
 
 			return rest_ensure_response( $metrics );
 		} catch ( \Exception $e ) {
@@ -471,7 +480,9 @@ class GreenMetrics_Rest_API {
 			}
 
 			// Check if file was uploaded
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- REST API endpoint with proper permission callback
 			if ( empty( $_FILES ) || ! isset( $_FILES['import_file'] ) ) {
+				// phpcs:ignore WordPress.Security.NonceVerification.Missing -- REST API endpoint with proper permission callback
 				greenmetrics_log( 'REST: Import error - No file uploaded', $_FILES, 'error' );
 				return GreenMetrics_Error_Handler::create_error(
 					'no_file',
@@ -482,7 +493,9 @@ class GreenMetrics_Rest_API {
 			}
 
 			// Check for file upload errors
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- REST API endpoint with proper permission callback
 			if ( isset( $_FILES['import_file']['error'] ) && $_FILES['import_file']['error'] !== UPLOAD_ERR_OK ) {
+				// phpcs:ignore WordPress.Security.NonceVerification.Missing -- REST API endpoint with proper permission callback
 				$error_code = isset( $_FILES['import_file']['error'] ) ? intval( $_FILES['import_file']['error'] ) : 0;
 				$error_message = $this->get_file_upload_error_message( $error_code );
 				greenmetrics_log( 'REST: Import error - File upload error', array(
@@ -513,12 +526,18 @@ class GreenMetrics_Rest_API {
 
 			// Sanitize and validate the uploaded file data
 			$sanitized_file = array();
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- REST API endpoint with proper permission callback
 			if ( isset( $_FILES['import_file'] ) ) {
 				// Only copy the necessary fields and sanitize them
+				// phpcs:ignore WordPress.Security.NonceVerification.Missing -- REST API endpoint with proper permission callback
 				$sanitized_file['name'] = isset( $_FILES['import_file']['name'] ) ? sanitize_file_name( wp_unslash( $_FILES['import_file']['name'] ) ) : '';
+				// phpcs:ignore WordPress.Security.NonceVerification.Missing -- REST API endpoint with proper permission callback
 				$sanitized_file['type'] = isset( $_FILES['import_file']['type'] ) ? sanitize_text_field( wp_unslash( $_FILES['import_file']['type'] ) ) : '';
+				// phpcs:ignore WordPress.Security.NonceVerification.Missing -- REST API endpoint with proper permission callback
 				$sanitized_file['tmp_name'] = isset( $_FILES['import_file']['tmp_name'] ) ? sanitize_text_field( wp_unslash( $_FILES['import_file']['tmp_name'] ) ) : '';
+				// phpcs:ignore WordPress.Security.NonceVerification.Missing -- REST API endpoint with proper permission callback
 				$sanitized_file['error'] = isset( $_FILES['import_file']['error'] ) ? intval( $_FILES['import_file']['error'] ) : 0;
+				// phpcs:ignore WordPress.Security.NonceVerification.Missing -- REST API endpoint with proper permission callback
 				$sanitized_file['size'] = isset( $_FILES['import_file']['size'] ) ? intval( $_FILES['import_file']['size'] ) : 0;
 			}
 

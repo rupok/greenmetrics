@@ -265,6 +265,9 @@ GreenMetricsAdmin.EmailTemplateEditor = (function ($) {
             loadTemplate(currentTemplate);
             updateTemplateDescription();
 
+            // Update preview immediately when template changes
+            updateEmailPreview();
+
             // Ensure form submission preserves all values
             ensureFormValuesPreserved();
         });
@@ -289,6 +292,15 @@ GreenMetricsAdmin.EmailTemplateEditor = (function ($) {
         // Preview toggle
         $('#toggle-mobile-preview').on('click', function() {
             toggleMobilePreview();
+        });
+
+        // Template content changes - update preview
+        $('#email_reporting_header, #email_reporting_footer, #email_reporting_css').on('input change', function() {
+            // Debounce the preview update to avoid too many requests
+            clearTimeout(window.templatePreviewTimeout);
+            window.templatePreviewTimeout = setTimeout(function() {
+                updateEmailPreview();
+            }, 500);
         });
 
         // Form submission - ensure all values are preserved

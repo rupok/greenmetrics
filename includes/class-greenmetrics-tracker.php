@@ -820,6 +820,18 @@ class GreenMetrics_Tracker {
 		global $wpdb;
 		$table = esc_sql( $this->table_name );
 
+		// Check if table exists first
+		if ( ! GreenMetrics_DB_Helper::table_exists( $this->table_name ) ) {
+			return array(
+				'dates'              => array(),
+				'carbon_footprint'   => array(),
+				'energy_consumption' => array(),
+				'data_transfer'      => array(),
+				'http_requests'      => array(),
+				'page_views'         => array(),
+			);
+		}
+
 		// Set default date range if not provided (last 7 days)
 		if ( empty( $start_date ) ) {
 			$start_date = gmdate( 'Y-m-d', strtotime( '-7 days' ) );
@@ -857,28 +869,51 @@ class GreenMetrics_Tracker {
 			$select_date = "DATE_FORMAT(created_at, '%Y-%m-01') as date";
 		}
 		// Check if we got results
-		// Execute inline prepared query for metrics by date range
+		// Build the SQL query with proper escaping for identifiers
+		$sql = "SELECT {$select_date},
+			COUNT(*) as views,
+			SUM(data_transfer) as data_transfer,
+			SUM(carbon_footprint) as carbon_footprint,
+			SUM(energy_consumption) as energy_consumption,
+			SUM(requests) as requests,
+			AVG(load_time) as avg_load_time
+		FROM {$table}
+		WHERE created_at BETWEEN %s AND %s
+		GROUP BY {$group_by}
+		ORDER BY date ASC";
+
+		// Execute prepared query for metrics by date range
 		$results = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT {$select_date},
-					COUNT(*) as views,
-					SUM(data_transfer) as data_transfer,
-					SUM(carbon_footprint) as carbon_footprint,
-					SUM(energy_consumption) as energy_consumption,
-					SUM(requests) as requests,
-					AVG(load_time) as avg_load_time
-				FROM {$table}
-				WHERE created_at BETWEEN %s AND %s
-				GROUP BY {$group_by}
-				ORDER BY date ASC",
+				$sql,
 				$start_date_sql,
 				$end_date_sql
 			),
 			ARRAY_A
 		);
 
+		// Check for database errors
+		if ( $wpdb->last_error ) {
+			return array(
+				'dates'              => array(),
+				'carbon_footprint'   => array(),
+				'energy_consumption' => array(),
+				'data_transfer'      => array(),
+				'http_requests'      => array(),
+				'page_views'         => array(),
+			);
+		}
+
 		if ( ! $results ) {
-			return array();
+			// Return empty but properly structured data instead of empty array
+			return array(
+				'dates'              => array(),
+				'carbon_footprint'   => array(),
+				'energy_consumption' => array(),
+				'data_transfer'      => array(),
+				'http_requests'      => array(),
+				'page_views'         => array(),
+			);
 		}
 
 		// Format results for chart display
@@ -909,4 +944,6 @@ class GreenMetrics_Tracker {
 
 		return $formatted_results;
 	}
+
+
 }

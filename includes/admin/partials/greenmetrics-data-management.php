@@ -362,11 +362,11 @@ $total_size = \GreenMetrics\GreenMetrics_Data_Manager::format_bytes($table_sizes
 											<div class="date-range-inputs">
 												<label>
 													<?php esc_html_e( 'From:', 'greenmetrics' ); ?>
-													<input type="date" name="start_date" id="export-start-date" value="<?php echo esc_attr( date( 'Y-m-d', strtotime( '-30 days' ) ) ); ?>">
+													<input type="date" name="start_date" id="export-start-date" value="<?php echo esc_attr( gmdate( 'Y-m-d', strtotime( '-30 days' ) ) ); ?>">
 												</label>
 												<label>
 													<?php esc_html_e( 'To:', 'greenmetrics' ); ?>
-													<input type="date" name="end_date" id="export-end-date" value="<?php echo esc_attr( date( 'Y-m-d' ) ); ?>">
+													<input type="date" name="end_date" id="export-end-date" value="<?php echo esc_attr( gmdate( 'Y-m-d' ) ); ?>">
 												</label>
 											</div>
 											<p class="description"><?php esc_html_e( 'Choose the date range for the exported data.', 'greenmetrics' ); ?></p>
@@ -381,6 +381,7 @@ $total_size = \GreenMetrics\GreenMetrics_Data_Manager::format_bytes($table_sizes
 												// Get pages with metrics
 												global $wpdb;
 												$table_name = $wpdb->prefix . 'greenmetrics_stats';
+												// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Safe table name interpolation
 												$page_ids = $wpdb->get_col( "SELECT DISTINCT page_id FROM $table_name ORDER BY page_id" );
 
 												foreach ( $page_ids as $page_id ) {

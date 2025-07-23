@@ -773,8 +773,8 @@ class GreenMetrics_Admin {
 					</div>
 				</div>
 				<div class="font-size-arrows">
-					<span class="dashicons dashicons-arrow-up-alt2" onclick="incrementFontSize('badge_icon_size_number')"></span>
-					<span class="dashicons dashicons-arrow-down-alt2" onclick="decrementFontSize('badge_icon_size_number')"></span>
+					<span class="dashicons dashicons-arrow-up-alt2"></span>
+					<span class="dashicons dashicons-arrow-down-alt2"></span>
 				</div>
 				<input type="hidden"
 					id="badge_icon_size"
@@ -1241,8 +1241,8 @@ class GreenMetrics_Admin {
 					</div>
 				</div>
 				<div class="font-size-arrows">
-					<span class="dashicons dashicons-arrow-up-alt2" onclick="incrementFontSize('popover_content_font_size_number')"></span>
-					<span class="dashicons dashicons-arrow-down-alt2" onclick="decrementFontSize('popover_content_font_size_number')"></span>
+					<span class="dashicons dashicons-arrow-up-alt2"></span>
+					<span class="dashicons dashicons-arrow-down-alt2"></span>
 				</div>
 				<input type="hidden"
 					id="popover_content_font_size"
@@ -1251,33 +1251,7 @@ class GreenMetrics_Admin {
 			</div>
 			<p class="description"><?php esc_html_e( 'Font size for the popover content.', 'greenmetrics' ); ?></p>
 		</div>
-		<script>
-		function incrementFontSize(inputId) {
-			const input = document.getElementById(inputId);
-			const hiddenInput = document.getElementById(inputId.replace('_number', ''));
-			const currentValue = parseInt(input.value) || 0;
-			const newValue = Math.min(currentValue + 1, parseInt(input.max));
-			input.value = newValue;
-			hiddenInput.value = newValue + 'px';
-
-			// Trigger change event for preview update
-			const event = new Event('change', { bubbles: true });
-			input.dispatchEvent(event);
-		}
-
-		function decrementFontSize(inputId) {
-			const input = document.getElementById(inputId);
-			const hiddenInput = document.getElementById(inputId.replace('_number', ''));
-			const currentValue = parseInt(input.value) || 0;
-			const newValue = Math.max(currentValue - 1, parseInt(input.min));
-			input.value = newValue;
-			hiddenInput.value = newValue + 'px';
-
-			// Trigger change event for preview update
-			const event = new Event('change', { bubbles: true });
-			input.dispatchEvent(event);
-		}
-		</script>
+		<!-- Font size control functions are now in greenmetrics-admin-modules/font-size-controls.js -->
 		<?php
 	}
 
@@ -1342,8 +1316,8 @@ class GreenMetrics_Admin {
 					</div>
 				</div>
 				<div class="font-size-arrows">
-					<span class="dashicons dashicons-arrow-up-alt2" onclick="incrementFontSize('popover_metrics_label_font_size_number')"></span>
-					<span class="dashicons dashicons-arrow-down-alt2" onclick="decrementFontSize('popover_metrics_label_font_size_number')"></span>
+					<span class="dashicons dashicons-arrow-up-alt2"></span>
+					<span class="dashicons dashicons-arrow-down-alt2"></span>
 				</div>
 				<input type="hidden"
 					id="popover_metrics_label_font_size"
@@ -1380,8 +1354,8 @@ class GreenMetrics_Admin {
 					</div>
 				</div>
 				<div class="font-size-arrows">
-					<span class="dashicons dashicons-arrow-up-alt2" onclick="incrementFontSize('popover_metrics_font_size_number')"></span>
-					<span class="dashicons dashicons-arrow-down-alt2" onclick="decrementFontSize('popover_metrics_font_size_number')"></span>
+					<span class="dashicons dashicons-arrow-up-alt2"></span>
+					<span class="dashicons dashicons-arrow-down-alt2"></span>
 				</div>
 				<input type="hidden"
 					id="popover_metrics_font_size"
@@ -1459,8 +1433,8 @@ class GreenMetrics_Admin {
 		// Only load our styles on GreenMetrics plugin pages
 		// This includes our plugin settings pages and any page with greenmetrics in the ID
 		$current_page = '';
-		if ( isset( $_GET['page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checking GET parameter only for conditional loading of styles, no data modification.
-			$current_page = sanitize_text_field( wp_unslash( $_GET['page'] ) );
+		if ( isset( $_GET['page'] ) ) {
+			$current_page = sanitize_text_field( wp_unslash( $_GET['page'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checking GET parameter only for conditional loading of styles, no data modification.
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Simply checking if on a plugin page for conditionally loading styles
@@ -1515,121 +1489,10 @@ class GreenMetrics_Admin {
 				'all'
 			);
 
-			// Add inline styles to ensure consistent tab navigation
-			$tab_consistency_styles = '
-			/* Ensure consistent tab navigation with other admin pages */
-			.greenmetrics-tabs-nav {
-				margin-bottom: 20px;
-			}
-
-			.greenmetrics-tabs-list {
-				background: #f0f0f1;
-				border-bottom: 1px solid #ccc;
-			}
-
-			.greenmetrics-tab-item {
-				background-color: #f0f0f1;
-				border: none;
-				margin: 0;
-				margin-right: 5px;
-				position: relative;
-			}
-
-			.greenmetrics-tab-item.active {
-				background-color: #fff;
-				color: #2271b1;
-				border-top: 3px solid #2271b1;
-				padding-top: 9px;
-				border-bottom: none;
-				margin-bottom: 0;
-			}
-
-			.greenmetrics-tab-item.active:after {
-				content: "";
-				position: absolute;
-				bottom: -1px;
-				left: 0;
-				right: 0;
-				height: 1px;
-				background: #fff;
-			}
-
-			.greenmetrics-tab-item.active .dashicons {
-				color: #2271b1;
-			}';
-
-			wp_add_inline_style( 'greenmetrics-email-reporting', $tab_consistency_styles );
+			// Tab consistency styles are now in greenmetrics-email-reporting.css
 		}
 
-		// Add inline styles for the font size inputs
-		$font_size_styles = '
-		.greenmetrics-font-size-wrapper {
-			margin-bottom: 15px;
-		}
-		.font-size-control {
-			display: flex;
-			align-items: center;
-			max-width: 165px;
-			position: relative;
-			margin-bottom: 5px;
-		}
-		.font-size-input-group {
-			display: flex;
-			border: 1px solid #8d96a0;
-			border-radius: 4px;
-			overflow: hidden;
-			flex: 1;
-		}
-		.font-size-number {
-			border: none !important;
-			box-shadow: none !important;
-			flex: 1;
-			text-align: center;
-			padding: 0 5px !important;
-			min-height: 30px;
-			-moz-appearance: textfield;
-			width: 65px !important;
-			font-size: 13px !important;
-		}
-		.font-size-number:focus {
-			outline: none !important;
-		}
-		.font-size-number::-webkit-outer-spin-button,
-		.font-size-number::-webkit-inner-spin-button {
-			-webkit-appearance: none;
-			margin: 0;
-		}
-		.font-size-unit {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			background: #f0f0f1;
-			min-width: 30px;
-			color: #50575e;
-			border-left: 1px solid #8d96a0;
-			font-size: 13px;
-		}
-		.font-size-arrows {
-			display: flex;
-			flex-direction: column;
-			margin-left: 6px;
-			height: 30px;
-			justify-content: space-between;
-		}
-		.font-size-arrows .dashicons {
-			font-size: 18px;
-			height: 15px;
-			width: 15px;
-			cursor: pointer;
-			color: #2271b1;
-			transition: color 0.2s ease;
-			line-height: 15px;
-		}
-		.font-size-arrows .dashicons:hover {
-			color: #135e96;
-		}
-		';
-		wp_add_inline_style( 'greenmetrics-admin', $font_size_styles );
+		// Font size control styles are now in greenmetrics-admin.css
 	}
 
 	/**
@@ -1647,8 +1510,8 @@ class GreenMetrics_Admin {
 		// Only load our scripts on GreenMetrics plugin pages
 		// This includes our plugin settings pages and any page with greenmetrics in the ID
 		$current_page = '';
-		if ( isset( $_GET['page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checking GET parameter only for conditional loading of scripts, no data modification.
-			$current_page = sanitize_text_field( wp_unslash( $_GET['page'] ) );
+		if ( isset( $_GET['page'] ) ) {
+			$current_page = sanitize_text_field( wp_unslash( $_GET['page'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checking GET parameter only for conditional loading of scripts, no data modification.
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Simply checking if on a plugin page for conditionally loading scripts
@@ -1789,6 +1652,8 @@ class GreenMetrics_Admin {
 			GREENMETRICS_VERSION,
 			true
 		);
+
+		// Font size controls are handled by the preview.js module
 
 		// Load preview module - only needed on plugin settings pages
 		// (which we are always on if we got this far and it's not the dashboard)
@@ -2022,7 +1887,9 @@ class GreenMetrics_Admin {
 				$result = $email_reporter->send_test_email();
 			} catch ( \Exception $e ) {
 				// Log critical errors only
-				error_log('GreenMetrics - Error sending test email: ' . $e->getMessage());
+				if ( function_exists( 'greenmetrics_log' ) ) {
+					greenmetrics_log( 'Error sending test email: ' . $e->getMessage(), null, 'error' );
+				}
 
 				// Clean output buffer
 				ob_end_clean();
@@ -2082,7 +1949,8 @@ class GreenMetrics_Admin {
 
 			// Handle color settings
 			if ( isset( $_POST['colors'] ) && is_array( $_POST['colors'] ) ) {
-				$colors = $_POST['colors'];
+				// Sanitize the colors array first
+				$colors = array_map( 'sanitize_text_field', wp_unslash( $_POST['colors'] ) );
 				$settings['email_color_primary'] = isset( $colors['primary'] ) ? sanitize_hex_color( $colors['primary'] ) : '#4CAF50';
 				$settings['email_color_secondary'] = isset( $colors['secondary'] ) ? sanitize_hex_color( $colors['secondary'] ) : '#f9f9f9';
 				$settings['email_color_accent'] = isset( $colors['accent'] ) ? sanitize_hex_color( $colors['accent'] ) : '#333333';
@@ -2107,7 +1975,9 @@ class GreenMetrics_Admin {
 				}
 			} catch ( \Exception $e ) {
 				// Log critical errors only
-				error_log('GreenMetrics - Error generating email preview: ' . $e->getMessage());
+				if ( function_exists( 'greenmetrics_log' ) ) {
+					greenmetrics_log( 'Error generating email preview: ' . $e->getMessage(), null, 'error' );
+				}
 				// Clean output buffer
 				ob_end_clean();
 				wp_send_json_error( array( 'message' => 'Error generating preview: ' . $e->getMessage() ) );
@@ -2147,15 +2017,11 @@ class GreenMetrics_Admin {
 	 * Handle running data management tasks.
 	 */
 	public function handle_run_data_management() {
-		// Check nonce
-		if ( ! isset( $_POST['greenmetrics_data_management_nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['greenmetrics_data_management_nonce'] ), 'greenmetrics_run_data_management' ) ) {
-			wp_die( esc_html__( 'Security check failed.', 'greenmetrics' ) );
-		}
-
-		// Check permissions
+		// Verify capability and nonce for data management actions
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'greenmetrics' ) );
+			wp_die( esc_html__( 'Permission denied', 'greenmetrics' ), '', 403 );
 		}
+		check_admin_referer( 'greenmetrics_run_data_management', 'greenmetrics_data_management_nonce' );
 
 		$data_manager = \GreenMetrics\GreenMetrics_Data_Manager::get_instance();
 		$settings = \GreenMetrics\GreenMetrics_Settings_Manager::get_instance()->get();
@@ -2166,7 +2032,7 @@ class GreenMetrics_Admin {
 			&& sanitize_text_field( wp_unslash( $_POST['run_aggregation'] ) )
 		) {
 			$aggregation_age = isset( $settings['aggregation_age'] ) ? intval( $settings['aggregation_age'] ) : 30;
-			
+
 			// Whitelist aggregation types
 			$allowed_agg_types = array( 'daily', 'weekly', 'monthly' );
 			$raw_agg_type      = isset( $settings['aggregation_type'] )
@@ -2244,7 +2110,7 @@ class GreenMetrics_Admin {
 			if ( wp_doing_ajax() ) {
 				wp_send_json_error( __( 'Permission denied', 'greenmetrics' ), 403 );
 			} else {
-				wp_die( __( 'Permission denied', 'greenmetrics' ), '', 403 );
+				wp_die( esc_html__( 'Permission denied', 'greenmetrics' ), '', 403 );
 			}
 			return;
 		}
@@ -2273,15 +2139,11 @@ class GreenMetrics_Admin {
 	 * Handle refresh statistics form submission from the data management page.
 	 */
 	public function handle_refresh_stats_redirect() {
-		// Verify nonce
-		if ( ! isset( $_POST['greenmetrics_refresh_nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['greenmetrics_refresh_nonce'] ), 'greenmetrics_refresh_stats' ) ) {
-			wp_die( esc_html__( 'Security check failed.', 'greenmetrics' ) );
-		}
-
-		// Check permissions
+		// Verify capability and nonce for stats refresh actions
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'greenmetrics' ) );
+			wp_die( esc_html__( 'Permission denied', 'greenmetrics' ), '', 403 );
 		}
+		check_admin_referer( 'greenmetrics_refresh_stats', 'greenmetrics_refresh_nonce' );
 
 		// Trigger manual cache refresh
 		\GreenMetrics\GreenMetrics_Tracker::manual_cache_refresh();

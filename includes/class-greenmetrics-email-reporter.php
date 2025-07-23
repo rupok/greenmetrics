@@ -91,7 +91,7 @@ class GreenMetrics_Email_Reporter {
 
 		// Schedule the cron job
 		wp_schedule_event( $next_run, $frequency, 'greenmetrics_send_email_report' );
-		greenmetrics_log( 'Email reporting cron job scheduled', array( 'next_run' => date( 'Y-m-d H:i:s', $next_run ) ) );
+		greenmetrics_log( 'Email reporting cron job scheduled', array( 'next_run' => gmdate( 'Y-m-d H:i:s', $next_run ) ) );
 	}
 
 	/**
@@ -123,9 +123,9 @@ class GreenMetrics_Email_Reporter {
 				$day = max( 1, min( 28, $day ) ); // Ensure day is between 1-28 for compatibility
 
 				// Get the current month and year
-				$current_month = date( 'n', $current_time );
-				$current_year = date( 'Y', $current_time );
-				$current_day = date( 'j', $current_time );
+				$current_month = gmdate( 'n', $current_time );
+				$current_year = gmdate( 'Y', $current_time );
+				$current_day = gmdate( 'j', $current_time );
 
 				// If the target day has already passed this month, move to next month
 				if ( $current_day >= $day ) {
@@ -210,8 +210,6 @@ class GreenMetrics_Email_Reporter {
 				'headers' => $headers,
 				'content_length' => strlen($content)
 			) );
-		} else {
-			error_log('GreenMetrics - Attempting to send email to: ' . $recipients);
 		}
 
 		// Send the email
@@ -257,8 +255,6 @@ class GreenMetrics_Email_Reporter {
 		if ( $result ) {
 			if (function_exists('greenmetrics_log')) {
 				greenmetrics_log( 'Email report sent successfully', array( 'recipients' => $recipients ) );
-			} else {
-				error_log('GreenMetrics - Email report sent successfully to: ' . $recipients);
 			}
 		} else {
 			$mail_error = '';
@@ -274,8 +270,6 @@ class GreenMetrics_Email_Reporter {
 					'recipients' => $recipients,
 					'error' => $mail_error
 				), 'error' );
-			} else {
-				error_log('GreenMetrics - Failed to send email report to: ' . $recipients . ' - Error: ' . $mail_error);
 			}
 		}
 
@@ -442,8 +436,6 @@ class GreenMetrics_Email_Reporter {
 			// Log the error
 			if (function_exists('greenmetrics_log')) {
 				greenmetrics_log('Error getting stats: ' . $e->getMessage(), null, 'error');
-			} else {
-				error_log('GreenMetrics - Error getting stats: ' . $e->getMessage());
 			}
 
 			// Use default stats
@@ -839,22 +831,22 @@ class GreenMetrics_Email_Reporter {
 		switch ($frequency) {
 			case 'daily':
 				// Last 24 hours
-				$start_date = date('Y-m-d H:i:s', strtotime('-1 day', strtotime($end_date)));
+				$start_date = gmdate('Y-m-d H:i:s', strtotime('-1 day', strtotime($end_date)));
 				break;
 
 			case 'weekly':
 				// Last 7 days
-				$start_date = date('Y-m-d H:i:s', strtotime('-7 days', strtotime($end_date)));
+				$start_date = gmdate('Y-m-d H:i:s', strtotime('-7 days', strtotime($end_date)));
 				break;
 
 			case 'monthly':
 				// Last 30 days
-				$start_date = date('Y-m-d H:i:s', strtotime('-30 days', strtotime($end_date)));
+				$start_date = gmdate('Y-m-d H:i:s', strtotime('-30 days', strtotime($end_date)));
 				break;
 
 			default:
 				// Default to weekly
-				$start_date = date('Y-m-d H:i:s', strtotime('-7 days', strtotime($end_date)));
+				$start_date = gmdate('Y-m-d H:i:s', strtotime('-7 days', strtotime($end_date)));
 		}
 
 		return array(
@@ -908,10 +900,12 @@ class GreenMetrics_Email_Reporter {
 					return (string) $value;
 			}
 		} catch (\Exception $e) {
-			// Log the error
+			// Log the error using WordPress native debugging
 			if (function_exists('greenmetrics_log')) {
 				greenmetrics_log('Error formatting ' . $type . ': ' . $e->getMessage(), null, 'error');
-			} else {
+			} elseif (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+				// Use WordPress native debug logging when available
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Only used when WP_DEBUG_LOG is enabled
 				error_log('GreenMetrics - Error formatting ' . $type . ': ' . $e->getMessage());
 			}
 
@@ -947,14 +941,10 @@ class GreenMetrics_Email_Reporter {
 
 			if (function_exists('greenmetrics_log')) {
 				greenmetrics_log("Formatter test: Carbon: $test_carbon, Energy: $test_energy, Bytes: $test_bytes, Score: $test_score");
-			} else {
-				error_log("GreenMetrics - Formatter test: Carbon: $test_carbon, Energy: $test_energy, Bytes: $test_bytes, Score: $test_score");
 			}
 		} catch (\Exception $e) {
 			if (function_exists('greenmetrics_log')) {
 				greenmetrics_log("Formatter test failed: " . $e->getMessage(), null, 'error');
-			} else {
-				error_log("GreenMetrics - Formatter test failed: " . $e->getMessage());
 			}
 		}
 		try {
@@ -974,8 +964,6 @@ class GreenMetrics_Email_Reporter {
 			// Log the error
 			if (function_exists('greenmetrics_log')) {
 				greenmetrics_log('Error generating email preview: ' . $e->getMessage(), null, 'error');
-			} else {
-				error_log('GreenMetrics - Error generating email preview: ' . $e->getMessage());
 			}
 
 			// Return a simple fallback content

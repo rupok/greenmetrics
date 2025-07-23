@@ -910,20 +910,8 @@ class GreenMetrics_Public {
 
 		// Print the global badge HTML
 		?>
-		<div class="<?php echo esc_attr( implode( ' ', $global_classes ) ); ?>">
+		<div class="<?php echo esc_attr( implode( ' ', $global_classes ) ); ?>" style="--hover-bg-color: <?php echo esc_attr( $popover_metrics_list_hover_bg_color ); ?>; --icon-size: <?php echo esc_attr( $icon_size ); ?>;">
 			<div class="greenmetrics-global-badge-wrapper">
-				<style>
-					.greenmetrics-global-badge-wrapper .greenmetrics-global-badge-content .greenmetrics-global-badge-metrics .greenmetrics-global-badge-metric:hover {
-						background-color: <?php echo esc_attr( $popover_metrics_list_hover_bg_color ); ?> !important;
-						transition: background-color 0.2s ease !important;
-					}
-					.greenmetrics-global-badge-button .icon-container svg {
-						width: <?php echo esc_attr( $icon_size ); ?>;
-						height: <?php echo esc_attr( $icon_size ); ?>;
-						fill: currentColor;
-						display: block;
-					}
-				</style>
 				<div class="greenmetrics-global-badge-button <?php echo esc_attr( $size ); ?>" style="<?php echo esc_attr( $button_style ); ?>">
 					<?php echo wp_kses_post( $icon_html ); ?>
 					<span><?php echo esc_html( $badge_text ); ?></span>

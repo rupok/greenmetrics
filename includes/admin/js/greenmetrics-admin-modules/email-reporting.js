@@ -46,6 +46,9 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 	 * @private
 	 */
 	function setupEventListeners() {
+		// Initialize tab functionality
+		initTabFunctionality();
+
 		// Handle frequency change
 		$('#email_reporting_frequency').on('change', function() {
 			updateDayOptions();
@@ -96,6 +99,88 @@ GreenMetricsAdmin.EmailReporting = (function ($) {
 		// Initialize email preview with loading indicator
 		showPreviewLoading();
 		updateEmailPreview();
+	}
+
+	/**
+	 * Initialize tab functionality
+	 *
+	 * @function initTabFunctionality
+	 * @memberof GreenMetricsAdmin.EmailReporting
+	 * @private
+	 */
+	function initTabFunctionality() {
+		// Tab functionality
+		$('.greenmetrics-tab-item').on('click', function() {
+			var tabId = $(this).data('tab');
+
+			// Update active tab
+			$('.greenmetrics-tab-item').removeClass('active');
+			$(this).addClass('active');
+
+			// Show selected tab content
+			$('.greenmetrics-tab-content').removeClass('active');
+			$('#tab-' + tabId).addClass('active');
+
+			// Save active tab to localStorage
+			localStorage.setItem('greenmetrics_active_email_tab', tabId);
+
+			// Update preview when switching to templates tab
+			if (tabId === 'templates') {
+				// Update the email preview to reflect current template settings
+				setTimeout(function() {
+					updateEmailPreview();
+					adjustPreviewHeight();
+				}, 100);
+			}
+		});
+
+		// Restore active tab from localStorage
+		var activeTab = localStorage.getItem('greenmetrics_active_email_tab');
+		if (activeTab) {
+			$('.greenmetrics-tab-item[data-tab="' + activeTab + '"]').trigger('click');
+		}
+
+		// Handle "Send Test Email" link in history tab
+		$('.send-test-email-link').on('click', function(e) {
+			e.preventDefault();
+			// Get target tab (default to templates)
+			var targetTab = $(this).data('target-tab') || 'templates';
+
+			// Switch to target tab
+			$('.greenmetrics-tab-item[data-tab="' + targetTab + '"]').trigger('click');
+
+			// Scroll to appropriate test email button
+			var targetButton = targetTab === 'settings' ? '#send_test_email' : '#send_test_email_template';
+			$('html, body').animate({
+				scrollTop: $(targetButton).offset().top - 100
+			}, 500);
+		});
+
+		// If templates tab is active on page load, update preview and adjust height
+		if (localStorage.getItem('greenmetrics_active_email_tab') === 'templates') {
+			setTimeout(function() {
+				updateEmailPreview();
+				adjustPreviewHeight();
+			}, 500);
+		}
+	}
+
+	/**
+	 * Adjust preview height for iframe
+	 *
+	 * @function adjustPreviewHeight
+	 * @memberof GreenMetricsAdmin.EmailReporting
+	 * @private
+	 */
+	function adjustPreviewHeight() {
+		var iframe = document.getElementById('email-preview-frame');
+		if (!iframe) return;
+
+		// If the iframe is not yet loaded or has no content, try again after a delay
+		if (!iframe || !iframe.contentWindow || !iframe.contentWindow.document.body ||
+			iframe.contentWindow.document.body.scrollHeight < 50) {
+			setTimeout(adjustPreviewHeight, 200);
+		}
 	}
 
 	/**

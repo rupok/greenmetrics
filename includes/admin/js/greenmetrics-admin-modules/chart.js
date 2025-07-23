@@ -55,6 +55,7 @@ GreenMetricsAdmin.Chart = (function ($) {
 
 	// Initialize Chart.js with our configuration
 	function initChart() {
+		// Chart.js v4 compatible font configuration
 		Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
 		Chart.defaults.font.size   = 12;
 
