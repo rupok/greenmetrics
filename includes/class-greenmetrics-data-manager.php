@@ -329,12 +329,12 @@ class GreenMetrics_Data_Manager {
 		$dates_to_aggregate = $wpdb->get_results(
 			$wpdb->prepare(
 				/* phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- safe identifiers escaped via esc_sql */
-				"SELECT DISTINCT `{$date_format_sql}` as date_start,
-					DATE_ADD(`{$date_format_sql}`, INTERVAL {$interval_sql}) as date_end,
+				"SELECT DISTINCT {$date_format_sql} as date_start,
+					DATE_ADD({$date_format_sql}, INTERVAL {$interval_sql}) as date_end,
 					page_id
 				 FROM `{$table_name}`
 				 WHERE created_at < %s
-				 GROUP BY `{$group_by_sql}`",
+				 GROUP BY {$group_by_sql}",
 				$cutoff_date
 			),
 			ARRAY_A
@@ -536,7 +536,7 @@ class GreenMetrics_Data_Manager {
 				$wpdb->prepare(
 					/* phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- safe identifiers & IN clause safely escaped */
 					"DELETE FROM `{$table_name}`
-					 WHERE `{$date_field}` IN ('{$dates_in}')
+					 WHERE {$date_field} IN ('{$dates_in}')
 					 AND created_at < %s",
 					$cutoff_date
 				)
